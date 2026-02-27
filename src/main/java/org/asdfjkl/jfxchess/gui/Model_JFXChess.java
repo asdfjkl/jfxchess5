@@ -1,5 +1,9 @@
 package org.asdfjkl.jfxchess.gui;
 
+import org.asdfjkl.jfxchess.lib.Board;
+import org.asdfjkl.jfxchess.lib.Game;
+import org.asdfjkl.jfxchess.lib.GameNode;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -24,5 +28,17 @@ public class Model_JFXChess {
     }
 
 
+    public Game getGame() {
+        Game g = new Game();
+        Board b = new Board(true);
+        GameNode start = new GameNode();
+        start.setBoard(b);
+        g.setRoot(start);
+        g.setCurrent(start);
+        return g;
+    }
 
+    public boolean getFlipBoard() {
+        return true;
+    }
 }

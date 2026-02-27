@@ -18,7 +18,6 @@ public class App {
         System.setProperty("flatlaf.useWindowDecorations", "false");
         System.setProperty("flatlaf.menuBarEmbedded", "false");
 
-
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
@@ -40,20 +39,16 @@ public class App {
         } */
 
 
-
+        /*
         try {
-            //FlatLightLaf.setup();
-            //FlatDarkLaf.setup();
-            //FlatIntelliJLaf.setup();
-            //FlatDarculaLaf.setup();
-
-
-
+            FlatLightLaf.setup();
+            FlatDarkLaf.setup();
+            FlatIntelliJLaf.setup();
+            FlatDarculaLaf.setup();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
-        //SwingUtilities.invokeLater(new Main().start());
+         */
 
         SwingUtilities.invokeLater(() -> {
             new App().start();
@@ -62,10 +57,10 @@ public class App {
 
     private void start() {
 
+        // todo: reconstruct from settings file
         Model_JFXChess model = new Model_JFXChess();
         View_MainFrame frame = new View_MainFrame(model);
         frame.setVisible(true);
-
 
     }
 
