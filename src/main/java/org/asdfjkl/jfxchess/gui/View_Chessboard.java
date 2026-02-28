@@ -3,6 +3,8 @@ package org.asdfjkl.jfxchess.gui;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -12,6 +14,8 @@ import org.asdfjkl.jfxchess.lib.Board;
 import org.asdfjkl.jfxchess.lib.ColoredField;
 import org.asdfjkl.jfxchess.lib.Move;
 
+import static java.awt.event.MouseEvent.BUTTON1;
+import static java.awt.event.MouseEvent.BUTTON2;
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.*;
 
 public class View_Chessboard extends JPanel
@@ -20,7 +24,7 @@ public class View_Chessboard extends JPanel
     private final Model_JFXChess model;
 
     BoardStyle boardStyle = new BoardStyle();
-    final double outputScaleX = 1.0;
+    final double outputScaleX = HighDPIHelper.getUIScaleFactor();
     boolean flipBoard = true;
 
     int innerXOffset;
@@ -44,14 +48,47 @@ public class View_Chessboard extends JPanel
     Color coloredFieldColor;
 
     public View_Chessboard(Model_JFXChess model) {
+
+        setPreferredSize(new Dimension(500, 500));
+
         this.model = model;
         this.model.addListener(this);
 
-        setPreferredSize(new Dimension(500, 500));
-        setBackground(Color.WHITE);
+        boardStyle = new BoardStyle();
+        grabbedPiece.setPiece(-1);
+        moveSource = new Point(-1,-1);
+        colorClickSource = new Point(-1,-1);
+        grabbedArrow = new Arrow();
+        grabbedArrow.xFrom = grabbedArrow.yFrom = grabbedArrow.xTo = grabbedArrow.yTo = -1;
+        lastMoveColor = new Color(200,200,0,102);
+        arrowColor = new Color(50,88,0,255);
+        arrowGrabColor = new Color(70,130,0, 255);
+        coloredFieldColor = new Color(200,0,0,102);
+        moveSource = new Point(-1,-1);
 
-        Border border = BorderFactory.createLineBorder(Color.BLACK);
-        setBorder(border);
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent me) {
+                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
+                handleMousePress(me);
+                repaint();
+            }
+        });
+
+        addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent me) {
+                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
+                handleMouseReleased(me);
+                repaint();
+            }
+        });
+
+        addMouseMotionListener(new MouseAdapter() {
+            public void mouseDragged(MouseEvent me) {
+                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
+                handleMouseDragged(me);
+                repaint();
+            }
+        });
     }
 
     @Override
@@ -344,6 +381,168 @@ public class View_Chessboard extends JPanel
         gc.setStroke(currentPaint);
     }
     */
+
+    Point getBoardPosition(double x, double y) {
+
+        if(x > innerXOffset && y > innerYOffset
+                && x < (innerXOffset + 8*squareSize)
+                && y < (innerYOffset + 8*squareSize)) {
+
+            int i = (int) x - innerXOffset;
+            int j = (int) y - innerYOffset;
+
+            if(flipBoard) {
+                i = 7 - (i / squareSize);
+                j = j / squareSize;
+            } else {
+                i = i / squareSize;
+                j = 7 - (j / squareSize);
+            }
+            return new Point(i,j);
+        }
+        return null;
+    }
+
+    void touchPiece(int boardX, int boardY, double currentXLocation, double currentYLocation) {
+
+        moveSource = new Point();
+        moveSource.x = boardX;
+        moveSource.y = boardY;
+
+        grabbedPiece.setCurrentXLocation(currentXLocation);
+        grabbedPiece.setCurrentYLocation(currentYLocation);
+        grabbedPiece.setPiece(model.getGame().getCurrentNode().getBoard().getPieceAt(boardX,boardY));
+        drawGrabbedPiece = true;
+    }
+
+
+    private void handleMousePress(MouseEvent e) {
+
+        if(!model.blockGUI) {
+            int mouseButton = e.getButton();
+            if (mouseButton == BUTTON1) {
+                Board b = model.getGame().getCurrentNode().getBoard();
+                Point boardPos = getBoardPosition(e.getX(), e.getY());
+                // case (a) 1) user clicks source field, then 2) clicks destination
+                // case (b) user clicks and drags piece
+                if (boardPos != null) {
+                    if (grabbedPiece.getPiece() != -1) {
+                        // case a) 2)
+                        Move m = new Move(moveSource.x, moveSource.y, boardPos.x, boardPos.y);
+                        if (b.isLegalAndPromotes(m)) {
+                            DialogPromotion dlgProm = new DialogPromotion(
+                                    model.mainFrameRef,
+                                    "Promotion",
+                                    b.turn,
+                                    boardStyle.getPieceStyle()
+                            );
+                            dlgProm.setVisible(true);
+                            int promotionPiece = dlgProm.getSelectedPiece();
+                            if (promotionPiece != EMPTY) {
+                                m.setPromotionPiece(promotionPiece);
+                                System.out.println("promoted to: "+promotionPiece);
+                                //applyMove(m);
+                            }
+                            resetMove();
+                        } else if (b.isLegal(m)) {
+                            //applyMove(m);
+                            //resetMove();
+                        } else {
+                            resetMove();
+                            if (b.isPieceAt(boardPos.x, boardPos.y)) {
+                                touchPiece(boardPos.x, boardPos.y, e.getX(), e.getY());
+                            }
+                        }
+                    } else { // case a) 1) or b)
+                        if (b.isPieceAt(boardPos.x, boardPos.y)) {
+                            touchPiece(boardPos.x, boardPos.y, e.getX(), e.getY());
+                        }
+                    }
+                }
+            }
+            if (mouseButton == BUTTON2) {
+                Point boardCoordinate = getBoardPosition(e.getX(), e.getY());
+                handleRightClick(boardCoordinate);
+            }
+        }
+    }
+
+    private void handleMouseDragged(MouseEvent me) {
+        System.out.println("Mouse dragged");
+
+        if(drawGrabbedPiece && grabbedPiece.getPiece() != -1) {
+            grabbedPiece.setCurrentXLocation(me.getX());
+            grabbedPiece.setCurrentYLocation(me.getY());
+            repaint();
+        }
+        if(drawGrabbedArrow) {
+            Point xy = getBoardPosition(me.getX(), me.getY());
+            if(xy != null) {
+                grabbedArrow.xTo = xy.x;
+                grabbedArrow.yTo = xy.y;
+                repaint();
+            }
+        }
+    }
+
+    private void handleMouseReleased(MouseEvent me) {
+
+        int mouseButton = me.getButton();
+        if(mouseButton == BUTTON1) {
+            drawGrabbedPiece = false;
+            Point boardPos = getBoardPosition(me.getX(), me.getY());
+            Board b = model.getGame().getCurrentNode().getBoard();
+            if (boardPos != null && grabbedPiece.getPiece() != -1) {
+                if (!(boardPos.x == moveSource.x && boardPos.y == moveSource.y)) {
+                    Move m = new Move(moveSource.x, moveSource.y, boardPos.x, boardPos.y);
+                    if (b.isLegalAndPromotes(m)) {
+                        //int promotionPiece = DialogPromotion.show(
+                        //        gameModel.getStageRef(),
+                        //        b.turn,
+                        //        boardStyle.getPieceStyle(),
+                        //        gameModel.THEME);
+                        //if (promotionPiece != EMPTY) {
+                        //    m.setPromotionPiece(promotionPiece);
+                        //    applyMove(m);
+                        //}
+                        resetMove();
+                    } else if (b.isLegal(m)) {
+                        //applyMove(m);
+                    } else {
+                        resetMove();
+                    }
+
+                }
+            }
+        }
+        if(mouseButton == BUTTON2) {
+            Point boardCoordinate = getBoardPosition(me.getX(), me.getY());
+            //handleRightClickRelease(boardCoordinate);
+        }
+        repaint();
+    }
+
+
+    private void handleRightClick(Point boardCoordinate) {
+        // user clicked and is going to draw arrow or mark a field
+        if(boardCoordinate != null) {
+            colorClickSource.x = boardCoordinate.x;
+            colorClickSource.y = boardCoordinate.y;
+
+            grabbedArrow.xFrom = boardCoordinate.x;
+            grabbedArrow.yFrom = boardCoordinate.y;
+            drawGrabbedArrow = true;
+        }
+    }
+
+    void resetMove() {
+
+        moveSource.x = -1;
+        moveSource.y = -1;
+        grabbedPiece.setPiece(-1);
+        drawGrabbedPiece = false;
+    }
+
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {

@@ -15,8 +15,8 @@ public class App {
     public static void main(String[] args) {
 
         // set to false, for platform independent jar
-        System.setProperty("flatlaf.useWindowDecorations", "false");
-        System.setProperty("flatlaf.menuBarEmbedded", "false");
+        //System.setProperty("flatlaf.useWindowDecorations", "false");
+        //System.setProperty("flatlaf.menuBarEmbedded", "false");
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -60,6 +60,7 @@ public class App {
         // todo: reconstruct from settings file
         Model_JFXChess model = new Model_JFXChess();
         View_MainFrame frame = new View_MainFrame(model);
+        model.mainFrameRef = frame;
         frame.setVisible(true);
 
     }
