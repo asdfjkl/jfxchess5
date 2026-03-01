@@ -167,7 +167,9 @@ public class View_MainFrame extends JFrame
         databaseMenu.add(new JMenuItem("Previous Game"));
 
         JMenu helpMenu = new JMenu("Help");
-        helpMenu.add(new JMenuItem("About"));
+        JMenuItem jmiAbout = new JMenuItem("About");
+        jmiAbout.addActionListener(uiController.showAbout());
+        helpMenu.add(jmiAbout);
         helpMenu.add(new JMenuItem("JFXChess Homepage"));
 
         menuBar.add(gameMenu);
@@ -231,6 +233,7 @@ public class View_MainFrame extends JFrame
         toolBar.addSeparator();
 
         JButton btnTbAbout = createToolButton("About", "about.svg");
+        btnTbAbout.addActionListener(uiController.showAbout());
         toolBar.add(btnTbAbout);
 
         return toolBar;

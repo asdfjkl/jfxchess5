@@ -14,5 +14,12 @@ public class Controller_UI {
         return e -> { model.setLaf(laf); };
     }
 
+    public ActionListener showAbout() {
+        return e -> {
+            DialogAbout dlg = new DialogAbout(model.mainFrameRef, model.getVersion());
+            dlg.setVisible(true);
+        };
+    }
+
 
 }
