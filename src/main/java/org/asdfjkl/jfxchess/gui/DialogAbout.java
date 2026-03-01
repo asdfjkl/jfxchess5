@@ -67,7 +67,7 @@ public class DialogAbout extends JDialog {
         main.add(buttonPanel, BorderLayout.SOUTH);
 
         setContentPane(main);
-        setSize(250, 400);
+        setSize(300, 450);
         setLocationRelativeTo(parent);
         setResizable(false);
 
