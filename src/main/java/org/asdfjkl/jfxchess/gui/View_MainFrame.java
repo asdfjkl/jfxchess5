@@ -4,8 +4,11 @@ package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -17,9 +20,20 @@ public class View_MainFrame extends JFrame
     private final Model_JFXChess model;
     private final Controller_UI uiController;
 
+    public JSplitPane horizontalSplit;
+    public JSplitPane verticalSplit;
+
     public View_MainFrame(Model_JFXChess model) {
         this.model = model;
-        this.model.addListener(this);
+        model.addListener(this);
+
+        // todo: move to controller
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                model.saveModel();
+                model.saveScreenGeometry();
+            }
+        });
 
         uiController = new Controller_UI(model);
 
@@ -318,7 +332,7 @@ public class View_MainFrame extends JFrame
         rightPanel.add(navPanel, BorderLayout.SOUTH);
 
         // ===== Horizontal Split (Board | Right Pane) =====
-        JSplitPane horizontalSplit = new JSplitPane(
+        horizontalSplit = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 viewChessboard,
                 rightPanel
@@ -379,7 +393,7 @@ public class View_MainFrame extends JFrame
         bottomPanel.add(bottomScroll, BorderLayout.CENTER);
 
         // ===== Vertical Split (Top | Bottom) =====
-        JSplitPane verticalSplit = new JSplitPane(
+        verticalSplit = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
                 horizontalSplit,
                 bottomPanel
@@ -416,6 +430,24 @@ public class View_MainFrame extends JFrame
         }
     }
 
+    public void setGeometry(ScreenGeometry g) {
+        // restore screen geometry on main frame
+        setSize(g.width, g.height);
+        if(g.posX > 0 && g.posY > 0) {
+            setLocation(g.posX, g.posY);
+        }
+
+        if (g.isMaximized) {
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+        }
+
+        // Restore divider (after layout is ready)
+        int dividerHorizontal = g.dividerHorizontal;
+        int dividerVertical = g.dividerVertical;
+
+        horizontalSplit.setDividerLocation(dividerHorizontal);
+        verticalSplit.setDividerLocation(dividerVertical);
+    }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {

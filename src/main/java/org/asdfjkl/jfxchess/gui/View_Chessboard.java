@@ -14,8 +14,7 @@ import org.asdfjkl.jfxchess.lib.Board;
 import org.asdfjkl.jfxchess.lib.ColoredField;
 import org.asdfjkl.jfxchess.lib.Move;
 
-import static java.awt.event.MouseEvent.BUTTON1;
-import static java.awt.event.MouseEvent.BUTTON2;
+import static java.awt.event.MouseEvent.*;
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.*;
 
 public class View_Chessboard extends JPanel
@@ -68,7 +67,6 @@ public class View_Chessboard extends JPanel
 
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent me) {
-                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
                 handleMousePress(me);
                 repaint();
             }
@@ -76,7 +74,6 @@ public class View_Chessboard extends JPanel
 
         addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent me) {
-                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
                 handleMouseReleased(me);
                 repaint();
             }
@@ -84,7 +81,6 @@ public class View_Chessboard extends JPanel
 
         addMouseMotionListener(new MouseAdapter() {
             public void mouseDragged(MouseEvent me) {
-                //clicks.add(new Integer[] {me.getX() - 25, me.getY() - 25});
                 handleMouseDragged(me);
                 repaint();
             }
@@ -191,6 +187,8 @@ public class View_Chessboard extends JPanel
         // paint colored fields
         for(ColoredField coloredField : model.getGame().getCurrentNode().getColoredFields()) {
 
+            System.out.println("drawing colored square");
+
             int i = coloredField.x;
             int j = coloredField.y;
 
@@ -212,7 +210,6 @@ public class View_Chessboard extends JPanel
                 char ch = (char) (65 + (7 - i));
                 String idx = Character.toString(ch);
                 String num = Integer.toString(i + 1);
-                //g2.drawString(text, x, y);
                 g2.drawString(idx, innerXOffset + (i * squareSize) + (squareSize / 2) - 4,
                         (int) (innerYOffset + (8 * squareSize) + (borderMargin * 0.8)));
                 g2.drawString(num, xOffset + 5, innerYOffset + (i * squareSize) + (squareSize / 2) + 4);
@@ -251,13 +248,11 @@ public class View_Chessboard extends JPanel
                             Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
                                     boardStyle.getPieceStyle());
                             g2.drawImage(pieceImage, x, y, null);
-                            //gc.drawImage(pieceImage, x, y, squareSize, squareSize);
                         }
                     } else {
                         if (!(drawGrabbedPiece && i == moveSource.x && (7-j) == moveSource.y)) {
                             Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
                                     boardStyle.getPieceStyle());
-                            //gc.drawImage(pieceImage, x, y, squareSize, squareSize);
                             g2.drawImage(pieceImage, x, y, null);
                         }
                     }
@@ -295,7 +290,7 @@ public class View_Chessboard extends JPanel
         ArrayList<Arrow> arrows = model.getGame().getCurrentNode().getArrows();
         if(arrows != null) {
             for (Arrow ai : model.getGame().getCurrentNode().getArrows()) {
-                drawArrow(ai, arrowColor, innerXOffset, innerYOffset);
+                drawArrow(g2, ai, arrowColor, innerXOffset, innerYOffset);
             }
         }
 
@@ -304,15 +299,14 @@ public class View_Chessboard extends JPanel
                 && grabbedArrow.xFrom != -1 && grabbedArrow.yFrom != -1
                 && grabbedArrow.xTo != -1 && grabbedArrow.yTo != -1
                 && ((grabbedArrow.xFrom != grabbedArrow.xTo) || (grabbedArrow.yFrom != grabbedArrow.yTo))) {
-            drawArrow(grabbedArrow, arrowGrabColor, innerXOffset, innerYOffset);
+            drawArrow(g2, grabbedArrow, arrowGrabColor, innerXOffset, innerYOffset);
         }
     }
 
-    private void drawArrow(Arrow arrow, Color color, int boardOffsetX, int boardOffsetY) {
-    }
+    private void drawArrow(Graphics2D g2, Arrow arrow, Color color, int boardOffsetX, int boardOffsetY) {
 
-    /*
-        GraphicsContext gc = this.getGraphicsContext2D();
+        g2.fillRect(50, 50, 4,4);
+
 
         int xFrom = 0;
         int xTo = 0;
@@ -363,24 +357,20 @@ public class View_Chessboard extends JPanel
                 (int) (toPoint.getX() - unitDx * arrowHeadBoxSize + unitDy * arrowHeadBoxSize),
                 (int) (toPoint.getY() - unitDy * arrowHeadBoxSize - unitDx * arrowHeadBoxSize));
 
-        gc.setFill(color);
-        gc.fillPolygon( new double[] { toPoint.getX(), arrowPoint1.getX(), arrowPoint2.getX() },
-                new double[] { toPoint.getY(), arrowPoint1.getY(), arrowPoint2.getY() },
+        //g2.setFill(color);
+        g2.setColor(color);
+        g2.fillPolygon( new int[] { toPoint.x, arrowPoint1.x, arrowPoint2.x },
+                new int[] { toPoint.y, arrowPoint1.y, arrowPoint2.y },
                 3);
 
         // take the old center coordinates to draw the
         // line to, so that the line does not
         // cover the arrow head due to the line's thickness
         Point to = new Point(xTo, yTo);
-        double currentLineWidth = gc.getLineWidth();
-        javafx.scene.paint.Paint currentPaint = gc.getStroke();
-        gc.setLineWidth(squareSize/6);
-        gc.setStroke(color);
-        gc.strokeLine(fromPoint.getX(), fromPoint.getY(),to.getX(), to.getY());
-        gc.setLineWidth(currentLineWidth);
-        gc.setStroke(currentPaint);
+        g2.setStroke(new BasicStroke(squareSize/6));
+        g2.drawLine(fromPoint.x, fromPoint.y, to.x, to.y);
     }
-    */
+
 
     Point getBoardPosition(double x, double y) {
 
@@ -446,7 +436,7 @@ public class View_Chessboard extends JPanel
                             resetMove();
                         } else if (b.isLegal(m)) {
                             //applyMove(m);
-                            //resetMove();
+                            resetMove();
                         } else {
                             resetMove();
                             if (b.isPieceAt(boardPos.x, boardPos.y)) {
@@ -460,7 +450,7 @@ public class View_Chessboard extends JPanel
                     }
                 }
             }
-            if (mouseButton == BUTTON2) {
+            if (mouseButton == BUTTON3) {
                 Point boardCoordinate = getBoardPosition(e.getX(), e.getY());
                 handleRightClick(boardCoordinate);
             }
@@ -468,7 +458,6 @@ public class View_Chessboard extends JPanel
     }
 
     private void handleMouseDragged(MouseEvent me) {
-        System.out.println("Mouse dragged");
 
         if(drawGrabbedPiece && grabbedPiece.getPiece() != -1) {
             grabbedPiece.setCurrentXLocation(me.getX());
@@ -487,8 +476,10 @@ public class View_Chessboard extends JPanel
 
     private void handleMouseReleased(MouseEvent me) {
 
+        System.out.println("mouse release event");
         int mouseButton = me.getButton();
         if(mouseButton == BUTTON1) {
+            System.out.println("button 1");
             drawGrabbedPiece = false;
             Point boardPos = getBoardPosition(me.getX(), me.getY());
             Board b = model.getGame().getCurrentNode().getBoard();
@@ -515,11 +506,33 @@ public class View_Chessboard extends JPanel
                 }
             }
         }
-        if(mouseButton == BUTTON2) {
+        if(mouseButton == BUTTON3) {
             Point boardCoordinate = getBoardPosition(me.getX(), me.getY());
-            //handleRightClickRelease(boardCoordinate);
+            handleRightClickRelease(boardCoordinate);
         }
         repaint();
+    }
+
+    // todo: view changes model. view should only call controller
+    private void handleRightClickRelease(Point boardCoordinate) {
+        // user clicked and is going to draw arrow
+        if(boardCoordinate != null) {
+            // arrow case
+            if (boardCoordinate.x != colorClickSource.x || boardCoordinate.y != colorClickSource.y) {
+                Arrow a = new Arrow();
+                a.xFrom = colorClickSource.x;
+                a.yFrom = colorClickSource.y;
+                a.xTo = boardCoordinate.x;
+                a.yTo = boardCoordinate.y;
+                model.getGame().getCurrentNode().addOrRemoveArrow(a);
+            } else { // just marking a field
+                ColoredField c = new ColoredField();
+                c.x = boardCoordinate.x;
+                c.y = boardCoordinate.y;
+                model.getGame().getCurrentNode().addOrRemoveColoredField(c);
+            }
+            drawGrabbedArrow = false;
+        }
     }
 
 

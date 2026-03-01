@@ -59,8 +59,12 @@ public class App {
 
         // todo: reconstruct from settings file
         Model_JFXChess model = new Model_JFXChess();
+        ScreenGeometry g = model.restoreScreenGeometry();
         View_MainFrame frame = new View_MainFrame(model);
         model.mainFrameRef = frame;
+
+        frame.setGeometry(g);
+
         frame.setVisible(true);
 
     }
