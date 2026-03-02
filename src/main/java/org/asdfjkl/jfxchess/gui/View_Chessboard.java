@@ -1,7 +1,6 @@
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,8 +20,9 @@ public class View_Chessboard extends JPanel
         implements PropertyChangeListener {
 
     private final Model_JFXChess model;
+    private final Controller_UI controller_UI;
+    private final Controller_Board controller_Board;
 
-    BoardStyle boardStyle = new BoardStyle();
     final double outputScaleX = HighDPIHelper.getUIScaleFactor();
     boolean flipBoard = true;
 
@@ -46,14 +46,18 @@ public class View_Chessboard extends JPanel
     Color arrowGrabColor;
     Color coloredFieldColor;
 
-    public View_Chessboard(Model_JFXChess model) {
+    public View_Chessboard(Model_JFXChess model,
+                           Controller_UI controller_UI,
+                           Controller_Board controller_Board) {
 
         setPreferredSize(new Dimension(500, 500));
 
         this.model = model;
         this.model.addListener(this);
 
-        boardStyle = new BoardStyle();
+        this.controller_UI = controller_UI;
+        this.controller_Board = controller_Board;
+
         grabbedPiece.setPiece(-1);
         moveSource = new Point(-1,-1);
         colorClickSource = new Point(-1,-1);
@@ -94,7 +98,8 @@ public class View_Chessboard extends JPanel
 
         // fill background
         Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(boardStyle.getDarkSquareColor());
+        //g2.scale(outputScaleX, outputScaleX);
+        g2.setColor(model.getBoardStyle().getDarkSquareColor());
         g2.fillRect(0, 0, getWidth(), getHeight());
 
         // setup font size
@@ -123,7 +128,7 @@ public class View_Chessboard extends JPanel
         innerYOffset = (outerMargin + borderMargin);
 
         // paint board inc. margin with letters & numbers
-        g2.setColor(boardStyle.getBorderColor());
+        g2.setColor(model.getBoardStyle().getBorderColor());
         g2.fillRect(xOffset, outerMargin, (squareSize*8)+(borderMargin*2), (squareSize*8)+(borderMargin*2));
 
         // get the from and to field of the last move
@@ -142,15 +147,15 @@ public class View_Chessboard extends JPanel
             for(int j=0;j<8;j++) {
                 if((j%2 == 0 && i%2==1) || (j%2 == 1 && i%2==0)) {
                     if(!flipBoard) {
-                        fieldColor = boardStyle.getLightSquareColor();
+                        fieldColor = model.getBoardStyle().getLightSquareColor();
                     } else {
-                        fieldColor = boardStyle.getDarkSquareColor();
+                        fieldColor = model.getBoardStyle().getDarkSquareColor();
                     }
                 } else {
                     if(!flipBoard) {
-                        fieldColor = boardStyle.getDarkSquareColor();
+                        fieldColor = model.getBoardStyle().getDarkSquareColor();
                     } else {
-                        fieldColor = boardStyle.getLightSquareColor();
+                        fieldColor = model.getBoardStyle().getLightSquareColor();
                     }
                 }
                 int x = (innerXOffset) + (i*squareSize);
@@ -204,7 +209,7 @@ public class View_Chessboard extends JPanel
         }
 
         // draw the board coordinates
-        g2.setColor(boardStyle.getCoordinateColor());
+        g2.setColor(model.getBoardStyle().getCoordinateColor());
         for(int i=0;i<8;i++) {
             if(flipBoard){
                 char ch = (char) (65 + (7 - i));
@@ -246,14 +251,14 @@ public class View_Chessboard extends JPanel
                     if(!flipBoard) {
                         if (!(drawGrabbedPiece && i == moveSource.x && j == moveSource.y)) {
                             Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
-                                    boardStyle.getPieceStyle());
-                            g2.drawImage(pieceImage, x, y, null);
+                                    model.getBoardStyle().getPieceStyle());
+                            g2.drawImage(pieceImage, x, y, squareSize, squareSize, null);
                         }
                     } else {
                         if (!(drawGrabbedPiece && i == moveSource.x && (7-j) == moveSource.y)) {
                             Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
-                                    boardStyle.getPieceStyle());
-                            g2.drawImage(pieceImage, x, y, null);
+                                    model.getBoardStyle().getPieceStyle());
+                            g2.drawImage(pieceImage, x, y, squareSize, squareSize, null);
                         }
                     }
                 }
@@ -273,7 +278,7 @@ public class View_Chessboard extends JPanel
                 y_side_to_move = innerYOffset - 11;
             }
         }
-        g2.setColor(boardStyle.getLightSquareColor());
+        g2.setColor(model.getBoardStyle().getLightSquareColor());
         g2.fillRect(x_side_to_move, y_side_to_move, 4,4);
         // }
 
@@ -281,9 +286,9 @@ public class View_Chessboard extends JPanel
         if(drawGrabbedPiece) {
             int offset = squareSize / 2;
             Image pieceImage = pieceImageProvider.getImage(grabbedPiece.getPiece(),
-                    (int) (squareSize * this.outputScaleX), boardStyle.getPieceStyle());
+                    (int) (squareSize * this.outputScaleX), model.getBoardStyle().getPieceStyle());
             g2.drawImage(pieceImage, (int) (grabbedPiece.getCurrentXLocation() - offset),
-                    (int) (grabbedPiece.getCurrentYLocation() - offset), null);
+                    (int) (grabbedPiece.getCurrentYLocation() - offset), squareSize, squareSize, null);
         }
 
         // draw arrows
@@ -408,7 +413,7 @@ public class View_Chessboard extends JPanel
 
     private void handleMousePress(MouseEvent e) {
 
-        if(!model.blockGUI) {
+        if(!(model.isBlockGUI())) {
             int mouseButton = e.getButton();
             if (mouseButton == BUTTON1) {
                 Board b = model.getGame().getCurrentNode().getBoard();
@@ -424,18 +429,17 @@ public class View_Chessboard extends JPanel
                                     model.mainFrameRef,
                                     "Promotion",
                                     b.turn,
-                                    boardStyle.getPieceStyle()
+                                    model.getBoardStyle().getPieceStyle()
                             );
                             dlgProm.setVisible(true);
                             int promotionPiece = dlgProm.getSelectedPiece();
                             if (promotionPiece != EMPTY) {
                                 m.setPromotionPiece(promotionPiece);
-                                System.out.println("promoted to: "+promotionPiece);
-                                //applyMove(m);
+                                controller_Board.applyMove(m);
                             }
                             resetMove();
                         } else if (b.isLegal(m)) {
-                            //applyMove(m);
+                            controller_Board.applyMove(m);
                             resetMove();
                         } else {
                             resetMove();
@@ -487,18 +491,18 @@ public class View_Chessboard extends JPanel
                 if (!(boardPos.x == moveSource.x && boardPos.y == moveSource.y)) {
                     Move m = new Move(moveSource.x, moveSource.y, boardPos.x, boardPos.y);
                     if (b.isLegalAndPromotes(m)) {
-                        //int promotionPiece = DialogPromotion.show(
-                        //        gameModel.getStageRef(),
-                        //        b.turn,
-                        //        boardStyle.getPieceStyle(),
-                        //        gameModel.THEME);
-                        //if (promotionPiece != EMPTY) {
-                        //    m.setPromotionPiece(promotionPiece);
-                        //    applyMove(m);
-                        //}
+                        DialogPromotion dlgPromotion = new DialogPromotion(model.mainFrameRef,
+                                "Promotion",
+                                b.turn,
+                                model.getBoardStyle().getPieceStyle()
+                        );
+                        if(dlgPromotion.getSelectedPiece() != EMPTY) {
+                            m.setPromotionPiece(dlgPromotion.getSelectedPiece());
+                            controller_Board.applyMove(m);
+                        }
                         resetMove();
                     } else if (b.isLegal(m)) {
-                        //applyMove(m);
+                        controller_Board.applyMove(m);
                     } else {
                         resetMove();
                     }
@@ -524,12 +528,12 @@ public class View_Chessboard extends JPanel
                 a.yFrom = colorClickSource.y;
                 a.xTo = boardCoordinate.x;
                 a.yTo = boardCoordinate.y;
-                model.getGame().getCurrentNode().addOrRemoveArrow(a);
+                controller_Board.addOrRemoveArrow(a);
             } else { // just marking a field
                 ColoredField c = new ColoredField();
                 c.x = boardCoordinate.x;
                 c.y = boardCoordinate.y;
-                model.getGame().getCurrentNode().addOrRemoveColoredField(c);
+                controller_Board.addOrRemoveColoredField(c);
             }
             drawGrabbedArrow = false;
         }
@@ -544,6 +548,8 @@ public class View_Chessboard extends JPanel
 
             grabbedArrow.xFrom = boardCoordinate.x;
             grabbedArrow.yFrom = boardCoordinate.y;
+            grabbedArrow.xTo = boardCoordinate.x;
+            grabbedArrow.yTo = boardCoordinate.y;
             drawGrabbedArrow = true;
         }
     }
@@ -559,6 +565,16 @@ public class View_Chessboard extends JPanel
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-
+        if ("flipBoard".equals(evt.getPropertyName())) {
+            flipBoard = (boolean) evt.getNewValue();
+            repaint();
+        }
+        if("pieceStyle".equals(evt.getPropertyName()) ||
+                "boardColor".equals(evt.getPropertyName())) {
+            System.out.println("view chessboard: property change");
+            System.out.println(("board style: "+model.getBoardStyle().getColorStyle()));
+            System.out.println(("piece style: "+model.getBoardStyle().getPieceStyle()));
+            repaint();
+        }
     }
 }

@@ -52,7 +52,7 @@ public class Model_JFXChess {
     // to make sure that if the user play against the computer/bot
     // he is not able to/does not accidentally move the computer's pieces
     // on the computer's turn
-    public boolean blockGUI = false;
+    private boolean blockGUI = false;
 
     public String currentBestPv = "";
     public int currentBestEval = 0;
@@ -97,6 +97,7 @@ public class Model_JFXChess {
         //searchPattern = new SearchPattern();
         //searchPattern.setSearchForHeader(true);
         boardStyle = new BoardStyle();
+        laf = "system.default";
 
         game.getRootNode().setBoard(b);
         currentMode = MODE_ENTER_MOVES;
@@ -599,4 +600,45 @@ public class Model_JFXChess {
 
     }
 
+    public boolean isBlockGUI() {
+        return blockGUI;
+    }
+
+    public void setBlockGUI(boolean blockGUI) {
+        boolean tmp = this.blockGUI;
+        this.blockGUI = blockGUI;
+        pcs.firePropertyChange("blockGUI", tmp, this.blockGUI);
+    }
+
+    public void applyMove(Move m) {
+        // after applying a move, we block the GUI
+        // when we are playing against the computer
+        boolean treeWasChanged = getGame().applyMove(m);
+        if(getMode() == Model_JFXChess.MODE_PLAY_WHITE || getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
+            setBlockGUI(true);
+        }
+        if(treeWasChanged) {
+            pcs.firePropertyChange("treeChanged", null, null);
+        } else {
+            pcs.firePropertyChange("currentGameNodeChanged", null, null);
+        }
+    }
+
+    public void setBoardColor(int style) {
+        boardStyle.setColorStyle(style);
+        pcs.firePropertyChange("boardColor", null, style);
+    }
+
+    public void setPieceStyle(int style) {
+        boardStyle.setPieceStyle(style);
+        pcs.firePropertyChange("pieceStyle", null, style);
+    }
+
+    public BoardStyle getBoardStyle() {
+        return boardStyle;
+    }
+
+    public void setBoardStyle(BoardStyle boardStyle) {
+        this.boardStyle = boardStyle;
+    }
 }

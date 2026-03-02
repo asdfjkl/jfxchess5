@@ -175,7 +175,7 @@ public class Game {
         this.result = r;
     }
 
-    public void applyMove(Move m) {
+    public boolean applyMove(Move m) {
         boolean existsChild = false;
         for(GameNode var_i : this.current.getVariations()) {
             Move mi = var_i.getMove();
@@ -197,6 +197,9 @@ public class Game {
             current.getVariations().add(newCurrent);
             this.current = newCurrent;
             this.treeWasChanged = true;
+            return true;
+        } else {
+            return false;
         }
     }
 

@@ -8,7 +8,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -18,10 +17,28 @@ public class View_MainFrame extends JFrame
         implements PropertyChangeListener {
 
     private final Model_JFXChess model;
-    private final Controller_UI uiController;
+    private final Controller_UI controller_UI;
 
     public JSplitPane horizontalSplit;
     public JSplitPane verticalSplit;
+
+    /*
+    private JRadioButtonMenuItem  jmiToFlatlafLight;
+    private JRadioButtonMenuItem  jmiToFlatlafDark;
+    private JRadioButtonMenuItem  jmiToFlatlafIntellij;
+    private JRadioButtonMenuItem  jmiToFlatlafDarcula;
+    private JRadioButtonMenuItem  jmiToFlatlaMacLight;
+    private JRadioButtonMenuItem  jmiToFlatlaMacDark;
+    private JRadioButtonMenuItem  jmiToMetal;
+    private JRadioButtonMenuItem  jmiToNimbus;
+    private JRadioButtonMenuItem  jmiToSysDefault;
+    private JRadioButtonMenuItem  jmiBoardColorBlue;
+    private JRadioButtonMenuItem  jmiBoardColorGreen;
+    private JRadioButtonMenuItem  jmiBoardColorBrown;
+    private JRadioButtonMenuItem  jmiPieceStyleMerida;
+    private JRadioButtonMenuItem  jmiPieceStyleOld;
+    private JRadioButtonMenuItem  jmiPieceStyleUSCF;
+*/
 
     public View_MainFrame(Model_JFXChess model) {
         this.model = model;
@@ -35,7 +52,7 @@ public class View_MainFrame extends JFrame
             }
         });
 
-        uiController = new Controller_UI(model);
+        controller_UI = new Controller_UI(model);
 
         initUI();
     }
@@ -116,49 +133,115 @@ public class View_MainFrame extends JFrame
         modeMenu.add(new JMenuItem("Select Book"));
 
         JMenu viewMenu = new JMenu("View");
-        viewMenu.add(new JMenuItem("Fullscreen"));
-        viewMenu.add(new JMenuItem("Show Toolbar"));
         JMenu themeSubMenu = new JMenu("Theme");
 
-        JMenuItem jmiToFlatlafLight = new JMenuItem("FlatLaf Light");
-        jmiToFlatlafLight.addActionListener(uiController.switchLaf("com.formdev.flatlaf.FlatLightLaf"));
+        JRadioButtonMenuItem jmiToFlatlafLight = new JRadioButtonMenuItem("FlatLaf Light");
+        jmiToFlatlafLight.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatLightLaf"));
         themeSubMenu.add(jmiToFlatlafLight);
+        jmiToFlatlafLight.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatLightLaf"));
 
-        JMenuItem jmiToFlatlafDark = new JMenuItem("FlatLaf Dark");
-        jmiToFlatlafDark.addActionListener(uiController.switchLaf("com.formdev.flatlaf.FlatDarkLaf"));
+        JRadioButtonMenuItem jmiToFlatlafDark = new JRadioButtonMenuItem("FlatLaf Dark");
+        jmiToFlatlafDark.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatDarkLaf"));
         themeSubMenu.add(jmiToFlatlafDark);
+        jmiToFlatlafDark.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatDarkLaf"));
 
-        JMenuItem jmiToFlatlafIntellij = new JMenuItem("FlatLaf IJ");
-        jmiToFlatlafIntellij.addActionListener(uiController.switchLaf("com.formdev.flatlaf.FlatIntelliJLaf"));
+        JRadioButtonMenuItem jmiToFlatlafIntellij = new JRadioButtonMenuItem("FlatLaf IJ");
+        jmiToFlatlafIntellij.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatIntelliJLaf"));
         themeSubMenu.add(jmiToFlatlafIntellij);
+        jmiToFlatlafIntellij.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatIntelliJLaf"));
 
-        JMenuItem jmiToFlatlafDarcula = new JMenuItem("FlatLaf Darcula");
-        jmiToFlatlafDarcula.addActionListener(uiController.switchLaf("com.formdev.flatlaf.FlatDarculaLaf"));
+        JRadioButtonMenuItem jmiToFlatlafDarcula = new JRadioButtonMenuItem("FlatLaf Darcula");
+        jmiToFlatlafDarcula.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatDarculaLaf"));
         themeSubMenu.add(jmiToFlatlafDarcula);
+        jmiToFlatlafDarcula.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatDarculaLaf"));
 
-        JMenuItem jmiToFlatlaMacLight = new JMenuItem("FlatLaf Fruit Light");
-        jmiToFlatlaMacLight.addActionListener(uiController.switchLaf("com.formdev.flatlaf.themes.FlatMacLightLaf"));
+        JRadioButtonMenuItem jmiToFlatlaMacLight = new JRadioButtonMenuItem("FlatLaf Fruit Light");
+        jmiToFlatlaMacLight.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.themes.FlatMacLightLaf"));
         themeSubMenu.add(jmiToFlatlaMacLight);
+        jmiToFlatlaMacLight.setSelected(model.getLaf().equals("com.formdev.flatlaf.themes.FlatMacLightLaf"));
 
-        JMenuItem jmiToFlatlaMacDark = new JMenuItem("FlatLaf Fruit Dark");
-        jmiToFlatlaMacDark.addActionListener(uiController.switchLaf("com.formdev.flatlaf.themes.FlatMacDarkLaf"));
+        JRadioButtonMenuItem jmiToFlatlaMacDark = new JRadioButtonMenuItem("FlatLaf Fruit Dark");
+        jmiToFlatlaMacDark.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.themes.FlatMacDarkLaf"));
         themeSubMenu.add(jmiToFlatlaMacDark);
+        jmiToFlatlaMacDark.setSelected(model.getLaf().equals("com.formdev.flatlaf.themes.FlatMacDarkLaf"));
 
-        JMenuItem jmiToMetal = new JMenuItem("Swing Metal");
-        jmiToMetal.addActionListener(uiController.switchLaf("javax.swing.plaf.metal.MetalLookAndFeel"));
+        JRadioButtonMenuItem jmiToMetal = new JRadioButtonMenuItem("Swing Metal");
+        jmiToMetal.addActionListener(controller_UI.switchLaf("javax.swing.plaf.metal.MetalLookAndFeel"));
         themeSubMenu.add(jmiToMetal);
+        jmiToMetal.setSelected(model.getLaf().equals("javax.swing.plaf.metal.MetalLookAndFeel"));
 
-        JMenuItem jmiToNimbus = new JMenuItem("Swing Nimbus");
-        jmiToNimbus.addActionListener(uiController.switchLaf("javax.swing.plaf.nimbus.NimbusLookAndFeel"));
+        JRadioButtonMenuItem jmiToNimbus = new JRadioButtonMenuItem("Swing Nimbus");
+        jmiToNimbus.addActionListener(controller_UI.switchLaf("javax.swing.plaf.nimbus.NimbusLookAndFeel"));
         themeSubMenu.add(jmiToNimbus);
+        jmiToNimbus.setSelected(model.getLaf().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel"));
 
-        JMenuItem jmiToSysDefault = new JMenuItem("System Default");
-        jmiToSysDefault.addActionListener(uiController.switchLaf("system.default"));
+        JRadioButtonMenuItem jmiToSysDefault = new JRadioButtonMenuItem("System Default");
+        jmiToSysDefault.addActionListener(controller_UI.switchLaf("system.default"));
         themeSubMenu.add(jmiToSysDefault);
+        jmiToSysDefault.setSelected(model.getLaf().equals("system.default"));
+
+        ButtonGroup grpUiTheme = new ButtonGroup();
+        grpUiTheme.add(jmiToFlatlafLight);
+        grpUiTheme.add(jmiToFlatlafDark);
+        grpUiTheme.add(jmiToFlatlafIntellij);
+        grpUiTheme.add(jmiToFlatlafDarcula);
+        grpUiTheme.add(jmiToFlatlaMacLight);
+        grpUiTheme.add(jmiToFlatlaMacDark);
+        grpUiTheme.add(jmiToMetal);
+        grpUiTheme.add(jmiToNimbus);
+        grpUiTheme.add(jmiToSysDefault);
 
         viewMenu.add(themeSubMenu);
-        viewMenu.add(new JMenuItem("Board & Pieces"));
-        viewMenu.add(new JMenuItem("Reset Window Layout"));
+
+        JMenu boardColorMenu = new JMenu("Board Color");
+        JRadioButtonMenuItem jmiBoardColorBlue = new JRadioButtonMenuItem("Blue");
+        jmiBoardColorBlue.addActionListener(controller_UI.switchBoardColor(BoardStyle.STYLE_BLUE));
+        boardColorMenu.add(jmiBoardColorBlue);
+        jmiBoardColorBlue.setSelected(model.getBoardStyle().getColorStyle() == BoardStyle.STYLE_BLUE);
+
+        JRadioButtonMenuItem jmiBoardColorGreen = new JRadioButtonMenuItem("Green");
+        jmiBoardColorGreen.addActionListener(controller_UI.switchBoardColor(BoardStyle.STYLE_GREEN));
+        boardColorMenu.add(jmiBoardColorGreen);
+        jmiBoardColorGreen.setSelected(model.getBoardStyle().getColorStyle() == BoardStyle.STYLE_GREEN);
+
+        JRadioButtonMenuItem jmiBoardColorBrown = new JRadioButtonMenuItem("Brown");
+        jmiBoardColorBrown.addActionListener(controller_UI.switchBoardColor(BoardStyle.STYLE_BROWN));
+        boardColorMenu.add(jmiBoardColorBrown);
+        jmiBoardColorBrown.setSelected(model.getBoardStyle().getColorStyle() == BoardStyle.STYLE_BROWN);
+
+        viewMenu.add(boardColorMenu);
+
+        ButtonGroup grpUiBoardColor = new ButtonGroup();
+        grpUiBoardColor.add(jmiBoardColorBlue);
+        grpUiBoardColor.add(jmiBoardColorGreen);
+        grpUiBoardColor.add(jmiBoardColorBrown);
+
+        JMenu pieceStyleMenu = new JMenu("Piece Style");
+        JRadioButtonMenuItem jmiPieceStyleMerida = new JRadioButtonMenuItem("Merida");
+        jmiPieceStyleMerida.addActionListener(controller_UI.switchPieceStyle(BoardStyle.PIECE_STYLE_MERIDA));
+        pieceStyleMenu.add(jmiPieceStyleMerida);
+        jmiPieceStyleMerida.setSelected(model.getBoardStyle().getPieceStyle() == BoardStyle.PIECE_STYLE_MERIDA);
+
+        JRadioButtonMenuItem jmiPieceStyleOld = new JRadioButtonMenuItem("Old");
+        jmiPieceStyleOld.addActionListener(controller_UI.switchPieceStyle(BoardStyle.PIECE_STYLE_OLD));
+        pieceStyleMenu.add(jmiPieceStyleOld);
+        jmiPieceStyleOld.setSelected(model.getBoardStyle().getPieceStyle() == BoardStyle.PIECE_STYLE_OLD);
+
+        JRadioButtonMenuItem jmiPieceStyleUSCF = new JRadioButtonMenuItem("USCF");
+        jmiPieceStyleUSCF.addActionListener(controller_UI.switchPieceStyle(BoardStyle.PIECE_STYLE_USCF));
+        pieceStyleMenu.add(jmiPieceStyleUSCF);
+        jmiPieceStyleUSCF.setSelected(model.getBoardStyle().getPieceStyle() == BoardStyle.PIECE_STYLE_USCF);
+
+        viewMenu.add(pieceStyleMenu);
+
+        ButtonGroup grpUiPieceStyle = new ButtonGroup();
+        grpUiPieceStyle.add(jmiPieceStyleMerida);
+        grpUiPieceStyle.add(jmiPieceStyleOld);
+        grpUiPieceStyle.add(jmiPieceStyleUSCF);
+
+        JMenuItem jmiResetLayout = new JMenuItem("Reset Window Layout");
+        jmiResetLayout.addActionListener(controller_UI.resetWindowLayout());
+        viewMenu.add(jmiResetLayout);
 
 
         JMenu databaseMenu = new JMenu("Database");
@@ -168,7 +251,7 @@ public class View_MainFrame extends JFrame
 
         JMenu helpMenu = new JMenu("Help");
         JMenuItem jmiAbout = new JMenuItem("About");
-        jmiAbout.addActionListener(uiController.showAbout());
+        jmiAbout.addActionListener(controller_UI.showAbout());
         helpMenu.add(jmiAbout);
         helpMenu.add(new JMenuItem("JFXChess Homepage"));
 
@@ -233,7 +316,7 @@ public class View_MainFrame extends JFrame
         toolBar.addSeparator();
 
         JButton btnTbAbout = createToolButton("About", "about.svg");
-        btnTbAbout.addActionListener(uiController.showAbout());
+        btnTbAbout.addActionListener(controller_UI.showAbout());
         toolBar.add(btnTbAbout);
 
         return toolBar;
@@ -258,7 +341,8 @@ public class View_MainFrame extends JFrame
     private JComponent createMainContent() {
 
         // ===== Left: Chessboard Placeholder =====
-        View_Chessboard viewChessboard = new View_Chessboard(model);
+        Controller_Board controller_Board = new Controller_Board(model);
+        View_Chessboard viewChessboard = new View_Chessboard(model, controller_UI, controller_Board);
 
         // ===== Right: Game Header Pane/Button + Text Pane + Nav Buttons =====
 
