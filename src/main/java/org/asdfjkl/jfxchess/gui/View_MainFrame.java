@@ -113,12 +113,24 @@ public class View_MainFrame extends JFrame
         gameMenu.add(new JMenuItem("Quit"));
 
         JMenu editMenu = new JMenu("Edit");
-        editMenu.add(new JMenuItem("Copy Game"));
-        editMenu.add(new JMenuItem("Copy Position (FEN)"));
-        editMenu.add(new JMenuItem("Copy Position (Image)"));
+        JMenuItem jmiCopyGame = new JMenuItem("Copy Game");
+        jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
+        editMenu.add(jmiCopyGame);
+        JMenuItem jmiCopyFEN = new JMenuItem("Copy Position (FEN)");
+        jmiCopyFEN.addActionListener(controller_UI.copyFenToClipboard());
+        editMenu.add(jmiCopyFEN);
+
+        JMenuItem jmiCopyImage = new JMenuItem("Copy Position (Image)");
+        jmiCopyImage.addActionListener(controller_UI.copyBitmapToClipboard());
+        editMenu.add(jmiCopyImage);
+
         editMenu.add(new JMenuItem("Paste Game/Position"));
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Edit Game Data"));
+
+        JMenuItem jmiEditGameData = new JMenuItem("Edit Game Data");
+        jmiEditGameData.addActionListener(controller_UI.editGameData());
+        editMenu.add(jmiEditGameData);
+
         editMenu.add(new JMenuItem("Enter Position"));
         editMenu.addSeparator();
         editMenu.add(new JMenuItem("Flip Board"));
