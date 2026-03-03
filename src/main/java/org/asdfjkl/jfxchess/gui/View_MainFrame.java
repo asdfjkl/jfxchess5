@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
@@ -21,6 +22,8 @@ public class View_MainFrame extends JFrame
 
     public JSplitPane horizontalSplit;
     public JSplitPane verticalSplit;
+
+    JLabel lblGameHeader;
 
     /*
     private JRadioButtonMenuItem  jmiToFlatlafLight;
@@ -359,7 +362,7 @@ public class View_MainFrame extends JFrame
         // ===== Right: Game Header Pane/Button + Text Pane + Nav Buttons =====
 
         // ===== Multiline Label =====
-        JLabel lblGameHeader = new JLabel(
+        lblGameHeader = new JLabel(
                 "<html><div style='text-align:center;'>Kasparov, Garry - Karpov, Anatoly<br>" +
                         "Linares, 01.12.1987</div></html>"
         );
@@ -552,6 +555,18 @@ public class View_MainFrame extends JFrame
     public void propertyChange(PropertyChangeEvent evt) {
         if ("switchLaf".equals(evt.getPropertyName())) {
             setLookAndFeel(model.getLaf());
+        }
+        if ("pgnHeadersChanged".equals(evt.getPropertyName())) {
+            // update label
+            HashMap<String, String> pgnHeaders = model.getGame().getPgnHeaders();
+            String newGameInfo = "<html><div style='text-align:center;'>" +
+                    pgnHeaders.get("White") + " - " + "<br>" +
+                    pgnHeaders.get("Site");
+            if(!pgnHeaders.get("Date").isEmpty()) {
+                newGameInfo = newGameInfo + ", " + pgnHeaders.get("Date");
+            }
+            newGameInfo += "</div></html>";
+            lblGameHeader.setText(newGameInfo);
         }
     }
 }

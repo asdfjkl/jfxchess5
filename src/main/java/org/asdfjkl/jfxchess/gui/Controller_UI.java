@@ -265,6 +265,9 @@ public class Controller_UI {
             DialogEditGameData dialog =
                     new DialogEditGameData(model.mainFrameRef, model.getGame().getPgnHeaders());
             dialog.setVisible(true);
+            if(dialog.isConfirmed()) {
+                model.setPgnHeaders(dialog.getData());
+            }
         };
     }
 }

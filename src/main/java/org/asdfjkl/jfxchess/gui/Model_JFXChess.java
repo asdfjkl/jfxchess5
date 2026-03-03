@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.prefs.Preferences;
 
 public class Model_JFXChess {
@@ -640,5 +641,10 @@ public class Model_JFXChess {
 
     public void setBoardStyle(BoardStyle boardStyle) {
         this.boardStyle = boardStyle;
+    }
+
+    public void setPgnHeaders(HashMap<String, String> data) {
+        game.setPgnHeaders(data);
+        pcs.firePropertyChange("pgnHeadersChanged", null, null);
     }
 }

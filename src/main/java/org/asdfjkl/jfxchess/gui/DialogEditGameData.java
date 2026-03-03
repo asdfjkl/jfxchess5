@@ -3,6 +3,8 @@ package org.asdfjkl.jfxchess.gui;
 import javax.swing.*;
 import java.awt.*;
 import java.text.NumberFormat;
+import java.time.MonthDay;
+import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,51 +57,101 @@ public class DialogEditGameData extends JDialog {
     private void initSpinners() {
 
         yearSpinner = new JSpinner(
-                new SpinnerNumberModel(2024, 1000, 9999, 1));
-
+                new SpinnerNumberModel(Year.now().getValue(), 1000, 9999, 1));
         installPlainNumberEditor(yearSpinner, "0000");
 
-
-        eloWhiteSpinner = new JSpinner(
-                new SpinnerNumberModel(2000, 0, 9999, 1));
-
-        installPlainNumberEditor(eloWhiteSpinner, "0000");
-
-
-        eloBlackSpinner = new JSpinner(
-                new SpinnerNumberModel(2000, 0, 9999, 1));
-
-        installPlainNumberEditor(eloBlackSpinner, "0000");
-
-
         monthSpinner = new JSpinner(
-                new SpinnerNumberModel(1, 1, 12, 1));
-
+                new SpinnerNumberModel(MonthDay.now().getMonthValue(), 1, 12, 1));
         installPlainNumberEditor(monthSpinner, "0");
 
-
         daySpinner = new JSpinner(
-                new SpinnerNumberModel(1, 1, 31, 1));
-
+                new SpinnerNumberModel(MonthDay.now().getDayOfMonth(), 1, 31, 1));
         installPlainNumberEditor(daySpinner, "0");
 
+        // try to parse existing DD.MM.YYYY (or reverse) setting
+        if(pgnHeaders.get("Date") != null) {
+            String[] tmpDate = pgnHeaders.get("Date").split("\\.");
+            if(tmpDate.length > 0 && tmpDate[0].length() == 4) { // hopefully YYYY.MM.DD
+                try {
+                    int iYear = Integer.parseInt(tmpDate[0].strip());
+                    yearSpinner.setValue(iYear);
+                } catch(NumberFormatException e) {
+                    yearSpinner.setValue(0);
+                }
+                if(tmpDate.length > 1) {
+                    try {
+                        int iMonth = Integer.parseInt(tmpDate[1].strip());
+                        monthSpinner.setValue(iMonth);
+                    } catch(NumberFormatException e) {
+                        monthSpinner.setValue(1);
+                    }
+                }
+                if(tmpDate.length > 2) {
+                    try {
+                        int iDay = Integer.parseInt(tmpDate[2].strip());
+                        daySpinner.setValue(iDay);
+                    } catch(NumberFormatException e) {
+                        daySpinner.setValue(1);
+                    }
+                }
+            } else if (tmpDate.length > 2 && tmpDate[2].length() == 4) { // probably DD.MM.YYYY
+                try {
+                    int iYear = Integer.parseInt(tmpDate[2].strip());
+                    yearSpinner.setValue(iYear);
+                } catch(NumberFormatException e) {
+                    yearSpinner.setValue(2000);
+                }
+                try {
+                    int iMonth = Integer.parseInt(tmpDate[1].strip());
+                    monthSpinner.setValue(iMonth);
+                } catch(NumberFormatException e) {
+                    monthSpinner.setValue(1);
+                }
+                try {
+                    int iDay = Integer.parseInt(tmpDate[0].strip());
+                    daySpinner.setValue(iDay);
+                } catch(NumberFormatException e) {
+                    daySpinner.setValue(1);
+                }
+            }
+        }
 
         roundSpinner = new JSpinner(
                 new SpinnerNumberModel(1, 1, 99, 1));
-
         installPlainNumberEditor(roundSpinner, "0");
+        if(pgnHeaders.get("Round") != null) {
+            try {
+                int iRound = Integer.parseInt(pgnHeaders.get("Round"));
+                roundSpinner.setValue(iRound);
+            } catch (NumberFormatException e) {
+                roundSpinner.setValue(1);
+            }
+        }
 
-        // ---- Set widths (pixels) ----
-        /*
-        int w = 60;
-        setSpinnerWidth(yearSpinner, w);
-        setSpinnerWidth(monthSpinner, w);
-        setSpinnerWidth(daySpinner, w);
-        setSpinnerWidth(roundSpinner, w);
-        setSpinnerWidth(eloWhiteSpinner, w);
-        setSpinnerWidth(eloBlackSpinner, w);
+        eloWhiteSpinner = new JSpinner(
+                new SpinnerNumberModel(0, 0, 3000, 1));
+        installPlainNumberEditor(eloWhiteSpinner, "0000");
+        if(pgnHeaders.get("WhiteElo") != null) {
+            try {
+                int we = Integer.parseInt(pgnHeaders.get("WhiteElo"));
+                eloWhiteSpinner.setValue(we);
+            } catch (NumberFormatException e) {
+                eloWhiteSpinner.setValue(0);
+            }
+        }
 
-         */
+        eloBlackSpinner = new JSpinner(
+                new SpinnerNumberModel(0, 0, 3000, 1));
+        installPlainNumberEditor(eloBlackSpinner, "0000");
+        if(pgnHeaders.get("BlackElo") != null) {
+            try {
+                int we = Integer.parseInt(pgnHeaders.get("BlackElo"));
+                eloBlackSpinner.setValue(we);
+            } catch (NumberFormatException e) {
+                eloBlackSpinner.setValue(0);
+            }
+        }
+
         fixSpinnerWidth(yearSpinner, 80);
         fixSpinnerWidth(monthSpinner, 80);
         fixSpinnerWidth(daySpinner, 80);
@@ -107,15 +159,6 @@ public class DialogEditGameData extends JDialog {
         fixSpinnerWidth(eloWhiteSpinner, 80);
         fixSpinnerWidth(eloBlackSpinner, 80);
 
-        /*
-        removeSpinnerGrouping(yearSpinner);
-        removeSpinnerGrouping(eloWhiteSpinner);
-        removeSpinnerGrouping(eloBlackSpinner);
-        removeSpinnerGrouping(roundSpinner);
-        removeSpinnerGrouping(monthSpinner);
-        removeSpinnerGrouping(daySpinner);
-
-         */
     }
 
     private void initUI() {
@@ -137,6 +180,35 @@ public class DialogEditGameData extends JDialog {
         addRow(formPanel, gbc, row++, "Black Surname:", blackSurname);
         addRow(formPanel, gbc, row++, "Site:", site);
         addRow(formPanel, gbc, row++, "Event:", event);
+
+        // try to set defaults for text input (for spinners this is done in initSpinners()
+        if(pgnHeaders.get("White") != null) {
+            String[] tmpWhiteName = pgnHeaders.get("White").split(",");
+            if(tmpWhiteName.length > 0) {
+                whiteSurname.setText(tmpWhiteName[0].strip());
+            }
+            if(tmpWhiteName.length > 1) {
+                whiteFirstName.setText(tmpWhiteName[1].strip());
+            }
+        }
+
+        if(pgnHeaders.get("Black") != null) {
+            String[] tmpBlackName = pgnHeaders.get("Black").split(",");
+            if(tmpBlackName.length > 0) {
+                blackSurname.setText(tmpBlackName[0].strip());
+            }
+            if(tmpBlackName.length > 1) {
+                blackFirstName.setText(tmpBlackName[1].strip());
+            }
+        }
+
+        if(pgnHeaders.get("Site") != null) {
+            site.setText(pgnHeaders.get("Site"));
+        }
+
+        if(pgnHeaders.get("Event") != null) {
+            event.setText(pgnHeaders.get("Event"));
+        }
 
         addRow(formPanel, gbc, row++, "Year:", yearSpinner);
         addRow(formPanel, gbc, row++, "Month:", monthSpinner);
@@ -234,28 +306,59 @@ public class DialogEditGameData extends JDialog {
         return confirmed;
     }
 
-    public Map<String, Object> getData() {
+    public HashMap<String, String> getData() {
 
-        Map<String, Object> data = new HashMap<>();
+        HashMap<String, String> pgnHeaders = new HashMap<>();
 
-        data.put("whiteFirstName", whiteFirstName.getText());
-        data.put("whiteSurname", whiteSurname.getText());
-        data.put("blackFirstName", blackFirstName.getText());
-        data.put("blackSurname", blackSurname.getText());
-        data.put("site", site.getText());
-        data.put("event", event.getText());
+        pgnHeaders.put("Site", site.getText());
+        if( (Integer) roundSpinner.getValue() >= 0) {
+            pgnHeaders.put("Round", Integer.toString((Integer) roundSpinner.getValue()));
+        }
 
-        data.put("year", yearSpinner.getValue());
-        data.put("month", monthSpinner.getValue());
-        data.put("day", daySpinner.getValue());
-        data.put("round", roundSpinner.getValue());
+        if(!whiteSurname.getText().isEmpty() && !whiteFirstName.getText().isEmpty()) {
+            pgnHeaders.put("White", whiteSurname.getText()+", "+whiteFirstName.getText());
+        } else if(!whiteSurname.getText().isEmpty() && whiteFirstName.getText().isEmpty()) {
+            pgnHeaders.put("White", whiteSurname.getText());
+        } else if(whiteSurname.getText().isEmpty() && !whiteFirstName.getText().isEmpty()) {
+            pgnHeaders.put("White", whiteFirstName.getText());
+        }
 
-        data.put("eloWhite", eloWhiteSpinner.getValue());
-        data.put("eloBlack", eloBlackSpinner.getValue());
+        if(!blackSurname.getText().isEmpty() && !blackFirstName.getText().isEmpty()) {
+            pgnHeaders.put("Black", blackSurname.getText()+", "+blackFirstName.getText());
+        } else if(!blackSurname.getText().isEmpty() && blackFirstName.getText().isEmpty()) {
+            pgnHeaders.put("Black", blackSurname.getText());
+        } else if(blackSurname.getText().isEmpty() && !blackFirstName.getText().isEmpty()) {
+            pgnHeaders.put("Black", blackFirstName.getText());
+        }
 
-        data.put("result", getResult());
+        if( (Integer) eloWhiteSpinner.getValue() > 0) {
+            pgnHeaders.put("WhiteElo", Integer.toString((Integer) eloWhiteSpinner.getValue()));
+        }
+        if( (Integer) eloBlackSpinner.getValue() >= 0) {
+            pgnHeaders.put("BlackElo", Integer.toString((Integer) eloBlackSpinner.getValue()));
+        }
 
-        return data;
+        String tmpDate = "";
+        if((Integer) yearSpinner.getValue() > 0 && (Integer )yearSpinner.getValue() < 3000) {
+            tmpDate += String.format("%04d", (Integer) yearSpinner.getValue());
+        } else {
+            tmpDate += "????";
+        }
+        if((Integer) monthSpinner.getValue() > 0 && (Integer) monthSpinner.getValue() <= 12) {
+            tmpDate += "." + String.format("%02d", (Integer) monthSpinner.getValue());
+        } else {
+            tmpDate += "." + "??";
+        }
+        if((Integer) daySpinner.getValue() > 0 && (Integer) daySpinner.getValue() <= 31) {
+            tmpDate += "." + String.format("%02d", (Integer) daySpinner.getValue());
+        } else {
+            tmpDate += "." + "??";
+        }
+        pgnHeaders.put("Date", tmpDate);
+        pgnHeaders.put("Event", event.getText());
+        pgnHeaders.put("Result", getResult());
+
+        return pgnHeaders;
     }
 
     private void installPlainNumberEditor(JSpinner spinner, String pattern) {
@@ -267,23 +370,6 @@ public class DialogEditGameData extends JDialog {
         format.setGroupingUsed(false);
 
         spinner.setEditor(editor);
-    }
-
-    private void setSpinnerWidth(JSpinner spinner, int width) {
-
-        JComponent editor = spinner.getEditor();
-
-        if (editor instanceof JSpinner.DefaultEditor) {
-
-            JFormattedTextField tf =
-                    ((JSpinner.DefaultEditor) editor).getTextField();
-
-            Dimension d = tf.getPreferredSize();
-            d.width = width;
-
-            tf.setPreferredSize(d);
-            tf.setMinimumSize(d);
-        }
     }
 
     private void fixSpinnerWidth(JSpinner spinner, int width) {
