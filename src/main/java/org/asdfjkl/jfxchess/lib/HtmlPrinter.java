@@ -27,6 +27,7 @@ public class HtmlPrinter {
     int variationDepth;
     boolean forceMoveNumber;
     boolean newLine;
+    Game g;
 
     public HtmlPrinter() {
         this.html = new StringBuilder();
@@ -104,7 +105,13 @@ public class HtmlPrinter {
 
         writeToken("<span id=\"n");
         writeToken(sNodeId);
-        writeToken("\">");
+        writeToken("\"");
+        // highlight current node
+        //if(g.getCurrentNode().getId() == nodeId) {
+        //    // todo: hack (hardcoded to silver) but sort of works on all ui themes
+        //    writeToken(" style=\"background: silver\" ");
+        //}
+        writeToken(">");
         writeToken("<a href=\"#");
         writeToken(sNodeId);
         writeToken("\">");
@@ -308,6 +315,7 @@ public class HtmlPrinter {
         this.reset();
 
         GameNode root = g.getRootNode();
+        this.g = g;
 
         // special case if the root node has
         // a comment before the actual game starts

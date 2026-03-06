@@ -3,7 +3,18 @@ package org.asdfjkl.jfxchess.gui;
 
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Element;
+import javax.swing.text.Highlighter;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -13,6 +24,8 @@ import java.util.HashMap;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
+import org.asdfjkl.jfxchess.lib.CONSTANTS;
+import org.asdfjkl.jfxchess.lib.HtmlPrinter;
 
 public class View_MainFrame extends JFrame
         implements PropertyChangeListener {
@@ -24,6 +37,13 @@ public class View_MainFrame extends JFrame
     public JSplitPane verticalSplit;
 
     JLabel lblGameHeader;
+
+    JEditorPane rightEditorPane;
+
+    HtmlPrinter htmlPrinter = new HtmlPrinter();
+    String htmlString = "";
+
+    private Object currentHighlight = null;
 
     /*
     private JRadioButtonMenuItem  jmiToFlatlafLight;
@@ -127,7 +147,9 @@ public class View_MainFrame extends JFrame
         jmiCopyImage.addActionListener(controller_UI.copyBitmapToClipboard());
         editMenu.add(jmiCopyImage);
 
-        editMenu.add(new JMenuItem("Paste Game/Position"));
+        JMenuItem jmiPaste =  new JMenuItem("Paste Game/Position");
+        jmiPaste.addActionListener(controller_UI.pasteFenOrGame());
+        editMenu.add(jmiPaste);
         editMenu.addSeparator();
 
         JMenuItem jmiEditGameData = new JMenuItem("Edit Game Data");
@@ -389,9 +411,59 @@ public class View_MainFrame extends JFrame
         );
 
         // ===== TextPane for the navPanel
-        JTextPane rightTextPane = new JTextPane();
+        rightEditorPane = new JEditorPane();
+        // set up formatting
+        HTMLEditorKit kit = new HTMLEditorKit();
+        StyleSheet css = kit.getStyleSheet();
+        //css.addRule(".current-move { background-color: #ffeb3b; font-weight: bold; }");
+        /*
+        css.addRule(
+                "a { " +
+                        "text-decoration: none; " +   // removes underline
+                        "font-weight: normal; " +     // removes bold
+                        "color: #333333; " +          // optional: normal text color
+                        "font-family: sans-serif; " +
+                        "}"
+        );
+        */
+        css.addRule("body { font-family: sans-serif; }");
+        css.addRule(
+                "a { " +
+                        "text-decoration: none; " +
+                        "font-weight: normal; " +
+                        "color: #333333; " +
+                        "}"
+        );
+        rightEditorPane.setEditable(false);
+
+        //rightEditorPane.getCaret().setVisible(false);
+        rightEditorPane.setFocusable(false);
+        //rightEditorPane.getCaret().setSelectionVisible(false);
+        //rightEditorPane.setCaret(null);
+        rightEditorPane.setEditorKit(kit);
+        rightEditorPane.setContentType("text/html");
         JScrollPane rightScroll =
-                new JScrollPane(rightTextPane);
+                new JScrollPane(rightEditorPane);
+
+        rightEditorPane.addHyperlinkListener(e -> {
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                String id;
+                if (e.getURL() != null)
+                    id = e.getURL().getRef();
+                else
+                    id = e.getDescription().replace("#", "");
+                controller_Board.goToNode(Integer.parseInt(id));
+            }
+        });
+
+        rightEditorPane.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    handleRightEditorRightClick(e);
+                }
+            }
+        });
 
         // Navigation buttons panel
         JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -400,26 +472,30 @@ public class View_MainFrame extends JFrame
         JButton btnToStart = new JButton();
         btnToStart.putClientProperty("JButton.buttonType", "toolBarButton");
         btnToStart.setIcon(new FlatSVGIcon("icons/fast_rewind.svg"));
-        btnToStart.setToolTipText("Edit Game  Data");
+        btnToStart.setToolTipText("Seek To Beginning");
         btnToStart.setFocusable(false);
+        btnToStart.addActionListener(controller_Board.seekToBeginning());
 
         JButton btnPrev = new JButton();
         btnPrev.putClientProperty("JButton.buttonType", "toolBarButton");
         btnPrev.setIcon(new FlatSVGIcon("icons/arrow_back.svg"));
-        btnPrev.setToolTipText("Edit Game  Data");
+        btnPrev.setToolTipText("Move Back");
         btnPrev.setFocusable(false);
+        btnPrev.addActionListener(controller_Board.moveBack());
 
         JButton btnNext = new JButton();
         btnNext.putClientProperty("JButton.buttonType", "toolBarButton");
         btnNext.setIcon(new FlatSVGIcon("icons/play_arrow.svg"));
-        btnNext.setToolTipText("Edit Game  Data");
+        btnNext.setToolTipText("Move Forward");
         btnNext.setFocusable(false);
+        btnNext.addActionListener(controller_Board.moveForward());
 
         JButton btnToEnd = new JButton();
         btnToEnd.putClientProperty("JButton.buttonType", "toolBarButton");
         btnToEnd.setIcon(new FlatSVGIcon("icons/fast_forward.svg"));
-        btnToEnd.setToolTipText("Edit Game  Data");
+        btnToEnd.setToolTipText("Seek to End");
         btnToEnd.setFocusable(false);
+        btnToEnd.addActionListener(controller_Board.seekToEnd());
 
 
         navPanel.add(btnToStart);
@@ -508,6 +584,135 @@ public class View_MainFrame extends JFrame
         return verticalSplit;
     }
 
+    private void handleRightEditorRightClick(MouseEvent e) {
+            JEditorPane pane = (JEditorPane) e.getSource();
+            int pos = pane.viewToModel2D(e.getPoint());
+
+            if (pos >= 0) {
+                HTMLDocument doc = (HTMLDocument) pane.getDocument();
+                Element element = doc.getCharacterElement(pos);
+                AttributeSet attrs = element.getAttributes();
+
+                AttributeSet anchor =
+                        (AttributeSet) attrs.getAttribute(HTML.Tag.A);
+
+                if (anchor != null) {
+                    String href = (String) anchor.getAttribute(HTML.Attribute.HREF);
+
+                    if (href != null) {
+                        int nodeId = Integer.parseInt(href.substring(1));
+                        showContextMenu(e, nodeId);
+                    }
+                }
+            }
+    }
+
+    private void doSomething(String href) {
+        System.out.println("Clicked link: " + href);
+
+    }
+
+    private void showContextMenu(MouseEvent e, int nodeId) {
+        JPopupMenu contextMenu = new JPopupMenu();
+
+        JMenuItem addEditComment = new JMenuItem("Add/Edit Comment");
+        contextMenu.add(addEditComment);
+        JMenuItem deleteComment = new JMenuItem("Delete Comment");
+        contextMenu.add(deleteComment);
+
+        JMenu moveAnnotation = new JMenu("Move Annotation");
+        JMenuItem blunder = new JMenuItem("?? Blunder");
+        JMenuItem mistake = new JMenuItem("? Mistake");
+        JMenuItem dubiousMove = new JMenuItem("?! Dubious Move");
+        JMenuItem interestingMove = new JMenuItem("!? Interesting Move");
+        JMenuItem goodMove = new JMenuItem("! Good Move");
+        JMenuItem brilliantMove = new JMenuItem("!! Brilliant Move");
+        JMenuItem noMoveAnnotation = new JMenuItem("No Move Annotation");
+        moveAnnotation.add(blunder);
+        moveAnnotation.add(mistake);
+        moveAnnotation.add(dubiousMove);
+        moveAnnotation.add(interestingMove);
+        moveAnnotation.add(goodMove);
+        moveAnnotation.add(brilliantMove);
+        moveAnnotation.add(noMoveAnnotation);
+        contextMenu.add(moveAnnotation);
+
+        JMenu posAnnotation = new JMenu("Position Annotation");
+        JMenuItem unclear = new JMenuItem("∞ Unclear");
+        JMenuItem drawish = new JMenuItem("= Equal");
+        JMenuItem slightAdvantageWhite = new JMenuItem("⩲ Slight Advantage White");
+        JMenuItem slightAdvantageBlack = new JMenuItem("⩱ Slight Advantage Black");
+        JMenuItem advantageWhite = new JMenuItem("+- Advantage White");
+        JMenuItem advantageBlack = new JMenuItem("-+ Advantage Black");
+        JMenuItem noPosAnnotation = new JMenuItem("No Position Annotation");
+        posAnnotation.add(unclear);
+        posAnnotation.add(drawish);
+        posAnnotation.add(slightAdvantageWhite);
+        posAnnotation.add(slightAdvantageBlack);
+        posAnnotation.add(advantageWhite);
+        posAnnotation.add(advantageBlack);
+        posAnnotation.add(noPosAnnotation);
+        contextMenu.add(posAnnotation);
+
+        JMenuItem removeAnnotation = new JMenuItem("Remove Annotations");
+        contextMenu.add(removeAnnotation);
+        contextMenu.addSeparator();
+
+        JMenuItem moveVariantUp = new JMenuItem("Move Variant Up");
+        JMenuItem moveVariantDown = new JMenuItem("Move Variant Down");
+        JMenuItem deleteVariant = new JMenuItem("Delete Variant");
+        JMenuItem deleteFromHere = new JMenuItem("Delete From Here");
+        contextMenu.add(moveVariantUp);
+        contextMenu.add(moveVariantDown);
+        contextMenu.add(deleteVariant);
+        contextMenu.add(deleteFromHere);
+        contextMenu.addSeparator();
+
+        JMenuItem deleteAllComments = new JMenuItem("Delete All Comments");
+        JMenuItem deleteAllVariants = new JMenuItem("Delete All Variants");
+        contextMenu.add(deleteAllComments);
+        contextMenu.add(deleteAllVariants);
+
+        contextMenu.show(e.getComponent(), e.getX(), e.getY());
+
+        addEditComment.addActionListener(ae -> {
+            System.out.println("FOOBAR!!!");
+        });
+        deleteComment.addActionListener(controller_UI.deleteComment(nodeId));
+        blunder.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_BLUNDER));
+        mistake.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_MISTAKE));
+        dubiousMove.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_DUBIOUS_MOVE));
+        interestingMove.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_SPECULATIVE_MOVE));
+        goodMove.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_GOOD_MOVE));
+        brilliantMove.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_BRILLIANT_MOVE));
+        noMoveAnnotation.addActionListener(controller_UI.removeMoveAnnotations(nodeId));
+
+        unclear.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_DRAWISH_POSITION));
+        drawish.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_DRAWISH_POSITION));
+        slightAdvantageWhite.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_WHITE_SLIGHT_ADVANTAGE));
+        slightAdvantageBlack.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_BLACK_SLIGHT_ADVANTAGE));
+        advantageWhite.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_WHITE_DECISIVE_ADVANTAGE));
+        advantageBlack.addActionListener(controller_UI.addPosAnnotation(nodeId, CONSTANTS.NAG_BLACK_DECISIVE_ADVANTAGE));
+        noPosAnnotation.addActionListener(controller_UI.removePosAnnotations(nodeId));
+        removeAnnotation.addActionListener(controller_UI.removeMoveAndPosAnnotations(nodeId));
+
+        moveVariantUp.addActionListener(controller_UI.moveVariantUp(nodeId));
+        moveVariantDown.addActionListener(controller_UI.moveVariantDown(nodeId));
+        deleteVariant.addActionListener(controller_UI.deleteVariant(nodeId));
+        deleteFromHere.addActionListener(controller_UI.deleteFromHere(nodeId));
+
+        deleteAllComments.addActionListener(controller_UI.deleteAllComments());
+        deleteAllVariants.addActionListener(controller_UI.deleteAllVariants());
+
+        /*
+        JMenuItem item = new JMenuItem("Do something with " + href);
+        item.addActionListener(ev -> doSomething(href));
+
+        menu.add(item);
+        menu.show(e.getComponent(), e.getX(), e.getY());
+         */
+    }
+
     private void setLookAndFeel(String lafClass) {
 
         if(lafClass.equals("system.default")) {
@@ -551,23 +756,88 @@ public class View_MainFrame extends JFrame
         verticalSplit.setDividerLocation(dividerVertical);
     }
 
+    private void updatePgnHeaders() {
+        // update label
+        HashMap<String, String> pgnHeaders = model.getGame().getPgnHeaders();
+        String newGameInfo = "<html><div style='text-align:center;'>" +
+                pgnHeaders.get("White") + " - " +
+                pgnHeaders.get("Black") + "<br>" +
+                pgnHeaders.get("Site");
+        if(!pgnHeaders.get("Date").isEmpty()) {
+            newGameInfo = newGameInfo + ", " + pgnHeaders.get("Date");
+        }
+        newGameInfo += "</div></html>";
+        lblGameHeader.setText(newGameInfo);
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("switchLaf".equals(evt.getPropertyName())) {
             setLookAndFeel(model.getLaf());
         }
         if ("pgnHeadersChanged".equals(evt.getPropertyName())) {
-            // update label
-            HashMap<String, String> pgnHeaders = model.getGame().getPgnHeaders();
-            String newGameInfo = "<html><div style='text-align:center;'>" +
-                    pgnHeaders.get("White") + " - " + "<br>" +
-                    pgnHeaders.get("Site");
-            if(!pgnHeaders.get("Date").isEmpty()) {
-                newGameInfo = newGameInfo + ", " + pgnHeaders.get("Date");
+            updatePgnHeaders();
+        }
+        if("currentGameNodeChanged".equals(evt.getPropertyName())) {
+            /* working, but old version
+            int id = model.getGame().getCurrentNode().getId();
+            if(htmlString.isEmpty()) {
+                htmlString =  htmlPrinter.printGame(model.getGame());
+            } else {
+                htmlString =
+                htmlString.replaceAll(" style=\"background: silver\" ", "")
+                        .replace("id=\"n" + id + "\"",
+                                "id=\"n" + id + "\" style=\"background: silver\" ");
             }
-            newGameInfo += "</div></html>";
-            lblGameHeader.setText(newGameInfo);
+            System.out.println(htmlString);
+            rightEditorPane.setText(htmlString);
+             */
+
+            try {
+                int id = model.getGame().getCurrentNode().getId();
+                HTMLDocument doc = (HTMLDocument) rightEditorPane.getDocument();
+                Element element = doc.getElement("n" + id);
+
+                Highlighter highlighter = rightEditorPane.getHighlighter();
+
+                if (element == null) {
+                    // if root node, remove annotation before returning
+                    if(model.getGame().getCurrentNode() == model.game.getRootNode()) {
+                        highlighter.removeHighlight(currentHighlight);
+                    }
+                    return;
+                }
+
+                int start = element.getStartOffset();
+                int end = element.getEndOffset();
+
+                if (currentHighlight != null) {
+                    highlighter.removeHighlight(currentHighlight);
+                }
+
+                currentHighlight = highlighter.addHighlight(
+                        start,
+                        end,
+                        new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY)
+                );
+
+                Rectangle r = rightEditorPane.modelToView(start);
+
+                if (r != null) {
+                    rightEditorPane.scrollRectToVisible(r);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+        }
+        if("gameChanged".equals(evt.getPropertyName()) || "treeChanged".equals(evt.getPropertyName())) {
+            htmlString =  htmlPrinter.printGame(model.getGame());
+            rightEditorPane.setText(htmlString);
+            updatePgnHeaders();
         }
     }
+
 }
 

@@ -1,15 +1,13 @@
 package org.asdfjkl.jfxchess.gui;
 
-import org.asdfjkl.jfxchess.lib.Board;
-import org.asdfjkl.jfxchess.lib.Move;
-import org.asdfjkl.jfxchess.lib.PgnPrinter;
+import org.asdfjkl.jfxchess.lib.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.*;
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.BLACK;
@@ -268,6 +266,120 @@ public class Controller_UI {
             if(dialog.isConfirmed()) {
                 model.setPgnHeaders(dialog.getData());
             }
+        };
+    }
+
+    public String readTextFromClipboard() {
+
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Transferable contents = clipboard.getContents(null);
+        if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                try {
+                    return (String) contents.getTransferData(DataFlavor.stringFlavor);
+                } catch (UnsupportedFlavorException | IOException e) {
+                    return null;
+                }
+        }
+        return null;
+    }
+
+    public ActionListener pasteFenOrGame() {
+        return e -> {
+            String pasteString = null;
+            pasteString = readTextFromClipboard();
+            if (!model.isBlockGUI()) {
+                // check if this is a fen
+                try {
+                    Board board = new Board(pasteString);
+                    if (board.isConsistent()) {
+                        Game g = new Game();
+                        g.getRootNode().setBoard(board);
+                        model.setGame(g);
+                    }
+                } catch (IllegalArgumentException ex) {
+                    // if not a fen string, maybe it's a full game
+                    PgnReader reader = new PgnReader();
+                    Game g = reader.readGame(pasteString);
+                    // as a heuristic we assume it's really a pasted game string if either there is at least
+                    // two game nodes, or if there is a fen string for the root board
+                    if (g.getRootNode().hasChild() || !g.getRootNode().getBoard().isInitialPosition()) {
+                        model.setGame(g);
+                    }
+                }
+            }
+
+        };
+    }
+
+    public ActionListener deleteComment(int nodeId) {
+        return e -> {
+            model.setComment(nodeId, "");
+        };
+    }
+
+    public ActionListener addMoveAnnotation(int nodeId, int nag) {
+        return e -> {
+            model.addNag(nodeId, nag);
+        };
+    }
+
+    public ActionListener removeMoveAnnotations(int nodeId) {
+        return e -> {
+            model.removeMoveAnnotations(nodeId);
+        };
+    }
+
+    public ActionListener addPosAnnotation(int nodeId, int nag) {
+        return e -> {
+            model.addNag(nodeId, nag);
+        };
+    }
+
+    public ActionListener removePosAnnotations(int nodeId) {
+        return e -> {
+            model.removePosAnnotations(nodeId);
+        };
+    }
+
+    public ActionListener removeMoveAndPosAnnotations(int nodeId) {
+        return e -> {
+            model.removeMoveAndPosAnnotation(nodeId);
+        };
+    }
+
+    public ActionListener moveVariantUp(int nodeId) {
+        return e -> {
+            model.moveVariantUp(nodeId);
+        };
+    }
+
+    public ActionListener moveVariantDown(int nodeId) {
+        return e -> {
+            model.moveVariantDown(nodeId);
+        };
+    }
+
+    public ActionListener deleteVariant(int nodeId) {
+        return e -> {
+            model.deleteVariant(nodeId);
+        };
+    }
+
+    public ActionListener deleteFromHere(int nodeId) {
+        return e -> {
+            model.deleteFromHere(nodeId);
+        };
+    }
+
+    public ActionListener deleteAllComments() {
+        return e -> {
+            model.deleteAllComments();
+        };
+    }
+
+    public ActionListener deleteAllVariants() {
+        return e -> {
+            model.deleteAllVariants();
         };
     }
 }

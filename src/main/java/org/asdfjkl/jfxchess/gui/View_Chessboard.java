@@ -569,11 +569,17 @@ public class View_Chessboard extends JPanel
             flipBoard = (boolean) evt.getNewValue();
             repaint();
         }
-        if("pieceStyle".equals(evt.getPropertyName()) ||
+        if ("pieceStyle".equals(evt.getPropertyName()) ||
                 "boardColor".equals(evt.getPropertyName())) {
             System.out.println("view chessboard: property change");
-            System.out.println(("board style: "+model.getBoardStyle().getColorStyle()));
-            System.out.println(("piece style: "+model.getBoardStyle().getPieceStyle()));
+            System.out.println(("board style: " + model.getBoardStyle().getColorStyle()));
+            System.out.println(("piece style: " + model.getBoardStyle().getPieceStyle()));
+            repaint();
+        }
+        if ("currentGameNodeChanged".equals(evt.getPropertyName())) {
+            repaint();
+        }
+        if ("gameChanged".equals(evt.getPropertyName())) {
             repaint();
         }
     }

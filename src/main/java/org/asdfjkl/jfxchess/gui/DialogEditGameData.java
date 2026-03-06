@@ -229,6 +229,19 @@ public class DialogEditGameData extends JDialog {
 
         unknown.setSelected(true);
 
+        if(pgnHeaders.get("Result") != null) {
+            String res = pgnHeaders.get("Result");
+            if(res.equals("1-0")) {
+                winWhite.setSelected(true);
+            }
+            if(res.equals("0-1")) {
+                winBlack.setSelected(true);
+            }
+            if(res.equals("1/2-1/2")) {
+                draw.setSelected(true);
+            }
+        }
+
         resultPanel.add(winWhite);
         resultPanel.add(winBlack);
         resultPanel.add(draw);

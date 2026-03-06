@@ -258,6 +258,7 @@ public class Model_JFXChess {
 
     public void setGame(Game game) {
         this.game = game;
+        pcs.firePropertyChange("gameChanged", null, null);
     }
 
     public int getGameAnalysisForPlayer() { return gameAnalysisForPlayer; }
@@ -625,6 +626,16 @@ public class Model_JFXChess {
         }
     }
 
+    public void goToChild(int idx) {
+        game.goToChild(idx);
+        pcs.firePropertyChange("currentGameNodeChanged", null, null);
+    }
+
+    public void goToParent() {
+        game.goToParent();
+        pcs.firePropertyChange("currentGameNodeChanged", null, null);
+    }
+
     public void setBoardColor(int style) {
         boardStyle.setColorStyle(style);
         pcs.firePropertyChange("boardColor", null, style);
@@ -646,5 +657,90 @@ public class Model_JFXChess {
     public void setPgnHeaders(HashMap<String, String> data) {
         game.setPgnHeaders(data);
         pcs.firePropertyChange("pgnHeadersChanged", null, null);
+    }
+
+    public void goToNode(int id) {
+        try {
+            GameNode node = game.findNodeById(id);
+            game.setCurrent(node);
+            pcs.firePropertyChange("currentGameNodeChanged", null, null);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void seekToEnd() {
+        game.goToLeaf();
+        pcs.firePropertyChange("currentGameNodeChanged", null, null);
+    }
+
+    public void seekToBeginning() {
+        game.goToRoot();
+        pcs.firePropertyChange("currentGameNodeChanged", null, null);
+    }
+
+    public void setComment(int nodeId, String s) {
+        GameNode node = game.findNodeById(nodeId);
+        node.setComment(s);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void addNag(int nodeId, int nag) {
+        GameNode node = game.findNodeById(nodeId);
+        node.addNag(nag);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void removeMoveAnnotations(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        selectedNode.removeNagsInRange(0,CONSTANTS.MOVE_ANNOTATION_UPPER_LIMIT);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void removePosAnnotations(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        selectedNode.removeNagsInRange(CONSTANTS.POSITION_ANNOTATION_LOWER_LIMIT,
+                CONSTANTS.POSITION_ANNOTATION_UPPER_LIMIT);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void removeMoveAndPosAnnotation(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        selectedNode.removeNagsInRange(0,CONSTANTS.POSITION_ANNOTATION_UPPER_LIMIT);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void moveVariantUp(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        game.moveUp(selectedNode);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void moveVariantDown(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        game.moveDown(selectedNode);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void deleteVariant(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        game.delVariant(selectedNode);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void deleteFromHere(int nodeId) {
+        GameNode selectedNode = game.findNodeById(nodeId);
+        game.delBelow(selectedNode);
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void deleteAllComments() {
+        game.removeAllComments();
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public void deleteAllVariants() {
+        game.removeAllVariants();
+        pcs.firePropertyChange("treeChanged", null, null);
     }
 }
