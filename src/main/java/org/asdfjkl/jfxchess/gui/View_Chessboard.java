@@ -25,7 +25,6 @@ public class View_Chessboard extends JPanel
     private final Controller_Board controller_Board;
 
     final double outputScaleX = HighDPIHelper.getUIScaleFactor();
-    boolean flipBoard = true;
 
     int innerXOffset;
     int innerYOffset;
@@ -147,20 +146,20 @@ public class View_Chessboard extends JPanel
         for(int i=0;i<8;i++) {
             for(int j=0;j<8;j++) {
                 if((j%2 == 0 && i%2==1) || (j%2 == 1 && i%2==0)) {
-                    if(!flipBoard) {
+                    if(!model.getFlipBoard()) {
                         fieldColor = model.getBoardStyle().getLightSquareColor();
                     } else {
                         fieldColor = model.getBoardStyle().getDarkSquareColor();
                     }
                 } else {
-                    if(!flipBoard) {
+                    if(!model.getFlipBoard()) {
                         fieldColor = model.getBoardStyle().getDarkSquareColor();
                     } else {
                         fieldColor = model.getBoardStyle().getLightSquareColor();
                     }
                 }
                 int x = (innerXOffset) + (i*squareSize);
-                if(flipBoard) {
+                if(model.getFlipBoard()) {
                     x = innerXOffset+((7-i)*squareSize);
                 }
                 int y = (innerYOffset) + ((7-j)*squareSize);
@@ -170,13 +169,13 @@ public class View_Chessboard extends JPanel
 
                 if(lastMoveFrom != null && lastMoveTo != null) {
                     boolean markField = false;
-                    if(!flipBoard) {
+                    if(!model.getFlipBoard()) {
                         if ((lastMoveFrom.getX() == i && lastMoveFrom.getY() == j) ||
                                 (lastMoveTo.getX() == i && lastMoveTo.getY() == j)) {
                             markField = true;
                         }
                     }
-                    if(flipBoard) {
+                    if(model.getFlipBoard()) {
                         if ((lastMoveFrom.getX() == i && lastMoveFrom.getY() == 7 - j) ||
                                 (lastMoveTo.getX() == i && lastMoveTo.getY() == 7 - j)) {
                             markField = true;
@@ -200,7 +199,7 @@ public class View_Chessboard extends JPanel
 
             int x = (innerXOffset) + (i*squareSize);
             int y = (innerYOffset) + ((7-j)*squareSize);
-            if(flipBoard) {
+            if(model.getFlipBoard()) {
                 x = innerXOffset+((7-i)*squareSize);
                 y = (innerYOffset) + (j*squareSize);
             }
@@ -212,7 +211,7 @@ public class View_Chessboard extends JPanel
         // draw the board coordinates
         g2.setColor(model.getBoardStyle().getCoordinateColor());
         for(int i=0;i<8;i++) {
-            if(flipBoard){
+            if(model.getFlipBoard()){
                 char ch = (char) (65 + (7 - i));
                 String idx = Character.toString(ch);
                 String num = Integer.toString(i + 1);
@@ -234,7 +233,7 @@ public class View_Chessboard extends JPanel
         for(int i=0;i<8;i++) {
             for (int j = 0; j < 8; j++) {
                 int x;
-                if(flipBoard) {
+                if(model.getFlipBoard()) {
                     x = innerXOffset+((7-i)*squareSize);
                 } else {
                     x = innerXOffset+(i*squareSize);
@@ -243,13 +242,13 @@ public class View_Chessboard extends JPanel
                 // whereas chess coords are from bottom left
                 int y = innerYOffset+((7-j)*squareSize);
                 int piece = 0;
-                if(flipBoard) {
+                if(model.getFlipBoard()) {
                     piece = b.getPieceAt(i, 7-j);
                 } else {
                     piece = b.getPieceAt(i, j);
                 }
                 if(piece != EMPTY && piece != FRINGE) {
-                    if(!flipBoard) {
+                    if(!model.getFlipBoard()) {
                         if (!(drawGrabbedPiece && i == moveSource.x && j == moveSource.y)) {
                             Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
                                     model.getBoardStyle().getPieceStyle());
@@ -318,7 +317,7 @@ public class View_Chessboard extends JPanel
         int xTo = 0;
         int yFrom = 0;
         int yTo = 0;
-        if(this.flipBoard) {
+        if(model.getFlipBoard()) {
             xFrom = boardOffsetX+((7-arrow.xFrom)*squareSize) + (squareSize/2);
             xTo = boardOffsetX+((7-arrow.xTo)*squareSize) + (squareSize/2);
             yFrom = boardOffsetY+(arrow.yFrom*squareSize)+ (squareSize/2);
@@ -387,7 +386,7 @@ public class View_Chessboard extends JPanel
             int i = (int) x - innerXOffset;
             int j = (int) y - innerYOffset;
 
-            if(flipBoard) {
+            if(model.getFlipBoard()) {
                 i = 7 - (i / squareSize);
                 j = j / squareSize;
             } else {
@@ -565,8 +564,9 @@ public class View_Chessboard extends JPanel
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if ("flipBoard".equals(evt.getPropertyName())) {
-            flipBoard = (boolean) evt.getNewValue();
+        if ("boardFlipped".equals(evt.getPropertyName())) {
+            System.out.println("boardFlipped view listener");
+            System.out.println(model.getFlipBoard());
             repaint();
         }
         if ("pieceStyle".equals(evt.getPropertyName()) ||

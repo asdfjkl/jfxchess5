@@ -156,9 +156,13 @@ public class View_MainFrame extends JFrame
         jmiEditGameData.addActionListener(controller_UI.editGameData());
         editMenu.add(jmiEditGameData);
 
-        editMenu.add(new JMenuItem("Enter Position"));
+        JMenuItem jmiSetupPosition = new JMenuItem("Setup Position");
+        editMenu.add(jmiSetupPosition);
+        jmiSetupPosition.addActionListener(controller_UI.setupNewPosition());
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Flip Board"));
+        JMenuItem jmiFlipBoard = new JMenuItem("Flip Board");
+        editMenu.add(jmiFlipBoard);
+        jmiFlipBoard.addActionListener(controller_UI.flipBoard());
 
         JMenu modeMenu = new JMenu("Mode");
         modeMenu.add(new JMenuItem("Analysis"));
@@ -770,6 +774,47 @@ public class View_MainFrame extends JFrame
         lblGameHeader.setText(newGameInfo);
     }
 
+    private void updateHighlightedMove() {
+        try {
+            int id = model.getGame().getCurrentNode().getId();
+            HTMLDocument doc = (HTMLDocument) rightEditorPane.getDocument();
+            Element element = doc.getElement("n" + id);
+
+            Highlighter highlighter = rightEditorPane.getHighlighter();
+
+            if (element == null) {
+                // if root node, remove annotation before returning
+                if(model.getGame().getCurrentNode() == model.game.getRootNode()
+                        && currentHighlight != null) {
+                    highlighter.removeHighlight(currentHighlight);
+                }
+                return;
+            }
+
+            int start = element.getStartOffset();
+            int end = element.getEndOffset();
+
+            if (currentHighlight != null) {
+                highlighter.removeHighlight(currentHighlight);
+            }
+
+            currentHighlight = highlighter.addHighlight(
+                    start,
+                    end,
+                    new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY)
+            );
+
+            Rectangle r = rightEditorPane.modelToView(start);
+
+            if (r != null) {
+                rightEditorPane.scrollRectToVisible(r);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("switchLaf".equals(evt.getPropertyName())) {
@@ -793,6 +838,8 @@ public class View_MainFrame extends JFrame
             rightEditorPane.setText(htmlString);
              */
 
+
+            /*
             try {
                 int id = model.getGame().getCurrentNode().getId();
                 HTMLDocument doc = (HTMLDocument) rightEditorPane.getDocument();
@@ -831,11 +878,14 @@ public class View_MainFrame extends JFrame
                 ex.printStackTrace();
             }
 
+             */
+            updateHighlightedMove();
         }
         if("gameChanged".equals(evt.getPropertyName()) || "treeChanged".equals(evt.getPropertyName())) {
             htmlString =  htmlPrinter.printGame(model.getGame());
             rightEditorPane.setText(htmlString);
             updatePgnHeaders();
+            updateHighlightedMove();
         }
     }
 

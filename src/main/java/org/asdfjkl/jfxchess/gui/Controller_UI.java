@@ -114,10 +114,6 @@ public class Controller_UI {
         int innerXOffset = (xOffset + borderMargin);
         int innerYOffset = (outerMargin + borderMargin);
 
-        boolean flipBoard = model.getFlipBoard();
-
-
-
         // paint board border
         g2.setColor(borderColor);
         g2.fillRect(
@@ -134,17 +130,17 @@ public class Controller_UI {
                 Color fieldColor;
 
                 if ((j % 2 == 0 && i % 2 == 1) || (j % 2 == 1 && i % 2 == 0)) {
-                    fieldColor = flipBoard
+                    fieldColor = model.getFlipBoard()
                             ? darkSquareColor
                             : lightSquareColor;
                 } else {
-                    fieldColor = flipBoard
+                    fieldColor = model.getFlipBoard()
                             ? lightSquareColor
                             : darkSquareColor;
                 }
 
                 int x = innerXOffset + (i * squareSize);
-                if (flipBoard) {
+                if (model.getFlipBoard()) {
                     x = innerXOffset + ((7 - i) * squareSize);
                 }
 
@@ -160,7 +156,7 @@ public class Controller_UI {
 
         for (int i = 0; i < 8; i++) {
 
-            if (flipBoard) {
+            if (model.getFlipBoard()) {
                 char ch = (char) (65 + (7 - i));
                 String idx = Character.toString(ch);
                 String num = Integer.toString(i + 1);
@@ -203,13 +199,13 @@ public class Controller_UI {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
 
-                int x = flipBoard
+                int x = model.getFlipBoard()
                         ? innerXOffset + ((7 - i) * squareSize)
                         : innerXOffset + (i * squareSize);
 
                 int y = innerYOffset + ((7 - j) * squareSize);
 
-                int piece = flipBoard
+                int piece = model.getFlipBoard()
                         ? b.getPieceAt(i, 7 - j)
                         : b.getPieceAt(i, j);
 
@@ -380,6 +376,21 @@ public class Controller_UI {
     public ActionListener deleteAllVariants() {
         return e -> {
             model.deleteAllVariants();
+        };
+    }
+
+    public ActionListener flipBoard() {
+        return e -> {
+            System.out.println("controller ui: flipboard old: " + model.getFlipBoard());
+            System.out.println("controller ui: flipboard new: " + (!model.getFlipBoard()));
+            model.setFlipBoard(!model.getFlipBoard());
+        };
+    }
+
+    public ActionListener setupNewPosition() {
+        return e -> {
+            DialogSetupPosition dialog = new DialogSetupPosition(model.mainFrameRef, model);
+            dialog.setVisible(true);
         };
     }
 }
