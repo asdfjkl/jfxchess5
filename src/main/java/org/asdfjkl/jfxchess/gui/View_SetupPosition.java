@@ -44,6 +44,29 @@ public class View_SetupPosition extends JPanel {
         g2.setColor(model.getBoardStyle().getDarkSquareColor());
         g2.fillRect(0, 0, getWidth(), getHeight());
 
+        // compute possible square width and height and take the minimum
+        // for the width, we take into account that we need to paint
+        // on the right next to board the pieces that can be picked up/dragged
+
+        int borderMargin = 18;
+        int outerMargin = (int) (this.getWidth() * 0.05);
+        double squareWidth = (this.getWidth() - (4 * borderMargin) - (2* outerMargin)) / 11.0;
+        double squareHeight = (this.getHeight() - (2 * borderMargin) - (2* outerMargin)) / 8.0;
+
+        int squareSize = (int) Math.min(squareWidth, squareHeight);
+
+        int xOffset = outerMargin;
+        int innerXOffset = (xOffset + borderMargin);
+        int innerYOffset = (outerMargin + borderMargin);
+
+
+        //double height = this.getHeight();
+        //double width = this.getWidth();
+
+        //int squareWidth =
+
+
+        /*
         // size of real board incl. corner
         double height = this.getHeight();
         double width = this.getWidth();
@@ -67,6 +90,7 @@ public class View_SetupPosition extends JPanel {
 
         int innerXOffset = (xOffset + borderMargin);
         int innerYOffset = (outerMargin + borderMargin);
+        */
 
         // paint board inc. margin with letters & numbers
         g2.setColor(model.getBoardStyle().getBorderColor());

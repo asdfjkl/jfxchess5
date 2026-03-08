@@ -37,7 +37,7 @@ public class DialogSetupPosition extends JDialog {
         add(createMainPanel(), BorderLayout.CENTER);
         add(createBottomButtons(), BorderLayout.SOUTH);
 
-        setSize(900, 500);
+        setSize(800, 500);
         setLocationRelativeTo(parent);
     }
 
