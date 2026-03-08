@@ -1,5 +1,8 @@
 package org.asdfjkl.jfxchess.gui;
 
+import org.asdfjkl.jfxchess.lib.Board;
+import org.asdfjkl.jfxchess.lib.CONSTANTS;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -10,22 +13,19 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DialogSetupPosition extends JDialog {
-
-    // --- Stub chessboard widget ---
-    static class ChessboardWidget extends JPanel {
-        public ChessboardWidget() {
-            setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawString("Chessboard Stub", 10, 20);
-        }
-    }
+public class DialogSetupPosition extends JDialog implements SetupPositionListener {
 
     Model_JFXChess model;
+    private JButton btnOk;
+    private JButton btnCancel;
+    private View_SetupPosition viewSetupPosition;
+    private JRadioButton rbWhite;
+    private JRadioButton rbBlack;
+    private JCheckBox jcbWhite00;
+    private JCheckBox jcbWhite000;
+    private JCheckBox jcbBlack00;
+    private JCheckBox jcbBlack000;
+    private boolean confirmed;
 
     public DialogSetupPosition(Frame parent, Model_JFXChess model) {
         super(parent, "Enter Position", true);
@@ -52,7 +52,8 @@ public class DialogSetupPosition extends JDialog {
         c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
         c.insets = new Insets(5,5,5,5);
-        View_SetupPosition viewSetupPosition = new View_SetupPosition(model);
+        viewSetupPosition = new View_SetupPosition(model);
+        viewSetupPosition.addListener(this);
         //panel.add(new ChessboardWidget(), c);
         panel.add(viewSetupPosition, c);
 
@@ -101,10 +102,41 @@ public class DialogSetupPosition extends JDialog {
         JPanel panel = new JPanel(new GridLayout(4,1));
         panel.setBorder(new TitledBorder("Castling Rights"));
 
-        panel.add(new JCheckBox("White 0-0"));
-        panel.add(new JCheckBox("White 0-0-0"));
-        panel.add(new JCheckBox("Black 0-0"));
-        panel.add(new JCheckBox("Black 0-0-0"));
+        jcbWhite00 = new JCheckBox("White 0-0");
+        jcbWhite000 = new JCheckBox("White 0-0-0");
+        jcbBlack00 = new JCheckBox("Black 0-0");
+        jcbBlack000 = new JCheckBox("Black 0-0");
+
+        panel.add(jcbWhite00);
+        panel.add(jcbWhite000);
+        panel.add(jcbBlack00);
+        panel.add(jcbBlack000);
+
+        jcbWhite00.setSelected(model.getGame().getCurrentNode().getBoard().canCastleWhiteKing());
+        jcbWhite000.setSelected(model.getGame().getCurrentNode().getBoard().canCastleWhiteQueen());
+        jcbBlack00.setSelected(model.getGame().getCurrentNode().getBoard().canCastleBlackKing());
+        jcbBlack000.setSelected(model.getGame().getCurrentNode().getBoard().canCastleBlackQueen());
+
+        jcbWhite00.addActionListener(e -> {
+            viewSetupPosition.setCastleWKing(jcbWhite00.isSelected());
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
+        jcbWhite000.addActionListener(e -> {
+            viewSetupPosition.setCastleWQueen(jcbWhite000.isSelected());
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
+        jcbBlack00.addActionListener(e -> {
+            viewSetupPosition.setCastleWKing(jcbBlack00.isSelected());
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
+        jcbBlack000.addActionListener(e -> {
+            viewSetupPosition.setCastleWKing(jcbBlack000.isSelected());
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
 
         return panel;
     }
@@ -116,6 +148,14 @@ public class DialogSetupPosition extends JDialog {
         JComboBox<String> combo = new JComboBox<>(createEnPassantOptions());
         panel.add(combo);
 
+        combo.addActionListener(e -> {
+            try {
+                String epSquare = combo.getSelectedItem().toString();
+                viewSetupPosition.setEnPassantSquare(epSquare);
+                btnOk.setEnabled(viewSetupPosition.isConsistent());
+            } catch(NullPointerException ignored) {
+            }
+        });
         return panel;
     }
 
@@ -136,15 +176,32 @@ public class DialogSetupPosition extends JDialog {
         JPanel panel = new JPanel(new GridLayout(2,1));
         panel.setBorder(new TitledBorder("Turn"));
 
-        JRadioButton white = new JRadioButton("White", true);
-        JRadioButton black = new JRadioButton("Black");
+        rbWhite = new JRadioButton("White", true);
+        rbBlack = new JRadioButton("Black");
 
         ButtonGroup group = new ButtonGroup();
-        group.add(white);
-        group.add(black);
+        group.add(rbWhite);
+        group.add(rbBlack);
 
-        panel.add(white);
-        panel.add(black);
+        panel.add(rbWhite);
+        panel.add(rbBlack);
+
+        if(model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
+            rbWhite.setSelected(true);
+        } else {
+            rbBlack.setSelected(true);
+        }
+
+        rbWhite.addActionListener(e -> {
+            viewSetupPosition.setTurn(CONSTANTS.WHITE);
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
+        rbBlack.addActionListener(e -> {
+            viewSetupPosition.setTurn(CONSTANTS.BLACK);
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
 
         return panel;
     }
@@ -152,10 +209,51 @@ public class DialogSetupPosition extends JDialog {
     private JPanel createActionButtons() {
         JPanel panel = new JPanel(new GridLayout(4,1,0,5));
 
-        panel.add(new JButton("Flip Board"));
-        panel.add(new JButton("Initial Position"));
-        panel.add(new JButton("Clear Board"));
-        panel.add(new JButton("Current Position"));
+        JButton btnFlipBoard = new JButton("Flip Board");
+        JButton btnInitialPosition = new JButton("Initial Position");
+        JButton btnClearBoard = new JButton("Clear Board");
+        JButton btnCurrentPosition = new JButton("Current Position");
+
+        panel.add(btnFlipBoard);
+        panel.add(btnInitialPosition);
+        panel.add(btnClearBoard);
+        panel.add(btnCurrentPosition);
+
+        btnFlipBoard.addActionListener(e -> {
+            viewSetupPosition.flipBoard = !viewSetupPosition.flipBoard;
+            viewSetupPosition.repaint();
+        });
+
+        btnInitialPosition.addActionListener(e -> {
+            viewSetupPosition.resetToStartingPosition();
+            rbWhite.setSelected(true);
+            jcbWhite00.setSelected(true);
+            jcbWhite000.setSelected(true);
+            jcbBlack00.setSelected(true);
+            jcbBlack000.setSelected(true);
+            btnOk.setEnabled(true);
+        });
+
+        btnClearBoard.addActionListener(e -> {
+            viewSetupPosition.clearBoard();
+            rbWhite.setSelected(true);
+            jcbWhite00.setSelected(false);
+            jcbWhite000.setSelected(false);
+            jcbBlack00.setSelected(false);
+            jcbBlack000.setSelected(false);
+            btnOk.setEnabled(true);
+        });
+
+        btnCurrentPosition.addActionListener(e -> {
+            Board b = model.getGame().getCurrentNode().getBoard();
+            viewSetupPosition.copyBoard(b);
+            jcbWhite00.setSelected(b.canCastleWhiteKing());
+            jcbWhite000.setSelected(b.canCastleWhiteQueen());
+            jcbBlack00.setSelected(b.canCastleBlackKing());
+            jcbBlack000.setSelected(b.canCastleBlackQueen());
+            viewSetupPosition.repaint();
+            btnOk.setEnabled(viewSetupPosition.isConsistent());
+        });
 
         return panel;
     }
@@ -163,10 +261,31 @@ public class DialogSetupPosition extends JDialog {
     private JPanel createBottomButtons() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        panel.add(new JButton("OK"));
-        panel.add(new JButton("Cancel"));
+        btnOk = new JButton("OK");
+        btnCancel = new JButton("Cancel");
+        panel.add(btnOk);
+        panel.add(btnCancel);
+
+        btnOk.addActionListener(e -> {
+            confirmed = true;
+            dispose();
+        });
+
+        btnCancel.addActionListener(e -> dispose());
 
         return panel;
     }
 
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public Board getCurrentBoard() {
+        return viewSetupPosition.makeBoardCopy();
+    }
+
+    public void boardChanged() {
+        btnOk.setEnabled((viewSetupPosition.isBoardConsistent()));
+        repaint();
+    }
 }

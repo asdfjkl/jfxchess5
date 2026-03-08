@@ -381,8 +381,6 @@ public class Controller_UI {
 
     public ActionListener flipBoard() {
         return e -> {
-            System.out.println("controller ui: flipboard old: " + model.getFlipBoard());
-            System.out.println("controller ui: flipboard new: " + (!model.getFlipBoard()));
             model.setFlipBoard(!model.getFlipBoard());
         };
     }
@@ -391,6 +389,13 @@ public class Controller_UI {
         return e -> {
             DialogSetupPosition dialog = new DialogSetupPosition(model.mainFrameRef, model);
             dialog.setVisible(true);
+            if(dialog.isConfirmed()) {
+                System.out.println("setupNewPosition");
+                Board newBoard = dialog.getCurrentBoard();
+                Game g = new Game();
+                g.getRootNode().setBoard(newBoard);
+                model.setGame(g);
+            }
         };
     }
 }

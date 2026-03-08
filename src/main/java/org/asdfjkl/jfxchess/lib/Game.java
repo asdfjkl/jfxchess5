@@ -39,6 +39,13 @@ public class Game {
         this.headerWasChanged = false;
         this.wasEcoClassified = false;
         this.pgnHeaders = new HashMap<String,String>();
+        this.pgnHeaders.put("Event", "");
+        this.pgnHeaders.put("Site", "");
+        this.pgnHeaders.put("Date", "");
+        this.pgnHeaders.put("Round", "");
+        this.pgnHeaders.put("White", "");
+        this.pgnHeaders.put("Black", "");
+        this.pgnHeaders.put("Result", "");
     }
 
     private boolean containsPositionRec(long positionHash, GameNode node, int maxHalfmove) {

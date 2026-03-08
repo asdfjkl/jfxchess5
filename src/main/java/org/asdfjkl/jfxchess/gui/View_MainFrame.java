@@ -13,10 +13,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -138,6 +135,7 @@ public class View_MainFrame extends JFrame
         JMenu editMenu = new JMenu("Edit");
         JMenuItem jmiCopyGame = new JMenuItem("Copy Game");
         jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
+        jmiCopyGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
         editMenu.add(jmiCopyGame);
         JMenuItem jmiCopyFEN = new JMenuItem("Copy Position (FEN)");
         jmiCopyFEN.addActionListener(controller_UI.copyFenToClipboard());
@@ -149,6 +147,7 @@ public class View_MainFrame extends JFrame
 
         JMenuItem jmiPaste =  new JMenuItem("Paste Game/Position");
         jmiPaste.addActionListener(controller_UI.pasteFenOrGame());
+        jmiPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
         editMenu.add(jmiPaste);
         editMenu.addSeparator();
 
@@ -159,10 +158,12 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiSetupPosition = new JMenuItem("Setup Position");
         editMenu.add(jmiSetupPosition);
         jmiSetupPosition.addActionListener(controller_UI.setupNewPosition());
+        jmiSetupPosition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
         editMenu.addSeparator();
         JMenuItem jmiFlipBoard = new JMenuItem("Flip Board");
         editMenu.add(jmiFlipBoard);
         jmiFlipBoard.addActionListener(controller_UI.flipBoard());
+        jmiFlipBoard.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
 
         JMenu modeMenu = new JMenu("Mode");
         modeMenu.add(new JMenuItem("Analysis"));
@@ -767,7 +768,7 @@ public class View_MainFrame extends JFrame
                 pgnHeaders.get("White") + " - " +
                 pgnHeaders.get("Black") + "<br>" +
                 pgnHeaders.get("Site");
-        if(!pgnHeaders.get("Date").isEmpty()) {
+        if(!(pgnHeaders.get("Date").isEmpty())) {
             newGameInfo = newGameInfo + ", " + pgnHeaders.get("Date");
         }
         newGameInfo += "</div></html>";
