@@ -4,10 +4,7 @@ package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Element;
-import javax.swing.text.Highlighter;
+import javax.swing.text.*;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
@@ -18,6 +15,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
@@ -29,6 +27,7 @@ public class View_MainFrame extends JFrame
 
     private final Model_JFXChess model;
     private final Controller_UI controller_UI;
+    private final Controller_Board controller_Board;
 
     public JSplitPane horizontalSplit;
     public JSplitPane verticalSplit;
@@ -60,6 +59,20 @@ public class View_MainFrame extends JFrame
     private JRadioButtonMenuItem  jmiPieceStyleUSCF;
 */
 
+
+    KeyStroke pasteKey = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke copyKey = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke flipKey = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke setupPosKey = KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke moveForwardKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0);
+    KeyStroke moveBackKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
+    KeyStroke seekFirstKey = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
+    KeyStroke seekEndKey = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+
+    Map<KeyStroke, ActionListener> shortcuts = new HashMap<>();
+
+
+
     public View_MainFrame(Model_JFXChess model) {
         this.model = model;
         model.addListener(this);
@@ -73,6 +86,30 @@ public class View_MainFrame extends JFrame
         });
 
         controller_UI = new Controller_UI(model);
+        controller_Board = new Controller_Board(model);
+
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(e -> {
+
+                    if (e.getID() != KeyEvent.KEY_PRESSED)
+                        return false;
+
+                    KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
+
+                    ActionListener a = shortcuts.get(ks);
+
+                    if (a != null) {
+                        a.actionPerformed(new ActionEvent(
+                                e.getSource(),
+                                ActionEvent.ACTION_PERFORMED,
+                                "shortcut"
+                        ));
+                        return true;
+                    }
+
+                    return false;
+                });
 
         initUI();
     }
@@ -105,6 +142,9 @@ public class View_MainFrame extends JFrame
         // ===== Main Content =====
         JComponent mainContent = createMainContent();
 
+        // ===== Key Shortcuts
+        assignKeyShortcuts();
+
         // ===== Top Container (Toolbar + Content) =====
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(toolBar, BorderLayout.NORTH);
@@ -135,7 +175,7 @@ public class View_MainFrame extends JFrame
         JMenu editMenu = new JMenu("Edit");
         JMenuItem jmiCopyGame = new JMenuItem("Copy Game");
         jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
-        jmiCopyGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
+        jmiCopyGame.setAccelerator(copyKey);
         editMenu.add(jmiCopyGame);
         JMenuItem jmiCopyFEN = new JMenuItem("Copy Position (FEN)");
         jmiCopyFEN.addActionListener(controller_UI.copyFenToClipboard());
@@ -147,7 +187,7 @@ public class View_MainFrame extends JFrame
 
         JMenuItem jmiPaste =  new JMenuItem("Paste Game/Position");
         jmiPaste.addActionListener(controller_UI.pasteFenOrGame());
-        jmiPaste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+        jmiPaste.setAccelerator(pasteKey);
         editMenu.add(jmiPaste);
         editMenu.addSeparator();
 
@@ -158,12 +198,12 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiSetupPosition = new JMenuItem("Setup Position");
         editMenu.add(jmiSetupPosition);
         jmiSetupPosition.addActionListener(controller_UI.setupNewPosition());
-        jmiSetupPosition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
+        jmiSetupPosition.setAccelerator(setupPosKey);
         editMenu.addSeparator();
         JMenuItem jmiFlipBoard = new JMenuItem("Flip Board");
         editMenu.add(jmiFlipBoard);
         jmiFlipBoard.addActionListener(controller_UI.flipBoard());
-        jmiFlipBoard.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+        jmiFlipBoard.setAccelerator(flipKey);
 
         JMenu modeMenu = new JMenu("Mode");
         modeMenu.add(new JMenuItem("Analysis"));
@@ -383,7 +423,6 @@ public class View_MainFrame extends JFrame
     private JComponent createMainContent() {
 
         // ===== Left: Chessboard Placeholder =====
-        Controller_Board controller_Board = new Controller_Board(model);
         View_Chessboard viewChessboard = new View_Chessboard(model, controller_UI, controller_Board);
 
         // ===== Right: Game Header Pane/Button + Text Pane + Nav Buttons =====
@@ -814,6 +853,38 @@ public class View_MainFrame extends JFrame
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public void assignKeyShortcuts() {
+        // Keyboard Shortcuts
+        shortcuts.put(
+                moveForwardKey,
+                controller_Board.moveForward()
+        );
+        shortcuts.put(
+                moveBackKey,
+                controller_Board.moveBack()
+        );
+        shortcuts.put(
+                seekFirstKey,
+                controller_Board.seekToBeginning()
+        );
+        shortcuts.put(
+                seekEndKey,
+                controller_Board.seekToEnd()
+        );
+        shortcuts.put(
+                copyKey,
+                controller_UI.copyPgnToClipboard()
+        );
+        shortcuts.put(
+                pasteKey,
+                controller_UI.pasteFenOrGame()
+        );
+        shortcuts.put(
+                flipKey,
+                controller_UI.flipBoard()
+        );
     }
 
     @Override
