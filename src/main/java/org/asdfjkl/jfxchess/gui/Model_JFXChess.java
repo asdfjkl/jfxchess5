@@ -90,6 +90,8 @@ public class Model_JFXChess {
     private String laf;
     public View_MainFrame mainFrameRef;
 
+    private String latestEngineInfo = "";
+
     public Model_JFXChess() {
         game = new Game();
         Board b = new Board(true);
@@ -275,6 +277,7 @@ public class Model_JFXChess {
 
     public void setMode(int mode) {
         this.currentMode = mode;
+        pcs.firePropertyChange("modeChanged", null, null);
     }
 
     public void setComputerThinkTimeSecs(int secs) {
@@ -783,5 +786,15 @@ public class Model_JFXChess {
     public void deleteAllVariants() {
         game.removeAllVariants();
         pcs.firePropertyChange("treeChanged", null, null);
+    }
+
+    public String getCurrentEngineInfo() {
+        return latestEngineInfo;
+    }
+
+    public void setCurrentEngineInfo(String info) {
+        latestEngineInfo = info;
+        System.out.println("model: set currentEngineInfo: " + info);
+        pcs.firePropertyChange("engineInfo", null, null);
     }
 }

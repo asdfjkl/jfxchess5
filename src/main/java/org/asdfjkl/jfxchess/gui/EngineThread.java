@@ -69,7 +69,7 @@ public class EngineThread extends Thread {
     public void setSharedString(String newValue) {
         String oldValue = sharedString;
         sharedString = newValue;
-        support.firePropertyChange("sharedString", oldValue, newValue);
+        support.firePropertyChange("engineInfoFromThread", oldValue, newValue);
     }
 
     public String getSharedString() {
@@ -183,6 +183,7 @@ public class EngineThread extends Thread {
             long currentMs = System.currentTimeMillis();
             if ((currentMs - lastInfoUpdate) > 100) {
                 setSharedString("INFO " + engineInfo.toString());
+                //System.out.println("engine thread: set shared string 1 " + engineInfo.toString() );
                 lastInfoUpdate = currentMs;
             }
             // we need to constantly send "bestmove". If we only send it once,
@@ -192,6 +193,7 @@ public class EngineThread extends Thread {
             // but ignore the info, if already processed.
             if ((currentMs - lastBestmoveUpdate) > 800) {
                 setSharedString(engineInfo.bestmove);
+                //System.out.println("engine thread: set shared string 2 " + engineInfo.bestmove );
                 lastBestmoveUpdate = currentMs;
             }
             if (!engineIsOn()) {
