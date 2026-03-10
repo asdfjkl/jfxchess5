@@ -54,7 +54,7 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         String htmlTest = "<table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
                 "  <tr>" +
                 "    <td>" +
-                "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"70%\">" +
+                "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">" +
                 "        <tr>" +
                 "          <td>Stockfish (internal)</td>" +
                 "          <td>e2e4 (depth 37/53)</td>" +
@@ -107,14 +107,18 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         s.append("<table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
                 "  <tr>" +
                 "    <td>" +
-                "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">" +
+                "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"50%\">" +
                 "        <tr>");
         s.append("<td>").append(engineId).append("</td>");
         s.append("<td>").append(depth).append("</td>");
         s.append("<td>").append(nps).append("</td>");
         s.append("<td>").append(hashFull).append("</td>");
         s.append("<td>").append(tbHits).append("</td>");
-        s.append("  </tr></table>" +
+        s.append("        </tr>" +
+                "      </table>" +
+                "    </td>" +
+                "  </tr>" +
+                "  <tr>" +
                 "    <td>&nbsp;</td>" +
                 "  </tr>");
         int firstNonEmptyPVIndex = pvLines.size() - 1;
@@ -124,19 +128,20 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
             }
             firstNonEmptyPVIndex--;
         }
-        System.out.println(firstNonEmptyPVIndex);
+        //System.out.println(firstNonEmptyPVIndex);
         for(int i = firstNonEmptyPVIndex; i >= 0; i--) {
-            s.append("  <tr>\n<td colspan=6>\n");
+            s.append("<tr><td>");
             s.append(pvLines.get(firstNonEmptyPVIndex));
             s.append("</td></tr>");
         }
-        //System.out.println("render to html: "+s.toString());
+        s.append("</table>");
+        //System.out.println(s.toString());
         setText(s.toString());
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        System.out.println("engine out view: property changed 0");
+        //System.out.println("engine out view: property changed 0");
 
         if(evt.getPropertyName().equals("engineInfo")) {
             //System.out.println("engine out view: property changed 1");
@@ -171,8 +176,8 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
             // Set but don't clear the first pvLine-text.
             if(infos.length > FirstPVLineInfosIndex && !infos[ FirstPVLineInfosIndex].isEmpty()) {
                 pvLines.set(0, infos[7]);
-                System.out.println("info 0 " + infos[7]);
-                System.out.println("info 0l " + pvLines.size());
+                //System.out.println("info 0 " + infos[7]);
+                //System.out.println("info 0l " + pvLines.size());
             }
 
             // Set the rest of the pvLine-texts or clear them if they are empty.

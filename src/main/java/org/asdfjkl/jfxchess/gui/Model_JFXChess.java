@@ -794,7 +794,7 @@ public class Model_JFXChess {
 
     public void setCurrentEngineInfo(String info) {
         latestEngineInfo = info;
-        System.out.println("model: set currentEngineInfo: " + info);
+        //System.out.println("model: set currentEngineInfo: " + info);
         pcs.firePropertyChange("engineInfo", null, null);
     }
 }
