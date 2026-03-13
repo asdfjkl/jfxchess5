@@ -28,6 +28,8 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
     // in the split String infos.
     private final int FirstPVLineInfosIndex = 7;
 
+    String htmlTest = "";
+
 
     public  View_EngineOutput(Model_JFXChess model) {
         this.model = model;
@@ -51,7 +53,7 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         setFocusable(false);
         setContentType("text/html");
 
-        String htmlTest = "<table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
+        htmlTest = "<table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
                 "  <tr>" +
                 "    <td>" +
                 "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">" +
@@ -136,16 +138,27 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         }
         s.append("</table>");
         //System.out.println(s.toString());
-        setText(s.toString());
+        //setText(s.toString());
+        setText(htmlTest);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        //System.out.println("engine out view: property changed 0");
+        //System.out.println("engine out view: property changed, new val: " + model.getCurrentEngineInfo());
 
         if(evt.getPropertyName().equals("engineInfo")) {
             //System.out.println("engine out view: property changed 1");
             String info = model.getCurrentEngineInfo();
+            if(info != null && info.length() > 5) {
+                String s = info.substring(5, info.length()).replace("ENGINE_ID",model.activeEngine.getName());
+                //setText(info.substring(5, info.length()));
+                setText(s);
+                //System.out.println("engineview: "+info);
+            }
+
+
+/*
+
             //pv1.setText(info);
             // | id (Level MAX) | zobrist  |  nps | hashfull | tbhits | current Move + depth | eval+line pv1 | .. pv2 | ...pv3 | ...pv4 | ... | ...pv64 |
 
@@ -176,8 +189,13 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
             // Set but don't clear the first pvLine-text.
             if(infos.length > FirstPVLineInfosIndex && !infos[ FirstPVLineInfosIndex].isEmpty()) {
                 pvLines.set(0, infos[7]);
-                //System.out.println("info 0 " + infos[7]);
+                System.out.println("info 0 " + infos[7]);
                 //System.out.println("info 0l " + pvLines.size());
+            }
+
+            //pvLines.set(0, infos[7]);
+            if(infos.length > 8) {
+                System.out.println("info 1 " + infos[8]);
             }
 
             // Set the rest of the pvLine-texts or clear them if they are empty.
@@ -185,13 +203,19 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
                 if(pvLines.size() > i-FirstPVLineInfosIndex) {
                     if(!infos[i].isEmpty()) {
                         pvLines.set(i-FirstPVLineInfosIndex, infos[i]);
+                        System.out.println("info i " + infos[i]);
                     } else {
                         pvLines.set(i-FirstPVLineInfosIndex, "");
                     }
                 }
             }
             renderToHtml();
+
+ */
         }
+
+
+
     }
 }
 

@@ -217,9 +217,9 @@ public class View_MainFrame extends JFrame
         jmiEnterMoves.addActionListener(controller_Engine.startEnterMovesMode());
         modeMenu.add(jmiEnterMoves);
 
-
-        modeMenu.add(new JMenuItem("Full Game Analysis"));
-        modeMenu.add(new JMenuItem("Play Out Position"));
+        JMenuItem jmiFullGameAnalysis = new JMenuItem("Full Game Analysis");
+        jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
+        modeMenu.add(jmiFullGameAnalysis);
         modeMenu.addSeparator();
         modeMenu.add(new JMenuItem("Engines..."));
         modeMenu.add(new JMenuItem("Select Book"));
@@ -534,7 +534,9 @@ public class View_MainFrame extends JFrame
 
         JToggleButton btnEngineSwitch = new JToggleButton("Start Engine");
         JButton btnAddLine = new JButton("+");
+        btnAddLine.addActionListener(controller_Engine.incMultiPV());
         JButton btnRemoveLine = new JButton("-");
+        btnRemoveLine.addActionListener(controller_Engine.decMultiPV());
         JButton btnThreads = new JButton("1 Threads(s)");
 
         btnEngineSwitch.setFocusable(false);

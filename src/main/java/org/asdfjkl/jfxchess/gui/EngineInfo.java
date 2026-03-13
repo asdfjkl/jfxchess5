@@ -222,6 +222,7 @@ public class EngineInfo {
             if(matchPVIdx.find()) {
                 String sMultiPV = matchPVIdx.group();
                 multiPv = Integer.parseInt(sMultiPV.substring(8)) - 1;
+                //System.out.println("engine info: mpv "+multiPv+" received");
             }
 
             nps = getInt(NPS, line, 4, nps);
@@ -310,6 +311,91 @@ public class EngineInfo {
                 }
             }
         }
+    }
+
+    public String toHtml() {
+
+        StringBuilder s = new StringBuilder();
+        s.append("<table border=\"0\" cellspacing=\"0\" cellpadding=\"1\" width=\"100%\">" +
+                "  <tr>" +
+                "    <td>" +
+                "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"50%\">" +
+                "        <tr>");
+        // Engine Id will be inserted by view to ensure that
+        // the id of the selected engine is always shown, even
+        // if it is currently not running
+        s.append("<td>ENGINE_ID</td>");
+        /*
+        if(!id.isEmpty()) {
+            s.append("<td>").append(id).append("</td>");
+        } else {
+            s.append("<td></td>");
+        }
+         */
+        if(depth > 0) {
+            s.append("<td>depth ").append(depth);
+            if(!currentMove.isEmpty()) {
+                s.append(" (").append(currentMove).append(")");
+            }
+        s.append("</td>");
+        } else {
+            s.append("<td></td>");
+        }
+        if(nps > 0) {
+            s.append("<td>").append(nps).append(" kn/s</td>");
+        } else {
+            s.append("<td></td>");
+        }
+        if(halfmoves > 0) {
+            s.append("<td>").append(hashFull).append("</td>");
+        } else {
+            s.append("<td></td>");
+        }
+        if(tbHits > 0) {
+            s.append("<td>").append(tbHits).append(" tbhits</td>");
+        } else {
+            s.append("<td></td>");
+        }
+        s.append("        </tr>" +
+                "      </table>" +
+                "    </td>" +
+                "  </tr>" +
+                "  <tr>" +
+                "    <td>&nbsp;</td>" +
+                "  </tr>");
+
+        for(int i=0;i<Model_JFXChess.MAX_PV;i++) {
+            if(i<nrPvLines) {
+                s.append("<tr><td>");
+                if(seesMate.get(i)) {
+                    int nrMates = mate.get(i);
+                    // if it is black's turn, we need to invert
+                    // the #mates, since the evaluation is always
+                    // from the side that is moving - but the GUI
+                    // always writes + if white mates, and - if black mates
+                    if(turn == CONSTANTS.BLACK) {
+                        nrMates = -nrMates;
+                    }
+                    // if it is black's turn, and the engine
+                    s.append("(#").append(nrMates).append(") ");
+                } else {
+                    //if(this->score != 0.0) {
+                        DecimalFormat df = new DecimalFormat("#0.00", DecimalFormatSymbols.getInstance(Locale.US));
+                        String floatScore = df.format(score.get(i) / 100.0);
+                        // only add score if we have actually a line
+                        if(!pvSan.get(i).isEmpty()) {
+                            s.append("(").append(floatScore).append(") ");
+                        }
+                }
+                if(!pvSan.get(i).isEmpty()) {
+                    System.out.println("pvsan: "+i+": "+pvSan.get(i));
+                    s.append(pvSan.get(i));
+                }
+                s.append("</td></tr>");
+            }
+        }
+        s.append("</table>");
+        return s.toString();
     }
 
     @Override

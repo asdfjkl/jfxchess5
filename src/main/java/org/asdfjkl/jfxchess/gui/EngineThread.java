@@ -103,6 +103,7 @@ public class EngineThread extends Thread {
     private void take_write_and_flush(String cmd) {
         try {
             cmdQueue.take();
+            //System.out.println("TO ENGINE>>"+cmd);
             engineInput.write(cmd + "\n");
             engineInput.flush();
         } catch (IOException | InterruptedException e) {
@@ -150,6 +151,7 @@ public class EngineThread extends Thread {
                     while (engineOutput.ready() && linesRead < 100) {
                         String line = engineOutput.readLine();
                         if (line.contains("readyok")) {
+                            System.out.println("FROM ENGINE<<"+line);
                             readyok = true;
                             continue;
                         }
@@ -173,6 +175,7 @@ public class EngineThread extends Thread {
                             }
                             // Update engine info with other ouput-lines
                             engineInfo.update(line);
+                            //System.out.println("thread: engine line: "+line);
                         }
                         linesRead++;
                     }
@@ -182,7 +185,8 @@ public class EngineThread extends Thread {
             // send update
             long currentMs = System.currentTimeMillis();
             if ((currentMs - lastInfoUpdate) > 100) {
-                setSharedString("INFO " + engineInfo.toString());
+                //setSharedString("INFO " + engineInfo.toString());
+                setSharedString("INFO " + engineInfo.toHtml());
                 //System.out.println("engine thread: set shared string 1 " + engineInfo.toString() );
                 lastInfoUpdate = currentMs;
             }
@@ -331,7 +335,9 @@ public class EngineThread extends Thread {
                     }
                     if (cmd.startsWith("setoption name MultiPV value")) {
                         engineInfo.nrPvLines = Integer.parseInt(cmd.substring(29));
+                        //System.out.println("MultiPV value set to: " + cmd);
                     }
+                    //cmd = "stop";
                     take_write_and_flush(cmd);
                     continue;
                 }

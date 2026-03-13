@@ -3,6 +3,7 @@ package org.asdfjkl.jfxchess.gui;
 import org.asdfjkl.jfxchess.lib.Board;
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
 
+import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -34,11 +35,12 @@ public class Controller_Engine implements PropertyChangeListener {
         } else {
             if (inGoInfinite && (!cmd.equals("stop"))
                     && (!cmd.equals("quit"))) {
-                try {
-                    cmdQueue.put("stop");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                //try {
+                //    System.out.println("controller engine: in go infinite, thus sending stop");
+                    //cmdQueue.put("stop");
+                //} catch (InterruptedException e) {
+                //    e.printStackTrace();
+                //}
             }
             inGoInfinite = false;
         }
@@ -121,6 +123,31 @@ public class Controller_Engine implements PropertyChangeListener {
         }
     }
 
+    public ActionListener incMultiPV() {
+        return e -> {
+            int currentMultiPv = model.getMultiPv();
+            if (currentMultiPv < model.activeEngine.getMaxMultiPV() &&
+                    currentMultiPv < Model_JFXChess.MAX_PV) {
+                currentMultiPv++;
+                model.setMultiPv(currentMultiPv);
+                sendCommand("stop");
+                sendCommand("setoption name MultiPV value " + currentMultiPv);
+                sendCommand("go infinite");
+            }
+        };
+    }
+
+    public ActionListener decMultiPV() {
+        return e -> {
+            int currentMultiPv = model.getMultiPv();
+            if (currentMultiPv > 1) {
+                currentMultiPv--;
+                model.setMultiPv(currentMultiPv);
+                sendCommand("setoption name MultiPV value " + currentMultiPv);
+            }
+        };
+    }
+
     public void sendNewPosition(String s) {
         sendCommand("stop");
         sendCommand(s);
@@ -175,13 +202,15 @@ public class Controller_Engine implements PropertyChangeListener {
         };
     }
 
-    private void handleStateChangeAnalysis() {
+    private void handleNewBoardPositionModeAnalysis() {
         String fen = model.getGame().getUciPositionString();
+        System.out.println("controller engine: handleNewBoardPositionModeAnalysis, sending fen");
+        //sendCommand("stop");
         sendNewPosition(fen);
         uciGoInfinite();
     }
 
-    private void handleStateChangeGameAnalysis() {
+    private void handleNewBoardPositionModeGameAnalysis() {
 
         boolean continueAnalysis = true;
 
@@ -212,15 +241,19 @@ public class Controller_Engine implements PropertyChangeListener {
             // we are at the root or found a book move
             // should fire an event
             activateEnterMovesMode();
-
-            /* todo
-            DialogSimpleAlert dlgAlert = new DialogSimpleAlert(
-                    gameModel.getStageRef(), Alert.AlertType.INFORMATION,
-                    "Analysis Finished", "Game Analysis Finished");
-            dlgAlert.showAndWait();
-
-             */
+            JOptionPane.showMessageDialog(model.mainFrameRef, "Game Analysis Finished");
         }
+    }
+
+    public void handleNewBoardPositionModePlayout() {
+
+        String fen = model.getGame().getUciPositionString();
+        sendNewPosition(fen);
+        uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
+    }
+
+    public void handleNewBoardPositionModePlay() {
+
     }
 
     public void activatePlayWhiteMode() {
@@ -293,6 +326,21 @@ public class Controller_Engine implements PropertyChangeListener {
             model.currentMateInMoves = 0;
         }
         model.setGameAnalysisJustStarted(true);
+    }
+
+    public ActionListener startGameAnalysisMode() {
+        return e -> {
+            DialogGameAnalysis dlg = new DialogGameAnalysis(model.mainFrameRef);
+            dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dlg.setVisible(true);
+
+            if(dlg.isConfirmed()) {
+                model.setGameAnalysisForPlayer(dlg.getSelectedPlayer());
+                model.setGameAnalysisThinkTimeSecs(dlg.getSecondsPerMove());
+                model.setGameAnalysisThreshold(dlg.getThreshold());
+                activateGameAnalysisMode();
+            }
+        };
     }
 
     /*
@@ -766,29 +814,22 @@ public class Controller_Engine implements PropertyChangeListener {
         // first we check if the game is finished due to checkmate, stalemate, three-fold repetition
         // or insufficient material
         // if that is the case
-        //      we check if we play against the computer or are in analysis or playoutposition mode
-        //         if so, we are going to abort the game and switch to entermovesmode
+        //      we check if we play against the computer or are in MODE_PLAYOUT_POSITION
+        //         if so, we are going to abort the game and switch to MODE_ENTER_MOVES
         //      then we check if we play against the computer
         //         if so, we are going to inform the user
 
-        // if we change from e.g. play white to enter moves, the state change would trigger
-        // the notification again in enter moves mode after the state change. thus,
-        // also check if
-
-        /*
         if ((isCheckmate || isStalemate || isThreefoldRepetition || isInsufficientMaterial)) {
-            if (mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK || mode == GameModel.MODE_PLAYOUT_POSITION) {
+            if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK || mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
                 abort = true;
             }
-
-            if (mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK) {
-
+            if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {
                 String message = "";
                 if (isCheckmate) {
-                    message = "     Checkmate.     ";
+                    message = "Checkmate";
                 }
                 if (isStalemate) {
-                    message = "     Stalemate.     ";
+                    message = "Stalemate";
                 }
                 if (isThreefoldRepetition) {
                     message = "Draw (Threefold Repetition)";
@@ -796,33 +837,26 @@ public class Controller_Engine implements PropertyChangeListener {
                 if (isInsufficientMaterial) {
                     message = "Draw (Insufficient material for checkmate)";
                 }
-                String finalMessage = message;
-                Platform.runLater(() -> {
-                    DialogSimpleAlert dlgAlert = new DialogSimpleAlert(
-                            gameModel.getStageRef(), Alert.AlertType.INFORMATION,
-                            "Game Finished", finalMessage);
-                    dlgAlert.showAndWait();
-                });
+                JOptionPane.showMessageDialog(model.mainFrameRef, message);
             }
-        } */
+        }
 
         if(abort) {
             activateEnterMovesMode();
         } else {
             if (mode == Model_JFXChess.MODE_ANALYSIS) {
-                handleStateChangeAnalysis();
+                handleNewBoardPositionModeAnalysis();
             }
-            /*
-            if (mode == GameModel.MODE_GAME_ANALYSIS) {
-                handleStateChangeGameAnalysis();
+            if (mode == Model_JFXChess.MODE_GAME_ANALYSIS) {
+                handleNewBoardPositionModeGameAnalysis();
             }
-            if (mode == GameModel.MODE_PLAYOUT_POSITION) {
-                handleStateChangePlayoutPosition();
+            if (mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
+                handleNewBoardPositionModePlayout();
             }
-            if ((mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK)
-                    && turn != gameModel.getHumanPlayerColor()) {
-                handleStateChangePlayWhiteOrBlack();
-            }*/
+            if ((mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK)
+                    && turn != model.getHumanPlayerColor()) {
+                handleNewBoardPositionModePlay();
+            }
         }
     }
 
@@ -832,12 +866,20 @@ public class Controller_Engine implements PropertyChangeListener {
     // but also to listen to position changes that occur in the model
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+
         if (evt.getPropertyName().equals("engineInfoFromThread")) {
             handleNewEngineInfo((String) evt.getNewValue());
+        } else {
+            //System.out.println("controller engine: pcs received "+evt.getPropertyName());
         }
         if (evt.getPropertyName().equals("currentGameNodeChanged")) {
         //|| evt.getPropertyName().equals("gameTreeChanged")) {
             handleNewBoardPosition();
         }
+        if (evt.getPropertyName().equals("treeChanged")) {
+            //|| evt.getPropertyName().equals("gameTreeChanged")) {
+            handleNewBoardPosition();
+        }
+
     }
 }
