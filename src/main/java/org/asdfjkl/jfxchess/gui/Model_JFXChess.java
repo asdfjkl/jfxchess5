@@ -48,7 +48,7 @@ public class Model_JFXChess {
     private double gameAnalysisThreshold = 0.5; // pawns
     private int gameAnalysisThinkTimeSecs = 3;  // seconds
 
-    private boolean gameAnalysisJustStarted = false;
+    //private boolean gameAnalysisJustStarted = false;
 
     // to make sure that if the user play against the computer/bot
     // he is not able to/does not accidentally move the computer's pieces
@@ -317,9 +317,9 @@ public class Model_JFXChess {
         return humanPlayerColor;
     }
 
-    public boolean getGameAnalysisJustStarted() { return gameAnalysisJustStarted; }
+    //public boolean getGameAnalysisJustStarted() { return gameAnalysisJustStarted; }
 
-    public void setGameAnalysisJustStarted(boolean val) { gameAnalysisJustStarted = val; }
+    //public void setGameAnalysisJustStarted(boolean val) { gameAnalysisJustStarted = val; }
 
     /*
     public PgnDatabase getPgnDatabase() {
@@ -625,9 +625,8 @@ public class Model_JFXChess {
         }
         if(treeWasChanged) {
             pcs.firePropertyChange("treeChanged", null, null);
-        } else {
-            pcs.firePropertyChange("currentGameNodeChanged", null, null);
         }
+        pcs.firePropertyChange("currentGameNodeChanged", null, null);
     }
 
     public void goToChild(int idx) {
@@ -788,6 +787,10 @@ public class Model_JFXChess {
         pcs.firePropertyChange("treeChanged", null, null);
     }
 
+    public void markTreeChange() {
+        pcs.firePropertyChange("treeChanged", null, null);
+    }
+
     public String getCurrentEngineInfo() {
         return latestEngineInfo;
     }
@@ -797,4 +800,6 @@ public class Model_JFXChess {
         //System.out.println("model: set currentEngineInfo: " + info);
         pcs.firePropertyChange("engineInfo", null, null);
     }
+
+
 }

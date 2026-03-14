@@ -2,11 +2,17 @@ package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.Board;
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
+import org.asdfjkl.jfxchess.lib.GameNode;
+import org.asdfjkl.jfxchess.lib.Move;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,6 +51,7 @@ public class Controller_Engine implements PropertyChangeListener {
             inGoInfinite = false;
         }
         try {
+            System.out.println("cmd queue: "+cmd);
             cmdQueue.put(cmd);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -54,13 +61,35 @@ public class Controller_Engine implements PropertyChangeListener {
     public void stopEngine() {
         sendCommand("stop");
         sendCommand("quit");
+        /*
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //sendCommand("stop");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        sendCommand("quit");
         do {
             try {
-                Thread.sleep(10);
+                //System.out.println("waiting...");
+                //System.out.println(cmdQueue.peek());
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         } while (engineThread.engineIsOn());
+         */
+    }
+
+    public ActionListener checkEngine() {
+        return e -> {
+            System.out.println("is on: "+ engineThread.engineIsOn());
+        };
     }
 
     public void restartEngine(Engine activeEngine) {
@@ -185,8 +214,14 @@ public class Controller_Engine implements PropertyChangeListener {
     }
 
     public void activateEnterMovesMode() {
-        System.out.println("controller engine: activateEnterMovesMode");
+        //System.out.println("controller engine: activateEnterMovesMode");
+        System.out.println("c: activate enter moves mode, engine stopped");
+        System.out.println("FOOOOOO");
+
         stopEngine();
+        //sendCommand("quit");
+        System.out.println("BAR");
+        System.out.println("c: activate enter moves mode, engine stopped");
         model.activeEngine = model.selectedAnalysisEngine;
         if (model.activeEngine.supportsUciLimitStrength()) {
             model.activeEngine.setUciLimitStrength(false);
@@ -194,17 +229,33 @@ public class Controller_Engine implements PropertyChangeListener {
         //setEngineNameAndInfoToOuptput();
         model.setBlockGUI(false);
         model.setMode(Model_JFXChess.MODE_ENTER_MOVES);
+        System.out.println("c: activate enter moves mode, mode:  "+model.getMode());
+
+        /*
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
+
+        try {
+            int exit = engineThread.engineProcess.exitValue();
+            System.out.println("Exited: " + exit);
+        } catch (IllegalThreadStateException e) {
+            System.out.println("Still alive according to JVM");
+        }
     }
 
     public ActionListener startEnterMovesMode() {
         return e -> {
+            System.out.println("c: AL: ACTIVATE ENTER MOVES");
             activateEnterMovesMode();
         };
     }
 
     private void handleNewBoardPositionModeAnalysis() {
         String fen = model.getGame().getUciPositionString();
-        System.out.println("controller engine: handleNewBoardPositionModeAnalysis, sending fen");
+        //System.out.println("controller engine: handleNewBoardPositionModeAnalysis, sending fen");
         //sendCommand("stop");
         sendNewPosition(fen);
         uciGoInfinite();
@@ -212,23 +263,30 @@ public class Controller_Engine implements PropertyChangeListener {
 
     private void handleNewBoardPositionModeGameAnalysis() {
 
+        System.out.println("c: new board pos game analysis");
+
+        //System.out.println("handle new board position game mode");
         boolean continueAnalysis = true;
 
         boolean parentIsRoot = (model.getGame().getCurrentNode().getParent() == model.getGame().getRootNode());
         if (!parentIsRoot) {
+            //System.out.println("not root");
             // if the current position is in the opening book,
             // we stop the analysis
             long zobrist = model.getGame().getCurrentNode().getBoard().getZobrist();
-            if (model.extBook.inBook(zobrist)) {
+            if (false && model.extBook.inBook(zobrist)) {
                 model.getGame().getCurrentNode().setComment("last book move");
                 continueAnalysis = false;
             } else {
+                //System.out.println("handle Game Analysis else");
                 // otherwise continue the analysis
-                if (model.getGameAnalysisJustStarted()) {
-                    model.setGameAnalysisJustStarted(false);
-                } else {
-                    model.getGame().goToParent();
-                }
+                //if (model.getGameAnalysisJustStarted()) {
+                //    model.setGameAnalysisJustStarted(false);
+                //} else {
+                //model.getGame().goToParent();
+                //}
+                System.out.println("c: handle new board pos game analysis, sending fen");
+
                 String fen = model.getGame().getUciPositionString();
                 sendNewPosition(fen);
                 uciGoMoveTime(model.getGameAnalysisThinkTimeSecs() * 1000);
@@ -240,6 +298,7 @@ public class Controller_Engine implements PropertyChangeListener {
         if (!continueAnalysis) {
             // we are at the root or found a book move
             // should fire an event
+            System.out.println("c: CONTINUE ANALYSIS FALSE, ENTER MOVES MODE");
             activateEnterMovesMode();
             JOptionPane.showMessageDialog(model.mainFrameRef, "Game Analysis Finished");
         }
@@ -325,7 +384,12 @@ public class Controller_Engine implements PropertyChangeListener {
             model.currentIsMate = true;
             model.currentMateInMoves = 0;
         }
-        model.setGameAnalysisJustStarted(true);
+        model.setMode(Model_JFXChess.MODE_GAME_ANALYSIS);
+        //model.setGameAnalysisJustStarted(true);
+
+        String fen = model.getGame().getUciPositionString();
+        sendNewPosition(fen);
+        uciGoMoveTime(model.getGameAnalysisThinkTimeSecs() * 1000);
     }
 
     public ActionListener startGameAnalysisMode() {
@@ -400,9 +464,9 @@ public class Controller_Engine implements PropertyChangeListener {
 
      */
 
-    /*
+
     private void addBestPv(String[] uciMoves) {
-        GameNode currentNode = gameModel.getGame().getCurrentNode();
+        GameNode currentNode = model.getGame().getCurrentNode();
 
         for (String uciMove : uciMoves) {
             try {
@@ -430,7 +494,7 @@ public class Controller_Engine implements PropertyChangeListener {
                 e.printStackTrace();
             }
         }
-    }*/
+    }
 
     // This is a method to directly after editing engines or at startup of
     // the program, show in the outputview the engineID, the Elo strength
@@ -483,12 +547,14 @@ public class Controller_Engine implements PropertyChangeListener {
         }
     }*/
 
-    /*
+
     public void handleBestMove(String bestmove) {
 
-        int mode = gameModel.getMode();
+        System.out.println("c: handle best move: "+bestmove);
 
-        if(mode == GameModel.MODE_ENTER_MOVES) {
+        int mode = model.getMode();
+
+        if(mode == Model_JFXChess.MODE_ENTER_MOVES) {
             return;
         }
 
@@ -497,7 +563,7 @@ public class Controller_Engine implements PropertyChangeListener {
         String zobristString = bestmoveItems[bestmoveItems.length-1];
         long zobrist = Long.parseLong(zobristString);
 
-        if(zobrist != gameModel.getGame().getCurrentNode().getBoard().getZobrist()) {
+        if(zobrist != model.getGame().getCurrentNode().getBoard().getZobrist()) {
             // if this bestmove is for a different position than the current,
             // it is a relict from thread/gui synchronisation mismatch; we just dismiss it
             return;
@@ -505,72 +571,76 @@ public class Controller_Engine implements PropertyChangeListener {
             // If not, this is a bestmove from either playing the engine
             // Then we need to unlock the GUI as
             // the user wants to potentially react to that
-            gameModel.blockGUI = false;
+            model.setBlockGUI(false);
         }
 
-        if (mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK  || mode == GameModel.MODE_PLAYOUT_POSITION) {
+        if (mode == Model_JFXChess.MODE_PLAY_WHITE ||
+                mode == Model_JFXChess.MODE_PLAY_BLACK  ||
+                mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
 
             // todo: catch Exceptions!
             String uci = bestmoveItems[1].split(" ")[0];
             Move m = new Move(uci);
-            Board b = gameModel.getGame().getCurrentNode().getBoard();
+            Board b = model.getGame().getCurrentNode().getBoard();
             if (b.isLegal(m)) {
-                if(mode == GameModel.MODE_PLAY_WHITE && b.turn == CONSTANTS.BLACK) {
-                    gameModel.getGame().applyMove(m);
-                    notifyUserDuringPlay();
-                    gameModel.triggerStateChange();
+                if(mode == Model_JFXChess.MODE_PLAY_WHITE && b.turn == CONSTANTS.BLACK) {
+                    //gameModel.getGame().applyMove(m);
+                    model.applyMove(m);
+                    //notifyUserDuringPlay();
+                    //gameModel.triggerStateChange();
                 }
-                if(mode == GameModel.MODE_PLAY_BLACK && b.turn == CONSTANTS.WHITE) {
-                    gameModel.getGame().applyMove(m);
-                    notifyUserDuringPlay();
-                    gameModel.triggerStateChange();
+                if(mode == Model_JFXChess.MODE_PLAY_BLACK && b.turn == CONSTANTS.WHITE) {
+                    model.applyMove(m);
+                    //notifyUserDuringPlay();
+                    //gameModel.triggerStateChange();
                 }
-                if(mode == GameModel.MODE_PLAYOUT_POSITION) {
-                    gameModel.getGame().applyMove(m);
-                    gameModel.triggerStateChange();
+                if(mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
+                    //gameModel.getGame().applyMove(m);
+                    model.applyMove(m);
+                    //gameModel.triggerStateChange();
                 }
             }
         }
 
-        if(mode == GameModel.MODE_GAME_ANALYSIS) {
+        if(mode == Model_JFXChess.MODE_GAME_ANALYSIS) {
 
             // first update information for current node
-            gameModel.childBestPv = gameModel.currentBestPv;
-            gameModel.childBestEval = gameModel.currentBestEval;
-            gameModel.childIsMate = gameModel.currentIsMate;
-            gameModel.childMateInMoves = gameModel.currentMateInMoves;
+            model.childBestPv = model.currentBestPv;
+            model.childBestEval = model.currentBestEval;
+            model.childIsMate = model.currentIsMate;
+            model.childMateInMoves = model.currentMateInMoves;
 
-            gameModel.currentBestPv = bestmoveItems[3];
-            gameModel.currentBestEval = Integer.parseInt(bestmoveItems[2]);
-            gameModel.currentIsMate = bestmoveItems[4].equals("true");
-            gameModel.currentMateInMoves = Integer.parseInt(bestmoveItems[5]);
+            model.currentBestPv = bestmoveItems[3];
+            model.currentBestEval = Integer.parseInt(bestmoveItems[2]);
+            model.currentIsMate = bestmoveItems[4].equals("true");
+            model.currentMateInMoves = Integer.parseInt(bestmoveItems[5]);
 
             // double check, since some engines misreport / report not quickly enough
-            if(gameModel.getGame().getCurrentNode().getBoard().isCheckmate()){
-                gameModel.currentIsMate = true;
+            if(model.getGame().getCurrentNode().getBoard().isCheckmate()){
+                model.currentIsMate = true;
             }
 
             // ignore leafs (game ended here)
-            if(!gameModel.getGame().getCurrentNode().isLeaf()) {
+            if(!model.getGame().getCurrentNode().isLeaf()) {
 
                 // completely skip analysis for black or white, if
                 // that option was chosen
-                boolean turn = gameModel.getGame().getCurrentNode().getBoard().turn;
-                if ((gameModel.getGameAnalysisForPlayer() == GameModel.BOTH_PLAYERS)
-                        || (gameModel.getGameAnalysisForPlayer() == CONSTANTS.IWHITE && turn == CONSTANTS.WHITE)
-                        || (gameModel.getGameAnalysisForPlayer() == CONSTANTS.IBLACK && turn == CONSTANTS.BLACK)) {
+                boolean turn = model.getGame().getCurrentNode().getBoard().turn;
+                if ((model.getGameAnalysisForPlayer() == Model_JFXChess.BOTH_PLAYERS)
+                        || (model.getGameAnalysisForPlayer() == CONSTANTS.IWHITE && turn == CONSTANTS.WHITE)
+                        || (model.getGameAnalysisForPlayer() == CONSTANTS.IBLACK && turn == CONSTANTS.BLACK)) {
 
-                    int centiPawnThreshold = (int) (gameModel.getGameAnalysisThreshold() * 100.0);
+                    int centiPawnThreshold = (int) (model.getGameAnalysisThreshold() * 100.0);
                     // first case if there was simply a better move; i.e. no checkmate overseen or
                     // moved into a checkmate
-                    if (!gameModel.currentIsMate && !gameModel.childIsMate) {
-                        boolean wMistake = turn == CONSTANTS.WHITE && ((gameModel.currentBestEval - gameModel.childBestEval) >= centiPawnThreshold);
-                        boolean bMistake = turn == CONSTANTS.BLACK && ((gameModel.currentBestEval - gameModel.childBestEval) <= -(centiPawnThreshold));
+                    if (!model.currentIsMate && !model.childIsMate) {
+                        boolean wMistake = turn == CONSTANTS.WHITE && ((model.currentBestEval - model.childBestEval) >= centiPawnThreshold);
+                        boolean bMistake = turn == CONSTANTS.BLACK && ((model.currentBestEval - model.childBestEval) <= -(centiPawnThreshold));
 
                         if (wMistake || bMistake) {
                             String uci = bestmoveItems[1].split(" ")[0];
-                            String nextMove = gameModel.getGame().getCurrentNode().getVariation(0).getMove().getUci();
-                            String[] pvMoves = gameModel.currentBestPv.split(" ");
+                            String nextMove = model.getGame().getCurrentNode().getVariation(0).getMove().getUci();
+                            String[] pvMoves = model.currentBestPv.split(" ");
                             // if the bestmove returned by the engine is different
                             // from the best suggested pv line, it means that e.g. the
                             // engine took a book move, but did not give a pv evaluation
@@ -585,109 +655,113 @@ public class Controller_Engine implements PropertyChangeListener {
                                 NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
                                 DecimalFormat decim = (DecimalFormat) nf;
                                 decim.applyPattern("0.00");
-                                String sCurrentBest = decim.format(gameModel.currentBestEval / 100.0);
-                                String sChildBest = decim.format(gameModel.childBestEval / 100.0);
+                                String sCurrentBest = decim.format(model.currentBestEval / 100.0);
+                                String sChildBest = decim.format(model.childBestEval / 100.0);
 
-                                ArrayList<GameNode> vars = gameModel.getGame().getCurrentNode().getVariations();
+                                ArrayList<GameNode> vars = model.getGame().getCurrentNode().getVariations();
                                 if (vars != null && vars.size() > 1) {
-                                    GameNode child0 = gameModel.getGame().getCurrentNode().getVariation(0);
+                                    GameNode child0 = model.getGame().getCurrentNode().getVariation(0);
                                     child0.setComment(sChildBest);
-                                    GameNode child1 = gameModel.getGame().getCurrentNode().getVariation(1);
+                                    GameNode child1 = model.getGame().getCurrentNode().getVariation(1);
                                     child1.setComment(sCurrentBest);
                                 }
                             }
                         }
                     }
 
-                    if (gameModel.currentIsMate && !gameModel.childIsMate) {
+                    if (model.currentIsMate && !model.childIsMate) {
                         // the current player missed a mate
-                        String[] pvMoves = gameModel.currentBestPv.split(" ");
+                        String[] pvMoves = model.currentBestPv.split(" ");
                         addBestPv(pvMoves);
 
                         NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
                         DecimalFormat decim = (DecimalFormat) nf;
                         decim.applyPattern("0.00");
-                        String sChildBest = decim.format(gameModel.childBestEval / 100.0);
+                        String sChildBest = decim.format(model.childBestEval / 100.0);
 
                         String sCurrentBest = "";
                         if (turn == CONSTANTS.WHITE) {
-                            sCurrentBest = "#" + (Math.abs(gameModel.currentMateInMoves));
+                            sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
                         } else {
-                            sCurrentBest = "#-" + (Math.abs(gameModel.currentMateInMoves));
+                            sCurrentBest = "#-" + (Math.abs(model.currentMateInMoves));
                         }
 
-                        ArrayList<GameNode> vars = gameModel.getGame().getCurrentNode().getVariations();
+                        ArrayList<GameNode> vars = model.getGame().getCurrentNode().getVariations();
                         if (vars != null && vars.size() > 1) {
-                            GameNode child0 = gameModel.getGame().getCurrentNode().getVariation(0);
+                            GameNode child0 = model.getGame().getCurrentNode().getVariation(0);
                             child0.setComment(sChildBest);
-                            GameNode child1 = gameModel.getGame().getCurrentNode().getVariation(1);
+                            GameNode child1 = model.getGame().getCurrentNode().getVariation(1);
                             child1.setComment(sCurrentBest);
                         }
                     }
 
-                    if (!gameModel.currentIsMate && gameModel.childIsMate) {
+                    if (!model.currentIsMate && model.childIsMate) {
                         // the current player  moved into a mate
-                        String[] pvMoves = gameModel.currentBestPv.split(" ");
+                        String[] pvMoves = model.currentBestPv.split(" ");
                         addBestPv(pvMoves);
 
                         NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
                         DecimalFormat decim = (DecimalFormat) nf;
                         decim.applyPattern("0.00");
-                        String sCurrentBest = decim.format(gameModel.currentBestEval / 100.0);
+                        String sCurrentBest = decim.format(model.currentBestEval / 100.0);
 
                         String sChildBest = "";
                         if (turn == CONSTANTS.WHITE) {
-                            sChildBest = "#-" + (Math.abs(gameModel.childMateInMoves));
+                            sChildBest = "#-" + (Math.abs(model.childMateInMoves));
                         } else {
-                            sChildBest = "#" + (Math.abs(gameModel.childMateInMoves));
+                            sChildBest = "#" + (Math.abs(model.childMateInMoves));
                         }
 
-                        ArrayList<GameNode> vars = gameModel.getGame().getCurrentNode().getVariations();
+                        ArrayList<GameNode> vars = model.getGame().getCurrentNode().getVariations();
                         if (vars != null && vars.size() > 1) {
-                            GameNode child0 = gameModel.getGame().getCurrentNode().getVariation(0);
+                            GameNode child0 = model.getGame().getCurrentNode().getVariation(0);
                             child0.setComment(sChildBest);
-                            GameNode child1 = gameModel.getGame().getCurrentNode().getVariation(1);
+                            GameNode child1 = model.getGame().getCurrentNode().getVariation(1);
                             child1.setComment(sCurrentBest);
                         }
                     }
 
-                    if (gameModel.currentIsMate && gameModel.childIsMate) {
+                    if (model.currentIsMate && model.childIsMate) {
                         // the current player had a mate, but instead of executing it, he moved into a mate,
                         // but we also want to skip the situation where the board position is checkmate
-                        if ((gameModel.currentMateInMoves >= 0 && gameModel.childMateInMoves >= 0) &&
-                                gameModel.childMateInMoves != 0) {
+                        if ((model.currentMateInMoves >= 0 && model.childMateInMoves >= 0) &&
+                                model.childMateInMoves != 0) {
 
-                            String[] pvMoves = gameModel.currentBestPv.split(" ");
+                            String[] pvMoves = model.currentBestPv.split(" ");
                             addBestPv(pvMoves);
 
                             String sCurrentBest = "";
                             String sChildBest = "";
                             if (turn == CONSTANTS.WHITE) {
-                                sCurrentBest = "#" + (Math.abs(gameModel.currentMateInMoves));
-                                sChildBest = "#-" + (Math.abs(gameModel.childMateInMoves));
+                                sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
+                                sChildBest = "#-" + (Math.abs(model.childMateInMoves));
                             } else {
-                                sCurrentBest = "#-" + (Math.abs(gameModel.currentMateInMoves));
-                                sChildBest = "#" + (Math.abs(gameModel.childMateInMoves));
+                                sCurrentBest = "#-" + (Math.abs(model.currentMateInMoves));
+                                sChildBest = "#" + (Math.abs(model.childMateInMoves));
                             }
 
-                            ArrayList<GameNode> vars = gameModel.getGame().getCurrentNode().getVariations();
+                            ArrayList<GameNode> vars = model.getGame().getCurrentNode().getVariations();
                             if (vars != null && vars.size() > 1) {
-                                GameNode child0 = gameModel.getGame().getCurrentNode().getVariation(0);
+                                GameNode child0 = model.getGame().getCurrentNode().getVariation(0);
                                 child0.setComment(sChildBest);
-                                GameNode child1 = gameModel.getGame().getCurrentNode().getVariation(1);
+                                GameNode child1 = model.getGame().getCurrentNode().getVariation(1);
                                 child1.setComment(sCurrentBest);
                             }
                         }
                     }
                 }
             }
-            gameModel.getGame().setTreeWasChanged(true);
-            gameModel.triggerStateChange();
+            //gameModel.getGame().setTreeWasChanged(true);
+            //gameModel.triggerStateChange();
+            //model.setGame(model.game);
+            //model.setCurrentNode()
+            model.markTreeChange();
+            System.out.println("c: handle best move, going to parent");
+            model.goToParent();
         }
 
     }
 
-     */
 
     /*
     @Override
@@ -795,12 +869,16 @@ public class Controller_Engine implements PropertyChangeListener {
             }
         }
         if (s.startsWith("BESTMOVE")) {
-            // handleBestMove(s);
+            //System.out.println("got bestmove");
+            //System.out.println("got: "+s);
+            handleBestMove(s);
         }
     }
 
     public void handleNewBoardPosition() {
+        System.out.println("c: handle new board pos");
         int mode = model.getMode();
+        System.out.println("mode: " + mode);
         Board board = model.getGame().getCurrentNode().getBoard();
         boolean turn = board.turn;
 
@@ -842,8 +920,10 @@ public class Controller_Engine implements PropertyChangeListener {
         }
 
         if(abort) {
+            System.out.println("c: ABORT ENTER MOVES MODE");
             activateEnterMovesMode();
         } else {
+            //System.out.println("handle board pos: else");
             if (mode == Model_JFXChess.MODE_ANALYSIS) {
                 handleNewBoardPositionModeAnalysis();
             }
@@ -874,11 +954,12 @@ public class Controller_Engine implements PropertyChangeListener {
         }
         if (evt.getPropertyName().equals("currentGameNodeChanged")) {
         //|| evt.getPropertyName().equals("gameTreeChanged")) {
+            System.out.println("c: game node changed");
             handleNewBoardPosition();
         }
         if (evt.getPropertyName().equals("treeChanged")) {
             //|| evt.getPropertyName().equals("gameTreeChanged")) {
-            handleNewBoardPosition();
+            //handleNewBoardPosition();
         }
 
     }

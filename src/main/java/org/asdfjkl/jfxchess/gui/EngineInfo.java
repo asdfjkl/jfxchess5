@@ -388,7 +388,7 @@ public class EngineInfo {
                         }
                 }
                 if(!pvSan.get(i).isEmpty()) {
-                    System.out.println("pvsan: "+i+": "+pvSan.get(i));
+                    //System.out.println("pvsan: "+i+": "+pvSan.get(i));
                     s.append(pvSan.get(i));
                 }
                 s.append("</td></tr>");

@@ -176,7 +176,8 @@ public class View_MainFrame extends JFrame
 
         JMenu editMenu = new JMenu("Edit");
         JMenuItem jmiCopyGame = new JMenuItem("Copy Game");
-        jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
+        //jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
+        jmiCopyGame.addActionListener(controller_Engine.checkEngine());
         jmiCopyGame.setAccelerator(copyKey);
         editMenu.add(jmiCopyGame);
         JMenuItem jmiCopyFEN = new JMenuItem("Copy Position (FEN)");
@@ -686,11 +687,13 @@ public class View_MainFrame extends JFrame
                     new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY)
             );
 
+            /*
             Rectangle r = view_Moves.modelToView(start);
 
             if (r != null) {
                 view_Moves.scrollRectToVisible(r);
             }
+             */
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -799,7 +802,7 @@ public class View_MainFrame extends JFrame
             htmlString =  htmlPrinter.printGame(model.getGame());
             view_Moves.setText(htmlString);
             updatePgnHeaders();
-            updateHighlightedMove();
+            //updateHighlightedMove();
         }
     }
 

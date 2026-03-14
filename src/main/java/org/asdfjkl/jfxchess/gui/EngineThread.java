@@ -63,6 +63,10 @@ public class EngineThread extends Thread {
     }
 
     public synchronized boolean engineIsOn() {
+        //System.out.println("engine Process != null: " + (engineProcess != null));
+        if(engineProcess != null) {
+        //System.out.println("is alive: "+engineProcess.isAlive());
+        }
         return (engineProcess != null && engineProcess.isAlive());
     }
 
@@ -103,7 +107,7 @@ public class EngineThread extends Thread {
     private void take_write_and_flush(String cmd) {
         try {
             cmdQueue.take();
-            //System.out.println("TO ENGINE>>"+cmd);
+            System.out.println("TO ENGINE>>"+cmd);
             engineInput.write(cmd + "\n");
             engineInput.flush();
         } catch (IOException | InterruptedException e) {
@@ -115,6 +119,7 @@ public class EngineThread extends Thread {
     public void run() {
         int savedElo = -1;
         while (running) {
+            //System.out.println("RUNNING");
             // Set the thread to loop at about 1000 times per second.
             // It Keeps CPU-load down and is probably more than enough.
             try {
@@ -124,6 +129,7 @@ public class EngineThread extends Thread {
             }
 
             if (this.isInterrupted()) {
+                System.out.println("INTERRUPTED");
                 // here: delete process if it exists
                 if (engineIsOn()) {
                     try {
@@ -134,6 +140,7 @@ public class EngineThread extends Thread {
                         engineInput.flush();
                         boolean finished = engineProcess.waitFor(500, TimeUnit.MILLISECONDS);
                         if (!finished) {
+                            System.out.println("DESTROY");
                             engineProcess.destroy();
                         }
                     } catch(IOException | InterruptedException e) {
@@ -146,12 +153,14 @@ public class EngineThread extends Thread {
             }
             // Process engine output
             if (engineOutput != null) {
+                //System.out.println("OUTPUT");
                 int linesRead = 0;
                 try {
                     while (engineOutput.ready() && linesRead < 100) {
                         String line = engineOutput.readLine();
+                        //System.out.println("FROM ENGINE<<"+line);
+
                         if (line.contains("readyok")) {
-                            System.out.println("FROM ENGINE<<"+line);
                             readyok = true;
                             continue;
                         }
@@ -180,6 +189,7 @@ public class EngineThread extends Thread {
                         linesRead++;
                     }
                 } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
             // send update
@@ -201,6 +211,7 @@ public class EngineThread extends Thread {
                 lastBestmoveUpdate = currentMs;
             }
             if (!engineIsOn()) {
+                //System.out.println("ENGINE NOT RUNNING");
                 // engine not running
                 if (!cmdQueue.isEmpty()) {
                     try {
@@ -211,6 +222,7 @@ public class EngineThread extends Thread {
                         // always send stop and quit first, when restarting
                         // an engine, without first checking if the engine is on.
                         String cmd = (String)cmdQueue.take();
+                        System.out.println("thread: cmd !engineIsOn "+cmd);
                         if (cmd.startsWith("start")) {
                             // reset engine info if we start
                             engineInfo.clear();
@@ -233,6 +245,7 @@ public class EngineThread extends Thread {
                 }
                 continue;
             }
+            //System.out.println("ENGINE RUNNING?!");
             // When we have come this far in the while-loop
             // we know that the process is alive -> engine is running.
             // The commands uci, quit, setoption and isready are
@@ -247,6 +260,7 @@ public class EngineThread extends Thread {
                 // It could be some other command just waiting for us to
                 // pass the readyok check below, now or in the next loop, maybe.
                 String cmd = (String) cmdQueue.peek();
+                System.out.println("process alive, peeking cmd "+cmd);
                 if (cmd == null) {
                     // What to do here?
                     // Better luck next loop!
@@ -291,9 +305,12 @@ public class EngineThread extends Thread {
                     savedElo = -1;
                     take_write_and_flush(cmd);
                     try {
+                        System.out.println("thread: quit send, waiting");
                         // and wait for engine process to die.
                         boolean finished = engineProcess.waitFor(500, TimeUnit.MILLISECONDS);
+                        System.out.println("thread: quit send, finished");
                         if (!finished) {
+                            System.out.println("thread: quit send fail, destroying");
                             engineProcess.destroy();
                         }
                     } catch (InterruptedException e) {
