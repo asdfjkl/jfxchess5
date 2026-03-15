@@ -1,9 +1,6 @@
 package org.asdfjkl.jfxchess.gui;
 
-import org.asdfjkl.jfxchess.lib.Board;
-import org.asdfjkl.jfxchess.lib.CONSTANTS;
-import org.asdfjkl.jfxchess.lib.GameNode;
-import org.asdfjkl.jfxchess.lib.Move;
+import org.asdfjkl.jfxchess.lib.*;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -11,6 +8,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
@@ -238,12 +237,13 @@ public class Controller_Engine implements PropertyChangeListener {
             e.printStackTrace();
         }*/
 
+        /*
         try {
             int exit = engineThread.engineProcess.exitValue();
             System.out.println("Exited: " + exit);
         } catch (IllegalThreadStateException e) {
             System.out.println("Still alive according to JVM");
-        }
+        }*/
     }
 
     public ActionListener startEnterMovesMode() {
@@ -313,6 +313,124 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public void handleNewBoardPositionModePlay() {
 
+    }
+
+    public ActionListener startNewGame() {
+        return e -> {
+            DialogNewGame dlg = new DialogNewGame(model.mainFrameRef, "New Game");
+            dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dlg.setVisible(true);
+            int result = dlg.getSelection();
+            if(result >= 0) {
+                if(result == DialogNewGame.ENTER_ANALYSE) {
+                    // clean up current game, but otherwise not much to do
+                    model.currentPgnDatabaseIdx = -1;
+                    model.setComputerThinkTimeSecs(3);
+                    Game g = new Game();
+                    Board b = new Board(true);
+                    g.getRootNode().setBoard(b);
+                    model.setGame(g);
+                    model.goToNode(g.getRootNode().getId());
+                    activateEnterMovesMode();
+                }
+                /*
+                if(result == DialogNewGame.PLAY_BOT) {
+                    DialogPlayBot dlgPlayBot = new DialogPlayBot(model.mainFrameRef, model.botEngines);
+                    dlgPlayBot.setVisible(true);
+                }
+                 */
+
+                if(result == DialogNewGame.PLAY_BOT) {
+                    DialogPlayBot dlgPlayBot = new DialogPlayBot(model.mainFrameRef, model.botEngines);
+                    dlgPlayBot.setVisible(true);
+                    if(dlgPlayBot.isConfirmed()) {
+                        model.wasSaved = false;
+                        model.currentPgnDatabaseIdx = -1;
+                        model.setComputerThinkTimeSecs(3);
+                        Game g = new Game();
+                        Board b;
+                        if(dlgPlayBot.getPlayInitialPosition()) {
+                            b = new Board(true);
+                        } else {
+                            b = model.getGame().getCurrentNode().getBoard().makeCopy();
+                        }
+                        g.getRootNode().setBoard(b);
+                        model.setGame(g);
+                        model.getGame().setTreeWasChanged(true);
+                        model.getGame().setHeaderWasChanged(true);
+                        model.selectedPlayEngine = model.botEngines.get(dlgPlayBot.getBotIndex());
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+                        String formattedDate = LocalDate.now().format(formatter);
+                        g.setHeader("Date", formattedDate);
+                        g.setHeader("Event", "Training Game JFXChess");
+                        if(dlgPlayBot.getPlayerColor() == CONSTANTS.WHITE) {
+                            g.setHeader("White", "N.N.");
+                            g.setHeader("Black", model.selectedPlayEngine.getName());
+                            g.setHeader("BlackElo", ((BotEngine) model.selectedPlayEngine).getElo());
+                            model.setFlipBoard(false);
+                            // itmPlayAsWhite.setSelected(true);
+                            activatePlayWhiteMode();
+                        } else {
+                            g.setHeader("Black", "N.N.");
+                            g.setHeader("White", model.selectedPlayEngine.getName());
+                            g.setHeader("WhiteElo", ((BotEngine) model.selectedPlayEngine).getElo());
+                            model.setFlipBoard(true);
+                            // itmPlayAsBlack.setSelected(true);
+                            activatePlayBlackMode();
+                        }
+                    }
+                }
+                /*
+                if(result == DialogNewGame.PLAY_UCI) {
+                    DialogPlayEngine dlgUci = new DialogPlayEngine();
+                    boolean uciAccepted = dlgUci.show(model.getStageRef(), model.engines);
+                    if(uciAccepted) {
+                        model.wasSaved = false;
+                        model.currentPgnDatabaseIdx = -1;
+                        model.setComputerThinkTimeSecs(3);
+                        Game g = new Game();
+                        Board b;
+                        if(dlgUci.startInitial) {
+                            b = new Board(true);
+                        } else {
+                            b = model.getGame().getCurrentNode().getBoard().makeCopy();
+                        }
+                        g.getRootNode().setBoard(b);
+                        model.setGame(g);
+                        model.getGame().setTreeWasChanged(true);
+                        model.getGame().setHeaderWasChanged(true);
+                        model.selectedPlayEngine = model.engines.get(dlgUci.selectedIndex);
+                        if(model.selectedPlayEngine.supportsUciLimitStrength()) {
+                            int newElo = (int) dlgUci.sliderStrength.getValue();
+                            if (newElo >= model.selectedPlayEngine.getMinUciElo()
+                                    && newElo <= model.selectedPlayEngine.getMaxUciElo()) {
+                                model.selectedPlayEngine.setUciElo(newElo);
+                            }
+                        }
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+                        String formattedDate = LocalDate.now().format(formatter);
+                        g.setHeader("Date", formattedDate);
+                        g.setHeader("Event", "Training Game JFXChess");
+                        if(dlgUci.playWhite) {
+                            g.setHeader("White", "N.N.");
+                            g.setHeader("Black", model.selectedPlayEngine.getName());
+                            g.setHeader("BlackElo", String.valueOf(model.selectedPlayEngine.getUciElo()));
+                            model.setFlipBoard(false);
+                            // itmPlayAsWhite.setSelected(true);
+                            activatePlayWhiteMode();
+                        } else {
+                            g.setHeader("Black", "N.N.");
+                            g.setHeader("White", model.selectedPlayEngine.getName());
+                            g.setHeader("WhiteElo", String.valueOf(model.selectedPlayEngine.getUciElo()));
+                            model.setFlipBoard(true);
+                            // itmPlayAsBlack.setSelected(true);
+                            activatePlayBlackMode();
+                        }
+                    }
+                }
+                 */
+            }
+        };
     }
 
     public void activatePlayWhiteMode() {

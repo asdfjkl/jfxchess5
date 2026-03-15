@@ -164,7 +164,10 @@ public class View_MainFrame extends JFrame
         JMenuBar menuBar = new JMenuBar();
 
         JMenu gameMenu = new JMenu("Game");
-        gameMenu.add(new JMenuItem("New..."));
+        JMenuItem jmiNewGame = new JMenuItem("New Game");
+        jmiNewGame.addActionListener(controller_Engine.startNewGame());
+        gameMenu.add(jmiNewGame);
+
         gameMenu.add(new JMenuItem("Open File"));
         gameMenu.add(new JMenuItem("Save Game"));
         gameMenu.addSeparator();
