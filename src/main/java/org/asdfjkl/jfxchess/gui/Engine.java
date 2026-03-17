@@ -137,7 +137,7 @@ public class Engine implements Comparator<Engine>{
         copy.isInternal = this.isInternal;
 
         for(EngineOption option : options) {
-            copy.addEngineOption(option);
+            copy.addEngineOption(option.makeCopy());
         }
 
         return copy;
@@ -291,6 +291,11 @@ public class Engine implements Comparator<Engine>{
             }
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 
     @Override

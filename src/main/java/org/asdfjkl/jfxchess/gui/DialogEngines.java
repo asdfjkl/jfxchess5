@@ -2,17 +2,26 @@ package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class DialogEngines extends JDialog {
 
-    public DialogEngines(Frame parent) {
+    DefaultListModel<Engine> engineListModel;
+
+    public DialogEngines(Frame parent, ArrayList<Engine> engines, int idxActiveEngine) {
         super(parent, "Chess Engines", true);
-        initUI();
+
+        engineListModel = new DefaultListModel<>();
+        for (Engine e : engines) {
+            engineListModel.addElement(e.makeCopy());
+        }
+
+        initUI(idxActiveEngine);
         setSize(300, 350);
         setLocationRelativeTo(parent);
     }
 
-    private void initUI() {
+    private void initUI(int idxActiveEngine) {
         setLayout(new BorderLayout(10, 10));
 
         // ===== CENTER PANEL (2 columns) =====
@@ -20,10 +29,10 @@ public class DialogEngines extends JDialog {
         add(centerPanel, BorderLayout.CENTER);
 
         // LEFT: List
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        JList<String> engineList = new JList<>(listModel);
+        JList<Engine> engineList = new JList<>(engineListModel);
         JScrollPane listScroll = new JScrollPane(engineList);
         centerPanel.add(listScroll, BorderLayout.CENTER);
+        engineList.setSelectedIndex(idxActiveEngine);
 
         // RIGHT: Buttons column
         JPanel rightPanel = new JPanel();
@@ -31,6 +40,11 @@ public class DialogEngines extends JDialog {
         centerPanel.add(rightPanel, BorderLayout.EAST);
 
         JButton btnAdd = new JButton("Add");
+        btnAdd.addActionListener(e -> {
+            // todo: implement
+            DialogEngineOptions dlg = new DialogEngineOptions(this, engineListModel.get(0).options);
+            dlg.setVisible(true);
+        });
         JButton btnRemove = new JButton("Remove");
         JButton btnEdit = new JButton("Edit Parameters");
         JButton btnReset = new JButton("Reset Parameters");
@@ -75,6 +89,14 @@ public class DialogEngines extends JDialog {
         add(bottomPanel, BorderLayout.SOUTH);
 
         ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
+    }
+
+    public ArrayList<Engine> getEngines() {
+        ArrayList<Engine> engines = new ArrayList<>();
+        for (int i = 0; i < engineListModel.size(); i++) {
+            engines.add(engineListModel.get(i));
+        }
+        return engines;
     }
 
 }
