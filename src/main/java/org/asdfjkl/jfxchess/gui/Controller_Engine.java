@@ -13,7 +13,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Controller_Engine implements PropertyChangeListener {
@@ -23,6 +25,30 @@ public class Controller_Engine implements PropertyChangeListener {
     final BlockingQueue<String> cmdQueue = new LinkedBlockingQueue<String>();
     private boolean inGoInfinite = false;
     Engine currentEngine = null;
+    private String playInfo =
+            "INFO <table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
+                    "  <tr>" +
+                    "    <td>" +
+                    "      <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"50%\">" +
+                    "        <tr>" +
+                    "          <td>ENGINE_ID</td>" +
+                    "          <td></td>" +
+                    "          <td></td>" +
+                    "          <td></td>" +
+                    "          <td></td>" +
+                    "        </tr>" +
+                    "      </table>" +
+                    "    </td>" +
+                    "  </tr>" +
+                    "  <tr>" +
+                    "    <td>&nbsp;</td>" +
+                    "  </tr>" +
+                    "  <tr>" +
+                    "    <td>" +
+                    "      MESSAGE" +
+                    "    </td>" +
+                    "  </tr>" +
+                    "</table>";
 
     public Controller_Engine(Model_JFXChess model) {
         this.model = model;
@@ -311,10 +337,6 @@ public class Controller_Engine implements PropertyChangeListener {
         uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
     }
 
-    public void handleNewBoardPositionModePlay() {
-
-    }
-
     public ActionListener startNewGame() {
         return e -> {
             DialogNewGame dlg = new DialogNewGame(model.mainFrameRef, "New Game");
@@ -465,6 +487,8 @@ public class Controller_Engine implements PropertyChangeListener {
         model.setFlipBoard(true);
         model.setHumanPlayerColor(CONSTANTS.BLACK);
         model.setMode(Model_JFXChess.MODE_PLAY_BLACK);
+        model.setBlockGUI(true);
+        handleNewBoardPositionModePlay();
     }
 
     public void activatePlayoutPositionMode() {
@@ -525,15 +549,15 @@ public class Controller_Engine implements PropertyChangeListener {
         };
     }
 
-    /*
-    public void handleStateChangePlayWhiteOrBlack() {
+
+    public void handleNewBoardPositionModePlay() {
 
         // first check if we can apply a bookmove
-        long zobrist = gameModel.getGame().getCurrentNode().getBoard().getZobrist();
+        long zobrist = model.getGame().getCurrentNode().getBoard().getZobrist();
         boolean maxDepthReached = false;
-        int currentDepth = gameModel.getGame().getCurrentNode().getDepth();
-        int currentElo = gameModel.activeEngine.getUciElo();
-        boolean limitElo = gameModel.activeEngine.getUciLimitStrength();
+        int currentDepth = model.getGame().getCurrentNode().getDepth();
+        int currentElo = model.activeEngine.getUciElo();
+        boolean limitElo = model.activeEngine.getUciLimitStrength();
         // engine supports setting ELO
         // let's limit book knowledge according to ELO
         if(limitElo && (currentElo > 0)) {
@@ -556,22 +580,35 @@ public class Controller_Engine implements PropertyChangeListener {
                 maxDepthReached = true;
             }
         }
-        String bookMove = gameModel.extBook.getRandomMove(zobrist);
+
+        String bookMove = model.extBook.getRandomMove(zobrist);
         if((bookMove != null) && (!maxDepthReached)) {
-            // don't execute the book move immediately; we want to
+            // todo: don't execute the book move immediately; we want to
             // create the illusion of the computer thinking about his move
-            // inside your event handler or wherever:
-            PauseTransition delay = new PauseTransition(Duration.seconds(gameModel.getComputerThinkTimeSecs()));
-            delay.setOnFinished(event -> {
-                handleBestMove("BESTMOVE|"+bookMove+"|"+zobrist);
-            });
-            delay.play();
+            //handleBestMove("BESTMOVE|"+bookMove+"|"+zobrist);
+            System.out.println("found book move!");
+            CompletableFuture.delayedExecutor(
+                    (long)(model.getComputerThinkTimeSecs() * 1000),
+                    TimeUnit.MILLISECONDS
+            ).execute(() -> handleBestMove("BESTMOVE|" + bookMove + "|" + zobrist));
+
         } else {
-            String fen = gameModel.getGame().getUciPositionString();
-            engineController.sendNewPosition(fen);
-            engineController.uciGoMoveTime(gameModel.getComputerThinkTimeSecs()*1000);
+            String fen = model.getGame().getUciPositionString();
+            sendNewPosition(fen);
+            uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
+        }
+        //String fen = model.getGame().getUciPositionString();
+        //sendNewPosition(fen);
+        //uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
+        if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE && model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.BLACK) {
+            model.setBlockGUI(true);
+        }
+        if(model.getMode() == Model_JFXChess.MODE_PLAY_BLACK && model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
+            model.setBlockGUI(true);
         }
     }
+
+    /*
 
     public void handleStateChangePlayoutPosition() {
 
@@ -970,6 +1007,29 @@ public class Controller_Engine implements PropertyChangeListener {
         }
         // if we get info from the engine but currently play against it,
         // just show some dummy info
+
+        if ((model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) || (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK)) {
+            if (model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) {
+                if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
+                    String msg = playInfo.replace("MESSAGE", "Your turn - White to move");
+                    model.setCurrentEngineInfo(msg);
+                } else {
+                    String msg = playInfo.replace("MESSAGE", "thinking...");
+                    model.setCurrentEngineInfo(msg);
+                }
+            }
+            if (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
+                if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.BLACK) {
+                    String msg = playInfo.replace("MESSAGE", "Your turn - Black to move");
+                    model.setCurrentEngineInfo(msg);
+                } else {
+                    String msg = playInfo.replace("MESSAGE", "thinking...");
+                    model.setCurrentEngineInfo(msg);
+                }
+            }
+        }
+
+        /*
         if ((model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) || (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK)) {
             if (model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) {
                 if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
@@ -985,7 +1045,9 @@ public class Controller_Engine implements PropertyChangeListener {
                     model.setCurrentEngineInfo("|||||||...thinking...");
                 }
             }
-        }
+        }*/
+
+
         if (s.startsWith("BESTMOVE")) {
             //System.out.println("got bestmove");
             //System.out.println("got: "+s);

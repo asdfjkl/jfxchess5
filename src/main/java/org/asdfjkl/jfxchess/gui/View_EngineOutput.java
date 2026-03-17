@@ -30,7 +30,6 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
 
     String htmlTest = "";
 
-
     public  View_EngineOutput(Model_JFXChess model) {
         this.model = model;
 
@@ -148,13 +147,19 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
 
         if(evt.getPropertyName().equals("engineInfo")) {
             //System.out.println("engine out view: property changed 1");
+
+
             String info = model.getCurrentEngineInfo();
-            if(info != null && info.length() > 5) {
-                String s = info.substring(5, info.length()).replace("ENGINE_ID",model.activeEngine.getName());
+            if (info != null && info.length() > 5) {
+                String s = info.substring(5, info.length()).replace("ENGINE_ID", model.activeEngine.getName());
                 //setText(info.substring(5, info.length()));
                 setText(s);
                 //System.out.println("engineview: "+info);
             }
+
+
+
+
 
 
 /*

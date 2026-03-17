@@ -398,4 +398,25 @@ public class Controller_UI {
             }
         };
     }
+
+    public ActionListener editEngines() {
+        return e -> {
+            Dialog dlgEngines = new DialogEngines(model.mainFrameRef);
+
+            //dlgEngines.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dlgEngines.setVisible(true);
+        };
+    }
+
+    public ActionListener goToHomepage() {
+        return e -> {
+            try {
+                String url = "https://asdfjkl.github.io/jfxchess";
+                java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
+            } catch (java.io.IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+        };
+    }
 }

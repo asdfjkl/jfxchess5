@@ -65,7 +65,7 @@ public class Model_JFXChess {
     public int childMateInMoves = -1;
     public boolean childIsMate = false;
 
-    public PolyglotExt extBook;
+    public PolyglotExt extBook = new PolyglotExt();
 
     private Preferences prefs;
 
@@ -156,6 +156,13 @@ public class Model_JFXChess {
         String botPath = getBotEnginePath();
         botEngines = BotEngines.createEngines(botPath);
         selectedPlayEngine = botEngines.get(0); // set benny as default; todo: remember last selected bot
+
+        /*
+        temp
+         */
+        File file = new File("C:\\MyFiles\\workspace\\jfxchess5\\target\\book\\extbook.bin");
+        extBook.loadBook(file);
+
     }
 
 
@@ -163,6 +170,8 @@ public class Model_JFXChess {
     public void addListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
     }
+
+
 
     public Path getJarPath() {
         try {
@@ -620,9 +629,6 @@ public class Model_JFXChess {
         // after applying a move, we block the GUI
         // when we are playing against the computer
         boolean treeWasChanged = getGame().applyMove(m);
-        if(getMode() == Model_JFXChess.MODE_PLAY_WHITE || getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
-            setBlockGUI(true);
-        }
         if(treeWasChanged) {
             pcs.firePropertyChange("treeChanged", null, null);
         }

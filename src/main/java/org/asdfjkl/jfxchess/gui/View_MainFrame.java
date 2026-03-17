@@ -225,7 +225,10 @@ public class View_MainFrame extends JFrame
         jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
         modeMenu.add(jmiFullGameAnalysis);
         modeMenu.addSeparator();
-        modeMenu.add(new JMenuItem("Engines..."));
+
+        JMenuItem jmiEngines = new JMenuItem("Engines");
+        jmiEngines.addActionListener(controller_UI.editEngines());;
+        modeMenu.add(jmiEngines);
         modeMenu.add(new JMenuItem("Select Book"));
 
         JMenu viewMenu = new JMenu("View");
@@ -349,7 +352,9 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiAbout = new JMenuItem("About");
         jmiAbout.addActionListener(controller_UI.showAbout());
         helpMenu.add(jmiAbout);
-        helpMenu.add(new JMenuItem("JFXChess Homepage"));
+        JMenuItem jmiUrl = new JMenuItem("JFXChess Homepage");
+        jmiUrl.addActionListener(controller_UI.goToHomepage());
+        helpMenu.add(jmiUrl);
 
         menuBar.add(gameMenu);
         menuBar.add(editMenu);
