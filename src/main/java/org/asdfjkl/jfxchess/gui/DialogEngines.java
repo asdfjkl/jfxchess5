@@ -8,7 +8,7 @@ public class DialogEngines extends JDialog {
     public DialogEngines(Frame parent) {
         super(parent, "Chess Engines", true);
         initUI();
-        setSize(500, 350);
+        setSize(300, 350);
         setLocationRelativeTo(parent);
     }
 
@@ -35,13 +35,23 @@ public class DialogEngines extends JDialog {
         JButton btnEdit = new JButton("Edit Parameters");
         JButton btnReset = new JButton("Reset Parameters");
 
-        // Top buttons
-        btnAdd.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnRemove.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Determine max width/height
+        Dimension maxSize = btnReset.getPreferredSize();
 
-        // Bottom buttons
-        btnEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnReset.setAlignmentX(Component.CENTER_ALIGNMENT);
+        maxSize = new Dimension(
+                Math.max(Math.max(btnAdd.getPreferredSize().width, btnRemove.getPreferredSize().width),
+                        Math.max(btnEdit.getPreferredSize().width, btnReset.getPreferredSize().width)),
+                maxSize.height
+        );
+
+        // Apply same size to all buttons
+        for (JButton b : new JButton[]{btnAdd, btnRemove, btnEdit, btnReset}) {
+            b.setPreferredSize(maxSize);
+            b.setMaximumSize(maxSize);
+            b.setMinimumSize(maxSize);
+            b.setAlignmentX(Component.CENTER_ALIGNMENT);
+        }
+
 
         rightPanel.add(btnAdd);
         rightPanel.add(Box.createVerticalStrut(5));
@@ -63,6 +73,8 @@ public class DialogEngines extends JDialog {
         bottomPanel.add(btnCancel);
 
         add(bottomPanel, BorderLayout.SOUTH);
+
+        ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
     }
 
 }

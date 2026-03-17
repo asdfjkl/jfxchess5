@@ -402,7 +402,6 @@ public class Controller_UI {
     public ActionListener editEngines() {
         return e -> {
             Dialog dlgEngines = new DialogEngines(model.mainFrameRef);
-
             //dlgEngines.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dlgEngines.setVisible(true);
         };
