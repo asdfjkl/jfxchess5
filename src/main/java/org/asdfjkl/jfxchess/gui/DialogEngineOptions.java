@@ -26,7 +26,10 @@ public class DialogEngineOptions extends JDialog {
 
     public DialogEngineOptions(Window parent, ArrayList<EngineOption> options) {
         super(parent, "Engine Options", ModalityType.APPLICATION_MODAL);
-        this.options = options;
+        this.options = new ArrayList<>();
+        for(EngineOption option : options) {
+            this.options.add(option.makeCopy());
+        }
 
         setLayout(new BorderLayout());
 
@@ -34,8 +37,18 @@ public class DialogEngineOptions extends JDialog {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        for (EngineOption opt : options) {
-            mainPanel.add(createOptionRow(opt));
+        for (EngineOption opt : this.options) {
+            // options "multipv" and "threads" as well as options
+            // related to engine strength will be handled directly
+            // by the GUI (via buttons and options)
+            if(!opt.name.toLowerCase().contains("multipv")
+                    && !opt.name.toLowerCase().contains("threads")
+                    && !opt.name.toLowerCase().contains("uci_elo")
+                    && !opt.name.toLowerCase().contains("uci_limitstrength")
+                    && !opt.name.toLowerCase().contains("skill level"))
+            {
+                mainPanel.add(createOptionRow(opt));
+            }
         }
 
         JScrollPane scrollPane = new JScrollPane(mainPanel);
@@ -67,6 +80,7 @@ public class DialogEngineOptions extends JDialog {
     }
 
     private JPanel createOptionRow(EngineOption opt) {
+
         JPanel row = new JPanel(new BorderLayout(10, 5));
         row.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -101,8 +115,7 @@ public class DialogEngineOptions extends JDialog {
                 input = textField;
                 break;
 
-            // Optional: combo support
-            case 2: // if you re-enable combo
+            case EngineOption.EN_OPT_TYPE_COMBO:
                 JComboBox<String> comboBox = new JComboBox<>(opt.comboValues.toArray(new String[0]));
                 comboBox.setSelectedItem(opt.comboValue);
                 input = comboBox;
@@ -151,5 +164,9 @@ public class DialogEngineOptions extends JDialog {
 
     public boolean isConfirmed() {
         return confirmed;
+    }
+
+    public ArrayList<EngineOption> getOptions() {
+        return options;
     }
 }

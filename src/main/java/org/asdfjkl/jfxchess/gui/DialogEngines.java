@@ -1,12 +1,21 @@
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class DialogEngines extends JDialog {
 
-    DefaultListModel<Engine> engineListModel;
+    private DefaultListModel<Engine> engineListModel;
+    private JList<Engine> engineList;
+    private JButton btnRemove;
+    private JButton btnEdit;
+    private JButton btnReset;
+    private boolean isConfirmed = false;
+    private Engine selectedEngine = null;
 
     public DialogEngines(Frame parent, ArrayList<Engine> engines, int idxActiveEngine) {
         super(parent, "Chess Engines", true);
@@ -15,8 +24,10 @@ public class DialogEngines extends JDialog {
         for (Engine e : engines) {
             engineListModel.addElement(e.makeCopy());
         }
+        System.out.println("dlg engines: copy finished");
 
         initUI(idxActiveEngine);
+        System.out.println("dlg engines: init ui finished");
         setSize(300, 350);
         setLocationRelativeTo(parent);
     }
@@ -29,10 +40,13 @@ public class DialogEngines extends JDialog {
         add(centerPanel, BorderLayout.CENTER);
 
         // LEFT: List
-        JList<Engine> engineList = new JList<>(engineListModel);
+        engineList = new JList<>(engineListModel);
         JScrollPane listScroll = new JScrollPane(engineList);
         centerPanel.add(listScroll, BorderLayout.CENTER);
-        engineList.setSelectedIndex(idxActiveEngine);
+        engineList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        engineList.addListSelectionListener(e -> {
+            listValueChanged(e);
+        });
 
         // RIGHT: Buttons column
         JPanel rightPanel = new JPanel();
@@ -41,13 +55,20 @@ public class DialogEngines extends JDialog {
 
         JButton btnAdd = new JButton("Add");
         btnAdd.addActionListener(e -> {
-            // todo: implement
-            DialogEngineOptions dlg = new DialogEngineOptions(this, engineListModel.get(0).options);
-            dlg.setVisible(true);
+            addEngine();
         });
-        JButton btnRemove = new JButton("Remove");
-        JButton btnEdit = new JButton("Edit Parameters");
-        JButton btnReset = new JButton("Reset Parameters");
+        btnRemove = new JButton("Remove");
+        btnRemove.addActionListener(e -> {
+            removeEngine();
+        });
+        btnEdit = new JButton("Edit Parameters");
+        btnEdit.addActionListener(e -> {
+            editParameters();
+        });
+        btnReset = new JButton("Reset Parameters");
+        btnReset.addActionListener(e -> {
+            resetParameters();
+        });
 
         // Determine max width/height
         Dimension maxSize = btnReset.getPreferredSize();
@@ -83,12 +104,23 @@ public class DialogEngines extends JDialog {
         JButton btnOK = new JButton("OK");
         JButton btnCancel = new JButton("Cancel");
 
+        btnOK.addActionListener(e -> {
+            isConfirmed = true;
+            dispose();
+        });
+        btnCancel.addActionListener(e -> dispose());
+
         bottomPanel.add(btnOK);
         bottomPanel.add(btnCancel);
 
         add(bottomPanel, BorderLayout.SOUTH);
 
         ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
+
+        // at the last - at this point, buttons have been created, and the event
+        // induced by list selection will trigger the buttons to be disabled
+        // for the internal engine
+        //engineList.setSelectedIndex(idxActiveEngine);
     }
 
     public ArrayList<Engine> getEngines() {
@@ -97,6 +129,197 @@ public class DialogEngines extends JDialog {
             engines.add(engineListModel.get(i));
         }
         return engines;
+    }
+
+    private void editParameters() {
+        Engine selectedEngine = engineList.getSelectedValue();
+        DialogEngineOptions dlg = new DialogEngineOptions(this, selectedEngine.options);
+        dlg.setVisible(true);
+        if(dlg.isConfirmed()) {
+            selectedEngine.options = dlg.getOptions();
+        };
+    }
+
+    private void resetParameters() {
+        Engine selectedEngine = engineList.getSelectedValue();
+        for(EngineOption enOpt : selectedEngine.options) {
+            enOpt.resetToDefault();
+        }
+    };
+
+    private void removeEngine() {
+        Engine selectedEngine = engineList.getSelectedValue();
+        engineListModel.removeElement(selectedEngine);
+    }
+
+    private void addEngine() {
+
+        //FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        //        "JPG & GIF Images", "jpg", "gif");
+        //fileChooser.setFileFilter(filter);
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+        if(result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+
+
+        // This first try-catch block will catch any exception thrown
+        // inside and present it as part of a user alert.
+        try {
+            String line;
+
+            String[] cmd = { file.getAbsolutePath() };
+            Process engineProcess = Runtime.getRuntime().exec(cmd);
+
+            if (!engineProcess.isAlive()) {
+                throw new RuntimeException("Couldn't start engine process " + file.getAbsolutePath() + " ");
+            }
+
+            // This is a try-with-resources block (without a catch block).
+            // When the execution leaves this block,normally or because of
+            // an exception, bre.close(), bri.close() and bro.close() will
+            // be called automatically, in that order.
+            // Notice that bro.close() unexpectedly also kills the
+            // engine-process in some way. So we don't have to do that
+            // separately. Possible exceptions during close() will be
+            // suppressed. (Previously the engine-process would stay alive
+            // if it had been started right and an exception abrupt the
+            // code-flow.)
+            try (BufferedWriter bro = new BufferedWriter(new OutputStreamWriter(engineProcess.getOutputStream()));
+                 BufferedReader bri = new BufferedReader(new InputStreamReader(engineProcess.getInputStream()));
+                 BufferedReader bre = new BufferedReader(new InputStreamReader(engineProcess.getErrorStream()))) {
+
+                for (int i = 0; i < 20; i++) {
+                    try {
+                        Thread.sleep(40);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // Send "uci" to the engine.
+                try {
+                    bro.write("uci\n");
+                    bro.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Failed to send UCI-commands to the engine process. "
+                            + file.getAbsolutePath()
+                            + e.getClass() + ": " + e.getMessage());
+                }
+
+                for (int i = 0; i < 20; i++) {
+                    try {
+                        Thread.sleep(40);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Engine engine = new Engine();
+                engine.setPath(file.getAbsolutePath());
+
+                // Read all the engine options.
+                try {
+                    while (bri.ready()) {
+                        line = bri.readLine();
+                        if(line.equals("uciok")){
+                            // No more options
+                            break;
+                        }
+                        if (line.startsWith("id name")) {
+                            engine.setName(line.substring(7).trim());
+                            continue;
+                        }
+                        if(line.startsWith("id author")) {
+                            continue;
+                        }
+                        try {
+                            EngineOption engineOption = new EngineOption();
+                            boolean parsed = engineOption.parseUciOptionString(line);
+                            if (parsed) {
+                                engine.addEngineOption(engineOption);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            throw (new RuntimeException("Couldn't parse engine option: "
+                                    + line + "  " + e.getClass() + ": " + e.getMessage()));
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Failed to read commands from the engine process "
+                            + file.getAbsolutePath() + " "
+                            + e.getClass() + ": " + e.getMessage());
+                }
+
+                // Don't know if this is meaningful, but since we have a bre...
+                while (bre.ready()) {
+                    System.err.println("Error message from engine: " + bre.readLine());
+                }
+
+                // Stop the engine
+                try {
+                    bro.write("stop\n");
+                    bro.write("quit\n");
+                    bro.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Failed to send stop and quit to the engine process. "
+                            + file.getAbsolutePath() + " "
+                            + e.getClass() + ": " + e.getMessage());
+                }
+
+                // Wait for engine to quit.
+                try {
+                    boolean finished = engineProcess.waitFor(500, TimeUnit.MILLISECONDS);
+                    if (!finished) {
+                        engineProcess.destroy();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // Add engine to the engineList and make the list item selected.
+                if (engine.getName() != null && !engine.getName().isEmpty()) {
+                    engineListModel.addElement(engine);
+                    int idx = engineListModel.indexOf(engine);
+                    engineList.setSelectedIndex(idx);
+                }
+            } // end of try-with-resources
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+        }
+    }
+
+    private void listValueChanged(ListSelectionEvent e) {
+        if (e.getValueIsAdjusting() == false) {
+
+            if(!engineList.isSelectionEmpty()) {
+                Engine selectedEngine = engineList.getSelectedValue();
+                if(engineList.getSelectedIndex() == 0) {
+                    // never allow to remove internal engine
+                    // or to mess parameters of internal engine
+                    btnRemove.setEnabled(false);
+                    btnEdit.setEnabled(false);
+                    btnReset.setEnabled(false);
+                } else {
+                    btnRemove.setEnabled(true);
+                    btnEdit.setEnabled(true);
+                    btnReset.setEnabled(true);
+                }
+            }
+        }
+    }
+
+    public boolean isConfirmed() {
+        return isConfirmed;
+    }
+
+    public Engine getSelectedEngine() {
+        return selectedEngine;
     }
 
 }

@@ -30,7 +30,7 @@ public class Engine implements Comparator<Engine>{
 
     private boolean isInternal = false;
 
-    public final ArrayList<EngineOption> options = new ArrayList<>();
+    public ArrayList<EngineOption> options = new ArrayList<>();
 
     public String getName() {
         return name;
