@@ -402,17 +402,17 @@ public class Controller_Engine implements PropertyChangeListener {
                         }
                     }
                 }
-                /*
                 if(result == DialogNewGame.PLAY_UCI) {
-                    DialogPlayEngine dlgUci = new DialogPlayEngine();
-                    boolean uciAccepted = dlgUci.show(model.getStageRef(), model.engines);
+                    DialogPlayEngine dlgUci = new DialogPlayEngine(model.mainFrameRef, model.engines);
+                    dlgUci.setVisible(true);
+                    boolean uciAccepted = dlgUci.isConfirmed();
                     if(uciAccepted) {
                         model.wasSaved = false;
                         model.currentPgnDatabaseIdx = -1;
                         model.setComputerThinkTimeSecs(3);
                         Game g = new Game();
                         Board b;
-                        if(dlgUci.startInitial) {
+                        if(dlgUci.getPlayInitialPosition()) {
                             b = new Board(true);
                         } else {
                             b = model.getGame().getCurrentNode().getBoard().makeCopy();
@@ -421,9 +421,9 @@ public class Controller_Engine implements PropertyChangeListener {
                         model.setGame(g);
                         model.getGame().setTreeWasChanged(true);
                         model.getGame().setHeaderWasChanged(true);
-                        model.selectedPlayEngine = model.engines.get(dlgUci.selectedIndex);
+                        model.selectedPlayEngine = model.engines.get(dlgUci.getSelectedEngineIdx());
                         if(model.selectedPlayEngine.supportsUciLimitStrength()) {
-                            int newElo = (int) dlgUci.sliderStrength.getValue();
+                            int newElo = dlgUci.getElo();
                             if (newElo >= model.selectedPlayEngine.getMinUciElo()
                                     && newElo <= model.selectedPlayEngine.getMaxUciElo()) {
                                 model.selectedPlayEngine.setUciElo(newElo);
@@ -433,24 +433,21 @@ public class Controller_Engine implements PropertyChangeListener {
                         String formattedDate = LocalDate.now().format(formatter);
                         g.setHeader("Date", formattedDate);
                         g.setHeader("Event", "Training Game JFXChess");
-                        if(dlgUci.playWhite) {
+                        if(dlgUci.getPlayerColor() == CONSTANTS.WHITE) {
                             g.setHeader("White", "N.N.");
                             g.setHeader("Black", model.selectedPlayEngine.getName());
                             g.setHeader("BlackElo", String.valueOf(model.selectedPlayEngine.getUciElo()));
                             model.setFlipBoard(false);
-                            // itmPlayAsWhite.setSelected(true);
                             activatePlayWhiteMode();
                         } else {
                             g.setHeader("Black", "N.N.");
                             g.setHeader("White", model.selectedPlayEngine.getName());
                             g.setHeader("WhiteElo", String.valueOf(model.selectedPlayEngine.getUciElo()));
                             model.setFlipBoard(true);
-                            // itmPlayAsBlack.setSelected(true);
                             activatePlayBlackMode();
                         }
                     }
                 }
-                 */
             }
         };
     }
@@ -1118,6 +1115,26 @@ public class Controller_Engine implements PropertyChangeListener {
                 handleNewBoardPositionModePlay();
             }
         }
+    }
+
+
+    public ActionListener editEngines() {
+        return e -> {
+            activateEnterMovesMode();
+            int idxActiveEngine = model.engines.indexOf(model.activeEngine);
+            DialogEngines dlgEngines = new DialogEngines(model.mainFrameRef, model.engines, idxActiveEngine);
+            dlgEngines.setVisible(true);
+            if(dlgEngines.isConfirmed()) {
+                model.engines = dlgEngines.getEngines();
+                model.activeEngine = dlgEngines.getSelectedEngine();
+                System.out.println("edit engines, selected:");
+                System.out.println(model.activeEngine.getName());
+                model.selectedAnalysisEngine = model.activeEngine;
+                // todo: this should result in the model firing a property change event
+                // implement setActiveEngine() in model
+            }
+            //dlgEngines.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        };
     }
 
 

@@ -4,29 +4,28 @@ import org.asdfjkl.jfxchess.lib.CONSTANTS;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 
-public class DialogPlayBot extends JDialog {
+public class DialogPlayEngine extends JDialog {
 
-    private JList<String> botList;
-    private JLabel headerLabel;
-    private JTextArea descriptionArea;
-    private JLabel imageLabel;
+    private JList<Engine> engineList;
+    private JSlider eloSlider;
 
-    ArrayList<BotEngine> botEngines;
+    ArrayList<Engine> uciEngines;
 
     private boolean playerColor = CONSTANTS.WHITE;
     private boolean playInitialPosition = true;
-    private int botIndex = 0;
+    private int selectedEngineIdx = 0;
     private boolean confirmed = false;
+    private int elo = -1;
 
-    public DialogPlayBot(Frame parent, ArrayList<BotEngine> botEngines) {
-        super(parent, "Choose Opponent", true);
+    public DialogPlayEngine(Frame parent, ArrayList<Engine> engines) {
+        super(parent, "Choose Engine", true);
 
-        this.botEngines = botEngines;
+        this.uciEngines = engines;
         buildUI();
 
-        setSize(870, 600);
+        setSize(480, 500);
         setLocationRelativeTo(parent);
     }
 
@@ -40,31 +39,31 @@ public class DialogPlayBot extends JDialog {
 
         // -------- LEFT COLUMN (JList) --------
 
-        DefaultListModel<String> model = new DefaultListModel<>();
-        for (BotEngine botEngine : botEngines) {
-            model.addElement(botEngine.getName());
+        DefaultListModel<Engine> model = new DefaultListModel<>();
+        for (Engine engine : uciEngines) {
+            model.addElement(engine);
         }
 
-        botList = new JList<>(model);
-        botList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        botList.setSelectedIndex(0);
+        engineList = new JList<>(model);
+        engineList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        engineList.setSelectedIndex(0);
 
-        JScrollPane listScroll = new JScrollPane(botList);
+        JScrollPane listScroll = new JScrollPane(engineList);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weightx = 0.2;
+        gbc.weightx = 0.1;
         gbc.weighty = 1;
         gbc.fill = GridBagConstraints.BOTH;
 
         // wider list view for even columns
-        botList.setFixedCellWidth(200);
-        listScroll.setPreferredSize(new Dimension(220, 0));
-        listScroll.setMinimumSize(new Dimension(220, 0));
+        engineList.setFixedCellWidth(160);
+        listScroll.setPreferredSize(new Dimension(180, 0));
+        listScroll.setMinimumSize(new Dimension(180, 0));
 
         mainPanel.add(listScroll, gbc);
 
-        // -------- MIDDLE COLUMN --------
+        // -------- RIGHT COLUMN --------
 
         JPanel middlePanel = new JPanel(new BorderLayout(10,10));
 
@@ -117,41 +116,40 @@ public class DialogPlayBot extends JDialog {
         radioPanel.add(sidePanel);
         radioPanel.add(startPanel);
 
+        // Create slider
+        Engine internalEngine = uciEngines.getFirst();
+        eloSlider = new JSlider(JSlider.HORIZONTAL, internalEngine.getMinUciElo(),
+                internalEngine.getMaxUciElo(), internalEngine.getUciElo());
+        eloSlider.setMajorTickSpacing(200);
+        eloSlider.setMinorTickSpacing(10);
+        eloSlider.setPaintTicks(true);
+        eloSlider.setPaintLabels(false);
+        eloSlider.setSnapToTicks(true);
+        JLabel eloValueLabel = new JLabel("Elo " + internalEngine.getUciElo());
+        eloValueLabel.setPreferredSize(new Dimension(50, 20));
+        // Listen for slider changes
+        eloSlider.addChangeListener(e -> {
+            int value = eloSlider.getValue();
+            eloValueLabel.setText("Elo "+value);
+            elo = value;
+        });
+
+        // Panel to visually group components ("UCI ELO")
+        JPanel uciPanel = new JPanel();
+        uciPanel.setBorder(BorderFactory.createTitledBorder("Strength"));
+        uciPanel.setLayout(new BorderLayout());
+
+        uciPanel.add(eloSlider, BorderLayout.CENTER);
+        uciPanel.add(eloValueLabel, BorderLayout.EAST);
+
+        radioPanel.add(uciPanel, BorderLayout.NORTH);
+
         middlePanel.add(radioPanel, BorderLayout.NORTH);
 
-        // Lower part (description)
-        JPanel descriptionPanel = new JPanel(new BorderLayout(5,5));
-
-        headerLabel = new JLabel();
-        headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD, 16f));
-
-        descriptionArea = new JTextArea();
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setEditable(false);
-        descriptionArea.setOpaque(false);
-        descriptionArea.setFont(UIManager.getFont("Label.font"));
-
-        descriptionPanel.add(headerLabel, BorderLayout.NORTH);
-        descriptionPanel.add(descriptionArea, BorderLayout.CENTER);
-
-        middlePanel.add(descriptionPanel, BorderLayout.CENTER);
-
         gbc.gridx = 1;
-        gbc.weightx = 0.4;
+        gbc.weightx = 0.9;
 
         mainPanel.add(middlePanel, gbc);
-
-        // -------- RIGHT COLUMN (IMAGE) --------
-
-        imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(JLabel.CENTER);
-        imageLabel.setPreferredSize(new Dimension(333, 500));
-
-        gbc.gridx = 2;
-        gbc.weightx = 0.4;
-
-        mainPanel.add(imageLabel, gbc);
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -168,7 +166,7 @@ public class DialogPlayBot extends JDialog {
 
         cancel.addActionListener(e -> dispose());
         ok.addActionListener(e -> {
-            System.out.println("Selected: " + botList.getSelectedValue());
+            System.out.println("Selected: " + engineList.getSelectedValue());
             dispose();
         });
 
@@ -179,28 +177,31 @@ public class DialogPlayBot extends JDialog {
 
         // -------- LISTENER --------
 
-        botList.addListSelectionListener(e -> {
+        engineList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                updateOpponent(botList.getSelectedIndex());
-                botIndex = botList.getSelectedIndex();
+                updateOpponent(engineList.getSelectedIndex());
+
             }
         });
 
-        updateOpponent(botList.getSelectedIndex());
+        updateOpponent(engineList.getSelectedIndex());
+
+        // select default engine
+        engineList.setSelectedIndex(0);
     }
 
     private void updateOpponent(int index) {
 
-        String name =  botEngines.get(index).getName();
-        String elo = botEngines.get(index).getElo();
-        String bio = botEngines.get(index).getBio();
-
-        headerLabel.setText(name + " (" + elo + ")");
-        descriptionArea.setText(bio);
-
-        ImageIcon icon = new ImageIcon(botEngines.get(index).getImage());
-        Image scaled = icon.getImage().getScaledInstance(333, 500, Image.SCALE_SMOOTH);
-        imageLabel.setIcon(new ImageIcon(scaled));
+        selectedEngineIdx = index;
+        Engine selectedEngine = engineList.getSelectedValue();
+        if(!selectedEngine.supportsMultiPV()) {
+            eloSlider.setEnabled(false);
+        } else {
+            eloSlider.setEnabled(true);
+            eloSlider.setMinimum(selectedEngine.getMinUciElo());
+            eloSlider.setMaximum(selectedEngine.getMaxUciElo());
+            eloSlider.setValue(selectedEngine.getUciElo());
+        }
     }
 
     public boolean getPlayerColor() {
@@ -211,11 +212,16 @@ public class DialogPlayBot extends JDialog {
         return playInitialPosition;
     }
 
-    public int getBotIndex() {
-        return botIndex;
+    public int getSelectedEngineIdx() {
+        return selectedEngineIdx;
+    }
+
+    public int getElo() {
+        return elo;
     }
 
     public boolean isConfirmed() {
         return confirmed;
     }
+
 }

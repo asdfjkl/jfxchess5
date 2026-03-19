@@ -36,61 +36,87 @@ public class PgnReader {
         gameStack = new Stack<>();
     }
 
-    /*
-    ArrayList<PgnDatabaseEntry> scanPgnGetSTR(String filename) {
 
-        ArrayList<PgnDatabaseEntry> entries = new ArrayList<>();
+
+    public ArrayList<PgnGameInfo> scanPgn(String filename, ProgressListener progressListener) {
+
+        ArrayList<PgnGameInfo> newEntries = new ArrayList<>();
 
         boolean inComment = false;
         long game_pos = -1;
-        PgnDatabaseEntry current = null;
+        PgnGameInfo current = null;
         long last_pos = 0;
+
+        // check if we actually read at least one game;
+        boolean readAtLeastOneGame = false;
 
         String currentLine = "";
         OptimizedRandomAccessFile raf = null;
+
+        File file = new File(filename);
+        long fileSize = file.length();
+
+        long gamesRead = 0;
+
         try {
             raf = new OptimizedRandomAccessFile(filename, "r");
+            int cnt_i = 0;
             while ((currentLine = raf.readLine()) != null) {
+                cnt_i++;
+
                 // skip comments
                 if (currentLine.startsWith("%")) {
                     continue;
                 }
 
                 if (!inComment && currentLine.startsWith("[")) {
-
                     if (game_pos == -1) {
                         game_pos = last_pos;
-                        current = new PgnDatabaseEntry();
+                        current = new PgnGameInfo();
                     }
                     last_pos = raf.getFilePointer();
-
                     if (currentLine.length() > 4) {
                         int spaceOffset = currentLine.indexOf(' ');
                         int firstQuote = currentLine.indexOf('"');
                         int secondQuote = currentLine.indexOf('"', firstQuote + 1);
                         String tag = currentLine.substring(1, spaceOffset);
-                        String value = currentLine.substring(firstQuote + 1, secondQuote);
-                        String valueEncoded = new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-                        if(tag.equals("Event")) {
-                            current.setEvent(valueEncoded);
-                        }
-                        if(tag.equals("Site")) {
-                            current.setSite(valueEncoded);
-                        }
-                        if(tag.equals("Round")) {
-                            current.setRound(valueEncoded);
-                        }
-                        if(tag.equals("White")) {
-                            current.setWhite(valueEncoded);
-                        }
-                        if(tag.equals("Black")) {
-                            current.setBlack(valueEncoded);
-                        }
-                        if(tag.equals("Result")) {
-                            current.setResult(valueEncoded);
+                        if(secondQuote > firstQuote) {
+                            String value = currentLine.substring(firstQuote + 1, secondQuote);
+                            String valueEncoded = new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+                            if (tag.equals("Event")) {
+                                current.setEvent(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("Site")) {
+                                current.setSite(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("Round")) {
+                                current.setRound(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("White")) {
+                                current.setWhite(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("Black")) {
+                                current.setBlack(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("Result")) {
+                                current.setResult(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("Date")) {
+                                current.setDate(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("ECO")) {
+                                current.setEco(valueEncoded);
+                                current.markValid();
+                            }
                         }
                     }
-
                     continue;
                 }
                 if ((!inComment && currentLine.contains("{"))
@@ -100,10 +126,20 @@ public class PgnReader {
 
                 if (game_pos != -1) {
                     current.setOffset(game_pos);
-                    entries.add(current);
+                    current.setIndex(newEntries.size()+1);
+                    gamesRead += 1;
+                    if(gamesRead > 10000) {
+                        if (progressListener != null && fileSize > 0) {
+                            int percent = (int) (game_pos * 100 / fileSize);
+                            progressListener.onProgress(percent);
+                        }
+                        gamesRead = 0;
+                    }
+                    if(current.isValid()) {
+                        newEntries.add(current);
+                    }
                     game_pos = -1;
                 }
-
                 last_pos = raf.getFilePointer();
             }
         } catch (IOException e) {
@@ -117,11 +153,8 @@ public class PgnReader {
                 }
             }
         }
-        return entries;
+        return newEntries;
     }
-
-     */
-
 
 
     public ArrayList<Long> scanPgn(String filename) {

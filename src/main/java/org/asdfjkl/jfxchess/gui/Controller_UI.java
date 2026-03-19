@@ -399,21 +399,6 @@ public class Controller_UI {
         };
     }
 
-    public ActionListener editEngines() {
-        return e -> {
-            int idxActiveEngine = model.engines.indexOf(model.activeEngine);
-            DialogEngines dlgEngines = new DialogEngines(model.mainFrameRef, model.engines, idxActiveEngine);
-            if(dlgEngines.isConfirmed()) {
-                model.engines = dlgEngines.getEngines();
-                model.activeEngine = dlgEngines.getSelectedEngine();
-                // todo: this should result in the model firing a property change event
-                // implement setActiveEngine() in model
-            }
-            //dlgEngines.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dlgEngines.setVisible(true);
-        };
-    }
-
     public ActionListener goToHomepage() {
         return e -> {
             try {

@@ -120,7 +120,7 @@ public class DialogEngines extends JDialog {
         // at the last - at this point, buttons have been created, and the event
         // induced by list selection will trigger the buttons to be disabled
         // for the internal engine
-        //engineList.setSelectedIndex(idxActiveEngine);
+        engineList.setSelectedIndex(idxActiveEngine);
     }
 
     public ArrayList<Engine> getEngines() {
@@ -298,7 +298,7 @@ public class DialogEngines extends JDialog {
         if (e.getValueIsAdjusting() == false) {
 
             if(!engineList.isSelectionEmpty()) {
-                Engine selectedEngine = engineList.getSelectedValue();
+                selectedEngine = engineList.getSelectedValue();
                 if(engineList.getSelectedIndex() == 0) {
                     // never allow to remove internal engine
                     // or to mess parameters of internal engine
@@ -319,7 +319,13 @@ public class DialogEngines extends JDialog {
     }
 
     public Engine getSelectedEngine() {
-        return selectedEngine;
+        // return Stockfish/internal as default, if
+        // no selection is made
+        if(selectedEngine == null) {
+            return engineListModel.get(0);
+        } else {
+            return selectedEngine;
+        }
     }
 
 }

@@ -69,7 +69,7 @@ public class Model_JFXChess {
 
     private Preferences prefs;
 
-    //private final PgnDatabase pgnDatabase;
+    private ArrayList<PgnGameInfo> pgnDatabase = new ArrayList<>();
     public int currentPgnDatabaseIdx = -1;
     public File lastOpenedDirPath = null;
     public File lastSaveDirPath = null;
@@ -807,5 +807,8 @@ public class Model_JFXChess {
         pcs.firePropertyChange("engineInfo", null, null);
     }
 
+    public ArrayList<PgnGameInfo> getPgnDatabase() {
+        return pgnDatabase;
+    }
 
 }

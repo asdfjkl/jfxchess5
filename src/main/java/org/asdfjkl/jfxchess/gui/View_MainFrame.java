@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
 import org.asdfjkl.jfxchess.lib.HtmlPrinter;
+import org.asdfjkl.jfxchess.lib.PgnReader;
 
 public class View_MainFrame extends JFrame
         implements PropertyChangeListener {
@@ -114,6 +116,38 @@ public class View_MainFrame extends JFrame
                 });
 
         initUI();
+
+        // nasty: for testing
+/*
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        JDialog dialog = new JDialog(this, "Scanning...", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(progressBar, BorderLayout.CENTER);
+
+        dialog.setSize(300, 75);
+        dialog.setLocationRelativeTo(this);
+
+        //System.out.println(Paths.get("C:\\Users\\Domin\\Downloads\\lichess_db_standard_rated_2015-06.pgn").toAbsolutePath());
+
+        PgnReader reader = new PgnReader();
+        PgnScanWorker worker = new PgnScanWorker("C:\\Users\\Domin\\Downloads\\lichess_db_standard_rated_2015-06.pgn\\lichess_db_standard_rated_2015-06.pgn", reader);
+        // Bind progress
+        worker.addPropertyChangeListener(evt -> {
+            if ("progress".equals(evt.getPropertyName())) {
+                int value = (Integer) evt.getNewValue();
+                progressBar.setValue(value);
+            }
+        });
+
+        // Start background task
+        worker.execute();
+        dialog.setVisible(true);
+*/
+
+
+
+
     }
 
     private void initUI() {
@@ -227,7 +261,7 @@ public class View_MainFrame extends JFrame
         modeMenu.addSeparator();
 
         JMenuItem jmiEngines = new JMenuItem("Engines");
-        jmiEngines.addActionListener(controller_UI.editEngines());;
+        jmiEngines.addActionListener(controller_Engine.editEngines());;
         modeMenu.add(jmiEngines);
         modeMenu.add(new JMenuItem("Select Book"));
 
