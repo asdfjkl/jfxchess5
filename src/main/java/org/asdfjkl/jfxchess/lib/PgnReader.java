@@ -36,8 +36,6 @@ public class PgnReader {
         gameStack = new Stack<>();
     }
 
-
-
     public ArrayList<PgnGameInfo> scanPgn(String filename, ProgressListener progressListener) {
 
         ArrayList<PgnGameInfo> newEntries = new ArrayList<>();
@@ -206,6 +204,48 @@ public class PgnReader {
             }
         }
         return offsets;
+    }
+
+    public ArrayList<PgnGameInfo> searchPgn(ArrayList<PgnGameInfo> gameInfos,
+                                            SearchPattern pattern,
+                                            ProgressListener progressListener) {
+
+        ArrayList<PgnGameInfo> matchingEntries = new ArrayList<>();
+        for(int i=0;i<gameInfos.size();i++) {
+            PgnGameInfo gameInfo = gameInfos.get(i);
+            if(pattern.matchesHeader(gameInfo)) {
+                matchingEntries.add(gameInfo);
+            }
+            if(i % 10000 == 0) {
+                if (progressListener != null) {
+                    int percent = (int) (i * 100 / gameInfos.size());
+                    progressListener.onProgress(percent);
+                }
+            }
+        }
+        return matchingEntries;
+    }
+
+    public void deleteGame(String filename, long startOffset, long nextGameOffset) {
+
+        OptimizedRandomAccessFile raf = null;
+        try {
+            raf = new OptimizedRandomAccessFile(filename, "w");
+            raf.seek(startOffset);
+            for(long i=startOffset; i<nextGameOffset; i++) {
+                raf.writeChar(' ');
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if(raf != null) {
+                    raf.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public HashMap<String, String> readSingleHeader(String filename, long offset) {

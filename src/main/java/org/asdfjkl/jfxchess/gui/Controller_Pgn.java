@@ -1,16 +1,16 @@
 package org.asdfjkl.jfxchess.gui;
 
-import org.asdfjkl.jfxchess.lib.Game;
-import org.asdfjkl.jfxchess.lib.OptimizedRandomAccessFile;
-import org.asdfjkl.jfxchess.lib.PgnGameInfo;
-import org.asdfjkl.jfxchess.lib.PgnReader;
+import org.asdfjkl.jfxchess.lib.*;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Controller_Pgn {
 
-    private ArrayList<PgnGameInfo> entries;
     private ArrayList<PgnGameInfo> searchResults;
     private PgnReader reader;
     String filename;
@@ -18,15 +18,15 @@ public class Controller_Pgn {
     private Model_JFXChess model;
 
     public Controller_Pgn(Model_JFXChess model) {
-        entries = model.getPgnDatabase();
         reader = new PgnReader();
         this.model = model;
     }
 
-    public int getNrGames() { return entries.size(); }
+    public int getNrGames() { return model.getPgnDatabase().size(); }
 
     public Game loadGame(int index) {
 
+        ArrayList<PgnGameInfo> entries = model.getPgnDatabase();
         OptimizedRandomAccessFile raf = null;
         Game g = new Game();
         try {
@@ -49,12 +49,78 @@ public class Controller_Pgn {
         return g;
     }
 
-    public void open() {
+    public ActionListener openFile() {
+        return e -> {
+            openAndScanPgn();
+        };
+    }
 
-        PgnScanWorker worker = new PgnScanWorker("C:\\Users\\Domin\\Downloads\\lichess_db_standard_rated_2015-06.pgn\\lichess_db_standard_rated_2015-06.pgn", reader);
-        DialogProgress dlgProgress = new DialogProgress(model.mainFrameRef, worker, "Scanning PGN");
-        worker.execute();
-        dlgProgress.setVisible(true);
+    private void openAndScanPgn() {
+
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter pgnFilter = new FileNameExtensionFilter("PGN Files (*.pgn)", "pgn");
+        chooser.setFileFilter(pgnFilter);
+
+        chooser.setAcceptAllFileFilterUsed(true);
+        // todo: set to last openend file, save in model
+        //chooser.setCurrentDirectory(new File("."));
+        try {
+            int result = chooser.showOpenDialog(model.mainFrameRef);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                if (selectedFile != null &&
+                        selectedFile.exists() &&
+                        selectedFile.canRead()
+                ) {
+                    String pgnFilename = selectedFile.getAbsolutePath();
+                    PgnScanWorker worker = new PgnScanWorker(pgnFilename,
+                            reader,
+                            entriesFromWorker -> { onScanPgnCompletion(pgnFilename, entriesFromWorker); }
+                    );
+                    DialogProgress dlgProgress = new DialogProgress(model.mainFrameRef, worker, "Scanning PGN");
+                    worker.execute();
+                    dlgProgress.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Error reading file.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void onScanPgnCompletion(String pgnFilename,
+                                     ArrayList<PgnGameInfo> entriesFromWorker) {
+        model.setPgnDatabase(entriesFromWorker);
+        model.setFnPgnDatabase(pgnFilename);
+        if(model.getPgnDatabase().size() == 1) {
+            // read game from file and show, don't display database dialog
+            OptimizedRandomAccessFile raf = null;
+            PgnReader reader = new PgnReader();
+            PgnPrinter printer = new PgnPrinter();
+            try {
+                raf = new OptimizedRandomAccessFile(pgnFilename, "r");
+                Game g = reader.readGame(raf);
+                model.setGame(g);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(model.getPgnDatabase().size() > 1) {
+            DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model,this);
+            dlgDatabase.setVisible(true);
+        }
+    }
+
+
+    public ActionListener showDatabase() {
+        return e -> {
+            DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model, this);
+            dlgDatabase.setVisible(true);
+        };
     }
 
 

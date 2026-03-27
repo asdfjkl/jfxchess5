@@ -1,0 +1,170 @@
+package org.asdfjkl.jfxchess.gui;
+
+import org.asdfjkl.jfxchess.lib.PgnGameInfo;
+
+import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DialogDatabase extends JDialog {
+
+    private JTable table;
+    private GameTableModel tableModel;
+
+    private JButton btnSearch;
+    private JButton btnReset;
+    private JButton btnDelete;
+    private JButton btnOpen;
+    private JButton btnCancel;
+
+    private Controller_Pgn controller_Pgn;
+    private Model_JFXChess  model_JFXChess;
+
+    public DialogDatabase(Frame owner,
+                          Model_JFXChess model_JFXChess,
+                          Controller_Pgn controller) {
+        super(owner, "Database", true);
+
+        this.model_JFXChess = model_JFXChess;
+        this.controller_Pgn = controller;
+        this.tableModel = new GameTableModel(model_JFXChess.getPgnDatabase());
+        initUI();
+
+        setSize(900, 600);
+        setLocationRelativeTo(owner);
+    }
+
+    private void initUI() {
+        setLayout(new BorderLayout());
+
+        // ===== TABLE =====
+        table = new JTable(tableModel);
+        table.setAutoCreateRowSorter(true); // enables sorting without copying
+        table.setFillsViewportHeight(true);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // ===== BUTTONS =====
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+
+        // Left buttons
+        JPanel leftButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        btnSearch = new JButton("Search");
+        btnReset = new JButton("Reset Search");
+        btnDelete = new JButton("Delete Game");
+
+        btnSearch.addActionListener(e -> {
+            onBtnSearch();
+        });
+
+        leftButtons.add(btnSearch);
+        leftButtons.add(btnReset);
+        leftButtons.add(btnDelete);
+
+        // Right buttons
+        JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnOpen = new JButton("Open Game");
+        btnCancel = new JButton("Cancel");
+
+        rightButtons.add(btnOpen);
+        rightButtons.add(btnCancel);
+
+        bottomPanel.add(leftButtons, BorderLayout.WEST);
+        bottomPanel.add(rightButtons, BorderLayout.EAST);
+
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        // Cancel action
+        btnCancel.addActionListener(e -> dispose());
+    }
+
+    // ===== TABLE MODEL =====
+    private static class GameTableModel extends AbstractTableModel {
+
+        private final String[] columns = {
+                "No", "White", "Black", "Event", "Date", "Result"
+        };
+
+        private final List<PgnGameInfo> games;
+
+        public GameTableModel(List<PgnGameInfo> games) {
+            this.games = games; // NO COPY -> fast init
+        }
+
+        @Override
+        public int getRowCount() {
+            return games.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columns.length;
+        }
+
+        @Override
+        public String getColumnName(int col) {
+            return columns[col];
+        }
+
+        @Override
+        public Object getValueAt(int row, int col) {
+            PgnGameInfo g = games.get(row);
+
+            switch (col) {
+                case 0: return row + 1;
+                case 1: return g.getWhite();
+                case 2: return g.getBlack();
+                case 3: return g.getEvent();
+                case 4: return g.getDate();
+                case 5: return g.getResult();
+                default: return "";
+            }
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            switch (columnIndex) {
+                case 0:
+                    return Integer.class;
+                default:
+                    return String.class;
+            }
+        }
+
+        public PgnGameInfo getGameAt(int row) {
+            return games.get(row);
+        }
+
+        public void removeRow(int row) {
+            games.remove(row);
+            fireTableRowsDeleted(row, row);
+        }
+    }
+
+    // ===== ACCESS HELPERS =====
+    public PgnGameInfo getSelectedGame() {
+        int row = table.getSelectedRow();
+        if (row < 0) return null;
+
+        // convert if sorting is active
+        int modelRow = table.convertRowIndexToModel(row);
+        return tableModel.getGameAt(modelRow);
+    }
+
+    public void deleteSelectedGame() {
+        int row = table.getSelectedRow();
+        if (row < 0) return;
+
+        int modelRow = table.convertRowIndexToModel(row);
+        tableModel.removeRow(modelRow);
+    }
+
+    private void onBtnSearch() {
+        DialogSearchGames dlgSearch = new DialogSearchGames(this);
+        dlgSearch.setVisible(true);
+    }
+}

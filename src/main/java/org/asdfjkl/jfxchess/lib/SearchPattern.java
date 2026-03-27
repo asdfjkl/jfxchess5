@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package org.asdfjkl.jfxchess.gui;
+package org.asdfjkl.jfxchess.lib;
 
 import org.asdfjkl.jfxchess.lib.Board;
 import org.asdfjkl.jfxchess.lib.PgnGameInfo;
@@ -377,6 +377,11 @@ public class SearchPattern {
                 }
             }
         }
+        return true;
+    }
+
+    public boolean matches(PgnGameInfo pgnGameInfo) {
+        // todo: implement!
         return true;
     }
 

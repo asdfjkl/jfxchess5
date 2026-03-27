@@ -7,13 +7,13 @@ import org.asdfjkl.jfxchess.lib.ProgressListener;
 import javax.swing.*;
 import java.util.ArrayList;
 
-public class PgnScanWorker extends SwingWorker<ArrayList<PgnGameInfo>, Integer> {
+public class PgnSaveWorker extends SwingWorker<ArrayList<PgnGameInfo>, Integer> {
 
     private final String filename;
     private final PgnReader pgnReader;
     private final PgnScanListener pgnScanListener;
 
-    public PgnScanWorker(String filename, PgnReader lib, PgnScanListener listener) {
+    public PgnSaveWorker(String filename, PgnReader lib, PgnScanListener listener) {
         this.filename = filename;
         this.pgnReader = lib;
         this.pgnScanListener = listener;
@@ -30,7 +30,7 @@ public class PgnScanWorker extends SwingWorker<ArrayList<PgnGameInfo>, Integer> 
 
             @Override
             public boolean isCancelled() {
-                return PgnScanWorker.this.isCancelled();
+                return PgnSaveWorker.this.isCancelled();
             }
         });
     }

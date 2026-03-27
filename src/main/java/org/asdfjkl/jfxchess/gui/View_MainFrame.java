@@ -31,6 +31,7 @@ public class View_MainFrame extends JFrame
     private final Controller_UI controller_UI;
     private final Controller_Board controller_Board;
     private final Controller_Engine controller_Engine;
+    private final Controller_Pgn controller_Pgn;
 
     public JSplitPane horizontalSplit;
     public JSplitPane verticalSplit;
@@ -38,6 +39,7 @@ public class View_MainFrame extends JFrame
     JLabel lblGameHeader;
 
     View_Moves view_Moves;
+    private JScrollPane scrollMoves;
     View_EngineOutput view_EngineOutput;
 
     HtmlPrinter htmlPrinter = new HtmlPrinter();
@@ -92,6 +94,7 @@ public class View_MainFrame extends JFrame
         controller_UI = new Controller_UI(model);
         controller_Board = new Controller_Board(model);
         controller_Engine = new Controller_Engine(model);
+        controller_Pgn = new Controller_Pgn(model);
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(e -> {
@@ -202,7 +205,9 @@ public class View_MainFrame extends JFrame
         jmiNewGame.addActionListener(controller_Engine.startNewGame());
         gameMenu.add(jmiNewGame);
 
-        gameMenu.add(new JMenuItem("Open File"));
+        JMenuItem jmiOpenFile = new JMenuItem("Open File");
+        jmiOpenFile.addActionListener(controller_Pgn.openFile());
+        gameMenu.add(jmiOpenFile);
         gameMenu.add(new JMenuItem("Save Game"));
         gameMenu.addSeparator();
         gameMenu.add(new JMenuItem("Print Game"));
@@ -378,7 +383,9 @@ public class View_MainFrame extends JFrame
 
 
         JMenu databaseMenu = new JMenu("Database");
-        databaseMenu.add(new JMenuItem("Browse Database"));
+        JMenuItem jmiDatabase = new JMenuItem("Browse Database");
+        jmiDatabase.addActionListener(controller_Pgn.showDatabase());
+        databaseMenu.add(jmiDatabase);
         databaseMenu.add(new JMenuItem("Next Game"));
         databaseMenu.add(new JMenuItem("Previous Game"));
 
@@ -510,8 +517,7 @@ public class View_MainFrame extends JFrame
         // ===== TextPane for the navPanel
         view_Moves = new View_Moves(model, controller_UI, controller_Board);
 
-        JScrollPane rightScroll =
-                new JScrollPane(view_Moves);
+        scrollMoves = new JScrollPane(view_Moves);
 
 
         // Navigation buttons panel
@@ -555,7 +561,7 @@ public class View_MainFrame extends JFrame
         // Container for right side
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(headerPanel, BorderLayout.NORTH);
-        rightPanel.add(rightScroll, BorderLayout.CENTER);
+        rightPanel.add(scrollMoves, BorderLayout.CENTER);
         rightPanel.add(navPanel, BorderLayout.SOUTH);
 
         // ===== Horizontal Split (Board | Right Pane) =====
@@ -843,6 +849,7 @@ public class View_MainFrame extends JFrame
         if("gameChanged".equals(evt.getPropertyName()) || "treeChanged".equals(evt.getPropertyName())) {
             htmlString =  htmlPrinter.printGame(model.getGame());
             view_Moves.setText(htmlString);
+            view_Moves.setCaretPosition(0);
             updatePgnHeaders();
             //updateHighlightedMove();
         }
