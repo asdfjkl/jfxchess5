@@ -533,9 +533,9 @@ public class View_MainFrame extends JFrame
 
         bookData.add(e1);
         // temp end
-        View_Book view_Book = new View_Book(bookData);
+        View_Book view_Book = new View_Book(model, controller_Board);
         JScrollPane scrollBook = new JScrollPane(view_Book);
-
+        model.addListener(view_Book);
 
         // Navigation buttons panel
         JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -662,12 +662,6 @@ public class View_MainFrame extends JFrame
         verticalSplit.setContinuousLayout(true);
 
         return verticalSplit;
-    }
-
-
-    private void doSomething(String href) {
-        System.out.println("Clicked link: " + href);
-
     }
 
 

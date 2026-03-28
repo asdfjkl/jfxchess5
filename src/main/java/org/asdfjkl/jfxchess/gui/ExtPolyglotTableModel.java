@@ -8,7 +8,7 @@ import java.util.List;
 public class ExtPolyglotTableModel extends AbstractTableModel {
 
     private final String[] columns = {
-            "Move", "Count", "Win %", "Draw %", "Loss %", "Elo"
+            "Move", "Count", "Win/Draw/Loss", "Elo"
     };
 
     private List<PolyglotExtEntry> data;
@@ -46,8 +46,8 @@ public class ExtPolyglotTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> String.class;   // Move
             case 1 -> Long.class;     // Count
-            case 2, 3, 4 -> Integer.class; // percentages
-            case 5 -> Integer.class;  // Elo
+            //case 2 -> Integer.class; // percentages
+            case 3 -> Integer.class;  // Elo
             default -> Object.class;
         };
     }
@@ -59,11 +59,8 @@ public class ExtPolyglotTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> entry.getMove();
             case 1 -> entry.getPosCount();
-            //case 2 -> entry.getWins();
             case 2 -> entry;
-            case 3 -> entry.getDraws();
-            case 4 -> entry.getLosses();
-            case 5 -> entry.getAvgELO();
+            case 3 -> entry.getAvgELO();
             default -> null;
         };
     }

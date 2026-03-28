@@ -1,20 +1,30 @@
 package org.asdfjkl.jfxchess.gui;
 
+import org.asdfjkl.jfxchess.lib.Move;
 import org.asdfjkl.jfxchess.lib.PolyglotExtEntry;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 
-public class View_Book extends JTable {
+public class View_Book extends JTable implements PropertyChangeListener {
 
-    private ExtPolyglotTableModel tableModel;
+    private final ExtPolyglotTableModel tableModel;
+    private final Model_JFXChess model;
+    private final Controller_Board controller_Board;
 
-    public View_Book(List<PolyglotExtEntry> data) {
+    public View_Book(Model_JFXChess model, Controller_Board controller_Board) {
         super();
 
+        this.model = model;
+        this.controller_Board = controller_Board;
+        ArrayList<PolyglotExtEntry> data = new ArrayList<>();
         // Set model
         tableModel = new ExtPolyglotTableModel(data);
 
@@ -42,6 +52,15 @@ public class View_Book extends JTable {
         getColumnModel().getColumn(2).setCellRenderer(new WinDrawLossRenderer());
         setRowHeight(28);
 
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        // total count is centered
+        getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        getColumnModel().getColumn(1).setHeaderRenderer(centerRenderer);
+        // average elo centered
+        getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        getColumnModel().getColumn(3).setHeaderRenderer(centerRenderer);
+
     }
 
     private void handleClick(MouseEvent e) {
@@ -61,12 +80,8 @@ public class View_Book extends JTable {
 
     // Dummy method (you will implement later)
     private void applyMove(String move) {
-        System.out.println("Applying move: " + move);
-    }
-
-    // Optional: update data dynamically
-    public void setData(List<PolyglotExtEntry> data) {
-        tableModel.setData(data);
+        Move m = new Move(move);
+        controller_Board.applyMove(m);
     }
 
     // Optional: access selected entry
@@ -76,5 +91,17 @@ public class View_Book extends JTable {
             return tableModel.getEntry(convertRowIndexToModel(row));
         }
         return null;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if ("currentGameNodeChanged".equals(evt.getPropertyName())
+                || "gameChanged".equals(evt.getPropertyName()))
+        {
+            ArrayList<PolyglotExtEntry> moves = model.extBook.findEntries(model.getGame().getCurrentNode().getBoard());
+            System.out.println("moves len: "+moves.size());
+            tableModel.setData(moves);
+
+        }
     }
 }
