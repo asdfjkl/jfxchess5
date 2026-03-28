@@ -141,8 +141,12 @@ public class View_MainFrame extends JFrame
         gameMenu.add(jmiOpenFile);
         gameMenu.add(new JMenuItem("Save Game"));
         gameMenu.addSeparator();
-        gameMenu.add(new JMenuItem("Print Game"));
-        gameMenu.add(new JMenuItem("Print Position"));
+        JMenuItem jmiPrintGame = new JMenuItem("Print Game");
+        gameMenu.add(jmiPrintGame);
+        jmiPrintGame.addActionListener(controller_UI.printGame());
+        JMenuItem jmiPrintPosition =  new JMenuItem("Print Position");
+        gameMenu.add(jmiPrintPosition);
+        jmiPrintPosition.addActionListener(controller_UI.printFen());
         gameMenu.addSeparator();
         JMenuItem jmiQuit = new JMenuItem("Quit");
         jmiQuit.addActionListener(e -> { dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)); });
@@ -357,6 +361,7 @@ public class View_MainFrame extends JFrame
 
         JButton btnTbPrint = createToolButton("Print Game", "print.svg");
         toolBar.add(btnTbPrint);
+        btnTbPrint.addActionListener(controller_UI.printGame());
         JButton btnTbFlip = createToolButton("Flip Board", "flip3.svg");
         toolBar.add(btnTbFlip);
         btnTbFlip.addActionListener(controller_UI.flipBoard());

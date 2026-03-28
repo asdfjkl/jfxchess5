@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.awt.print.PrinterException;
 import java.io.IOException;
 
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.*;
@@ -395,6 +396,31 @@ public class Controller_UI {
                 Game g = new Game();
                 g.getRootNode().setBoard(newBoard);
                 model.setGame(g);
+            }
+        };
+    }
+
+    public ActionListener printGame() {
+        return e -> {
+            PgnPrinter pgnPrinter = new PgnPrinter();
+            String pgn = pgnPrinter.printGame(model.getGame());
+            JTextArea textArea = new JTextArea(pgn);
+            try {
+                boolean printed = textArea.print();
+            } catch (PrinterException ex) {
+                ex.printStackTrace();
+            }
+        };
+    }
+
+    public ActionListener printFen() {
+        return e -> {
+            String fen = model.getGame().getCurrentNode().getBoard().fen();
+            JTextArea textArea = new JTextArea(fen);
+            try {
+                boolean printed = textArea.print();
+            } catch (PrinterException ex) {
+                ex.printStackTrace();
             }
         };
     }
