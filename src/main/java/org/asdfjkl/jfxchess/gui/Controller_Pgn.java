@@ -100,7 +100,6 @@ public class Controller_Pgn {
             // read game from file and show, don't display database dialog
             OptimizedRandomAccessFile raf = null;
             PgnReader reader = new PgnReader();
-            PgnPrinter printer = new PgnPrinter();
             try {
                 raf = new OptimizedRandomAccessFile(pgnFilename, "r");
                 Game g = reader.readGame(raf);
@@ -112,9 +111,21 @@ public class Controller_Pgn {
         if(model.getPgnDatabase().size() > 1) {
             DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model,this);
             dlgDatabase.setVisible(true);
+            if(dlgDatabase.isConfirmed()) {
+                PgnGameInfo gameInfo = dlgDatabase.getSelectedGame();
+                OptimizedRandomAccessFile raf = null;
+                PgnReader reader = new PgnReader();
+                try {
+                    raf = new OptimizedRandomAccessFile(pgnFilename, "r");
+                    raf.seek(gameInfo.getOffset());
+                    Game g = reader.readGame(raf);
+                    model.setGame(g);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
-
 
     public ActionListener showDatabase() {
         return e -> {
@@ -123,7 +134,13 @@ public class Controller_Pgn {
         };
     }
 
+    public void deleteGame(String pgnFilename, long startOffset, long nextGameOffset) {
+        reader.deleteGame(pgnFilename, startOffset, nextGameOffset);
+    }
 
+    public void deleteGame(String pgnFilename, long startOffset) {
+        reader.deleteGame(pgnFilename, startOffset);
+    }
     /*
     public void saveDatabase() {
 

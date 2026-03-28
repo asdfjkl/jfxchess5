@@ -21,6 +21,18 @@ public class DialogProgress extends JDialog {
         });
     }
 
+    public DialogProgress(Window parent, SwingWorker worker, String windowTitle) {
+        super(parent, windowTitle, ModalityType.APPLICATION_MODAL);
+
+        initUI();
+        bindWorker(worker);
+
+        cancelButton.addActionListener(e -> {
+            worker.cancel(true);
+            dispose();
+        });
+    }
+
     private void initUI() {
         setLayout(new BorderLayout());
 

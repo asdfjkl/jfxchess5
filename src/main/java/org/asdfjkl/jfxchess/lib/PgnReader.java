@@ -21,6 +21,8 @@ package org.asdfjkl.jfxchess.lib;
 //import org.asdfjkl.jfxchess.gui.PgnDatabaseEntry;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
@@ -226,15 +228,25 @@ public class PgnReader {
         return matchingEntries;
     }
 
+    public void deleteGame(String filename, long startOffset) {
+        File f = new File(filename);
+        long size = f.length();
+        deleteGame(filename, startOffset, size);
+    }
+
     public void deleteGame(String filename, long startOffset, long nextGameOffset) {
 
         OptimizedRandomAccessFile raf = null;
         try {
-            raf = new OptimizedRandomAccessFile(filename, "w");
+            raf = new OptimizedRandomAccessFile(filename, "rw");
             raf.seek(startOffset);
-            for(long i=startOffset; i<nextGameOffset; i++) {
-                raf.writeChar(' ');
+            for(long i=startOffset; i<nextGameOffset-2; i++) {
+                raf.writeByte(0x20);
             }
+            // first space out, but then write a final newline so that next game does not start in
+            // the middle of a new line
+            raf.writeByte(0x0A);
+            raf.writeByte(0x0A);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {

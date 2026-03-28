@@ -1,5 +1,7 @@
 package org.asdfjkl.jfxchess.gui;
 
+import org.asdfjkl.jfxchess.lib.SearchPattern;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -7,9 +9,30 @@ public class DialogSearchGames extends JDialog {
 
     private static final int INPUT_WIDTH = 260;
 
-    public DialogSearchGames(Window parent) {
-        super(parent, "Search Chess Games", ModalityType.APPLICATION_MODAL);
-        setSize(430, 400);
+    private JTextField txtWhite;
+    private JTextField txtBlack;
+    private JTextField txtEvent;
+    private JTextField txtSite;
+    private JCheckBox cbIgnoreColors;
+    private JCheckBox cbElo;
+    private JCheckBox cbYear;
+    private JSpinner spMinElo;
+    private JSpinner spMaxElo;
+    private JSpinner spMinYear;
+    private JSpinner spMaxYear;
+    private JRadioButton rbEloOne;
+    private JRadioButton rbEloBoth;
+    private JRadioButton rbEloAverage;
+    private JCheckBox cbWhiteWins;
+    private JCheckBox cbBlackWins;
+    private JCheckBox cbResUnknown;
+    private JCheckBox cbResDraw;
+
+    private boolean isConfirmed = false;
+
+    public DialogSearchGames(Window parent, SearchPattern pattern) {
+        super(parent, "Search Games", ModalityType.APPLICATION_MODAL);
+        setSize(430, 380);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -22,26 +45,29 @@ public class DialogSearchGames extends JDialog {
         int y = 0;
 
         // --- Text fields ---
-        addAlignedField(panel, gbc, y++, "White:");
-        addAlignedField(panel, gbc, y++, "Black:");
+        txtWhite = addAlignedField(panel, gbc, y++, "White:");
+        txtBlack = addAlignedField(panel, gbc, y++, "Black:");
 
         // Ignore Colors
         gbc.gridx = 1;
         gbc.gridy = y++;
-        panel.add(new JCheckBox("Ignore Colors"), gbc);
+        cbIgnoreColors = new JCheckBox("Ignore Colors");
+        panel.add(cbIgnoreColors, gbc);
 
-        addAlignedField(panel, gbc, y++, "Event:");
-        addAlignedField(panel, gbc, y++, "Site:");
+        txtEvent = addAlignedField(panel, gbc, y++, "Event:");
+        txtSite = addAlignedField(panel, gbc, y++, "Site:");
 
         // --- Year ---
         gbc.gridx = 0;
         gbc.gridy = y;
-        panel.add(new JCheckBox("Year:"), gbc);
+        cbYear = new JCheckBox("Year:");
+        panel.add(cbYear, gbc);
 
         gbc.gridx = 1;
         panel.add(createYearPanel(), gbc);
         y++;
 
+        /* does it makes sense nowadays to search for ECO codes?
         // --- ECO ---
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -50,11 +76,14 @@ public class DialogSearchGames extends JDialog {
         gbc.gridx = 1;
         panel.add(createEcoPanel(), gbc);
         y++;
+         */
 
         // --- Elo ---
         gbc.gridx = 0;
         gbc.gridy = y;
-        panel.add(new JLabel("Elo:"), gbc);
+        //panel.add(new JLabel("Elo:"), gbc);
+        cbElo = new JCheckBox("Elo:");
+        panel.add(cbElo, gbc);
 
         gbc.gridx = 1;
         panel.add(createEloRangePanel(), gbc);
@@ -76,7 +105,7 @@ public class DialogSearchGames extends JDialog {
 
         // --- Buttons ---
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        JButton okButton = new JButton("OK");
+        JButton okButton = new JButton("Search");
         JButton cancelButton = new JButton("Cancel");
 
         buttonPanel.add(okButton);
@@ -98,16 +127,21 @@ public class DialogSearchGames extends JDialog {
         gbc.insets = new Insets(4, 4, 4, 4);
 
         // Button behavior
-        okButton.addActionListener(e -> dispose());
+        okButton.addActionListener(e -> {
+            isConfirmed = true;
+            dispose();
+        });
         cancelButton.addActionListener(e -> dispose());
         getRootPane().setDefaultButton(okButton);
+
+        setSearchPattern(pattern);
 
         add(panel);
     }
 
     // ---------- Helper Methods ----------
 
-    private void addAlignedField(JPanel panel, GridBagConstraints gbc, int y, String labelText) {
+    private JTextField addAlignedField(JPanel panel, GridBagConstraints gbc, int y, String labelText) {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel(labelText), gbc);
@@ -120,14 +154,17 @@ public class DialogSearchGames extends JDialog {
 
         gbc.gridx = 1;
         panel.add(wrapper, gbc);
+
+        return field;
     }
 
     private JPanel createYearPanel() {
         JPanel inner = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        inner.add(createSpinner(500, 0, 3000));
+        spMinYear = new JSpinner(new SpinnerNumberModel(500, 0, 3000, 1));
+        inner.add(spMinYear);
         inner.add(new JLabel(" to "));
-        inner.add(createSpinner(2100, 0, 3000));
-
+        spMaxYear = new JSpinner(new SpinnerNumberModel(2100, 0, 3000, 1));
+        inner.add(spMaxYear);
         return wrap(inner);
     }
 
@@ -146,10 +183,11 @@ public class DialogSearchGames extends JDialog {
 
     private JPanel createEloRangePanel() {
         JPanel inner = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        inner.add(createSpinner(1000, 0, 4000));
+        spMinElo = new JSpinner(new SpinnerNumberModel(1000, 0, 4000, 1));
+        inner.add(spMinElo);
         inner.add(new JLabel(" to "));
-        inner.add(createSpinner(3000, 0, 4000));
-
+        spMaxElo = new JSpinner(new SpinnerNumberModel(3000, 0, 4000, 1));
+        inner.add(spMaxElo);
         return wrap(inner);
     }
 
@@ -163,21 +201,18 @@ public class DialogSearchGames extends JDialog {
     private JPanel createRadioGroup() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
-        JRadioButton ignore = new JRadioButton("Ignore", true);
-        JRadioButton one = new JRadioButton("One");
-        JRadioButton both = new JRadioButton("Both");
-        JRadioButton avg = new JRadioButton("Average");
+        rbEloOne = new JRadioButton("One");
+        rbEloBoth = new JRadioButton("Both");
+        rbEloAverage = new JRadioButton("Average");
 
         ButtonGroup group = new ButtonGroup();
-        group.add(ignore);
-        group.add(one);
-        group.add(both);
-        group.add(avg);
+        group.add(rbEloOne);
+        group.add(rbEloBoth);
+        group.add(rbEloAverage);
 
-        panel.add(ignore);
-        panel.add(one);
-        panel.add(both);
-        panel.add(avg);
+        panel.add(rbEloOne);
+        panel.add(rbEloBoth);
+        panel.add(rbEloAverage);
 
         return panel;
     }
@@ -185,17 +220,91 @@ public class DialogSearchGames extends JDialog {
     private JPanel createResultPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-        panel.add(new JCheckBox("1-0", true));
-        panel.add(new JCheckBox("0-1", true));
-        panel.add(new JCheckBox("*", true));
-        panel.add(new JCheckBox("1/2-1/2", true));
+        cbWhiteWins = new JCheckBox("1-0");
+        cbBlackWins = new JCheckBox("0-1");
+        cbResUnknown = new JCheckBox("*");
+        cbResDraw = new JCheckBox("1/2-1/2");
+        panel.add(cbWhiteWins);
+        panel.add(cbBlackWins);
+        panel.add(cbResUnknown);
+        panel.add(cbResDraw);
 
         return panel;
     }
 
-    private JSpinner createSpinner(int value, int min, int max) {
-        return new JSpinner(new SpinnerNumberModel(value, min, max, 1));
+    public SearchPattern getSearchPattern() {
+        SearchPattern pattern = new SearchPattern();
+
+        pattern.setWhiteName(txtWhite.getText());
+        pattern.setBlackName(txtBlack.getText());
+        pattern.setIgnoreNameColor(cbIgnoreColors.isSelected());
+        pattern.setEvent(txtEvent.getText());
+        pattern.setSite(txtSite.getText());
+        if(cbElo.isSelected()) {
+            if(rbEloAverage.isSelected()) {
+                pattern.setCheckElo(SearchPattern.SEARCH_AVG_ELO);
+            }
+            if(rbEloBoth.isSelected()) {
+                pattern.setCheckElo(SearchPattern.SEARCH_BOTH_ELO);
+            }
+            if(rbEloOne.isSelected()) {
+                pattern.setCheckElo(SearchPattern.SEARCH_ONE_ELO);
+            }
+        } else {
+            pattern.setCheckElo(SearchPattern.SEARCH_IGNORE_ELO);
+        }
+        pattern.setMinElo((Integer) spMinElo.getValue());
+        pattern.setMaxElo((Integer) spMaxElo.getValue());
+
+        pattern.setCheckYear(cbYear.isSelected());
+        pattern.setMinYear((Integer) spMinYear.getValue());
+        pattern.setMaxYear((Integer) spMaxYear.getValue());
+
+        pattern.setResultWhiteWins(cbWhiteWins.isSelected());
+        pattern.setResultBlackWins(cbBlackWins.isSelected());
+        pattern.setResultUndef(cbResUnknown.isSelected());
+        pattern.setResultDraw(cbResDraw.isSelected());
+
+        return pattern;
     }
 
+    public void setSearchPattern(SearchPattern pattern) {
+
+        txtWhite.setText(pattern.getWhiteName());
+        txtBlack.setText(pattern.getBlackName());
+        cbIgnoreColors.setSelected(pattern.isIgnoreNameColor());
+        txtEvent.setText(pattern.getEvent());
+        txtSite.setText(pattern.getSite());
+        if(pattern.getCheckElo() ==  SearchPattern.SEARCH_IGNORE_ELO) {
+            cbWhiteWins.setSelected(true);
+            rbEloOne.setSelected(true);
+        } else {
+            cbWhiteWins.setSelected(false);
+            if(pattern.getCheckElo() ==  SearchPattern.SEARCH_BOTH_ELO) {
+                rbEloOne.setSelected(true);
+            }
+            if(pattern.getCheckElo() ==  SearchPattern.SEARCH_AVG_ELO) {
+                rbEloAverage.setSelected(true);
+            }
+            if(pattern.getCheckElo() ==  SearchPattern.SEARCH_ONE_ELO) {
+                rbEloOne.setSelected(true);
+            }
+        }
+        spMinElo.setValue(pattern.getMinElo());
+        spMaxElo.setValue(pattern.getMaxElo());
+
+        cbYear.setSelected(pattern.isCheckYear());
+        spMinYear.setValue(pattern.getMinYear());
+        spMaxYear.setValue(pattern.getMaxYear());
+
+        cbWhiteWins.setSelected(pattern.isResultWhiteWins());
+        cbBlackWins.setSelected(pattern.isResultBlackWins());
+        cbResUnknown.setSelected(pattern.isResultUndef());
+        cbResDraw.setSelected(pattern.isResultDraw());
+    }
+
+    public boolean isConfirmed() {
+        return isConfirmed;
+    }
 
 }

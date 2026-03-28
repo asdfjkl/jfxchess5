@@ -19,9 +19,6 @@
 
 package org.asdfjkl.jfxchess.lib;
 
-import org.asdfjkl.jfxchess.lib.Board;
-import org.asdfjkl.jfxchess.lib.PgnGameInfo;
-
 public class SearchPattern {
 
     public static final int SEARCH_IGNORE_ELO = 0;
@@ -29,7 +26,7 @@ public class SearchPattern {
     public static final int SEARCH_BOTH_ELO = 2;
     public static final int SEARCH_AVG_ELO = 3;
 
-    private boolean searchForHeader = false;
+    private boolean searchForHeader = true;
     private boolean searchForPosition = false;
 
     private String whiteName = "";
@@ -43,14 +40,6 @@ public class SearchPattern {
     private int minYear = 500;
     private int maxYear = 2100;
 
-    private boolean checkEco = false;
-    private String ecoStart = "A00";
-    private String ecoStop = "E99";
-
-    private boolean checkMoves = false;
-    private int minMove = 1;
-    private int maxMove = 99;
-
     private int checkElo = SEARCH_IGNORE_ELO;
     private int minElo = 1000;
     private int maxElo = 3000;
@@ -59,16 +48,6 @@ public class SearchPattern {
     private boolean resultDraw = true;
     private boolean resultWhiteWins = true;
     private boolean resultBlackWins = true;
-
-    private Board board = new Board();
-
-    public void setBoard(Board board) {
-        this.board = board;
-    }
-
-    public Board getBoard() {
-        return board;
-    }
 
     public void setSearchForHeader(boolean searchForHeader) {
         this.searchForHeader = searchForHeader;
@@ -110,30 +89,6 @@ public class SearchPattern {
         this.maxYear = maxYear;
     }
 
-    public void setCheckEco(boolean checkEco) {
-        this.checkEco = checkEco;
-    }
-
-    public void setEcoStart(String ecoStart) {
-        this.ecoStart = ecoStart;
-    }
-
-    public void setEcoStop(String ecoStop) {
-        this.ecoStop = ecoStop;
-    }
-
-    public void setCheckMoves(boolean checkMoves) {
-        this.checkMoves = checkMoves;
-    }
-
-    public void setMinMove(int minMove) {
-        this.minMove = minMove;
-    }
-
-    public void setMaxMove(int maxMove) {
-        this.maxMove = maxMove;
-    }
-
     public void setCheckElo(int checkElo) {
         this.checkElo = checkElo;
     }
@@ -166,10 +121,6 @@ public class SearchPattern {
         return searchForHeader;
     }
 
-    public boolean isSearchForPosition() {
-        return searchForPosition;
-    }
-
     public String getWhiteName() {
         return whiteName;
     }
@@ -200,30 +151,6 @@ public class SearchPattern {
 
     public int getMaxYear() {
         return maxYear;
-    }
-
-    public boolean isCheckEco() {
-        return checkEco;
-    }
-
-    public String getEcoStart() {
-        return ecoStart;
-    }
-
-    public String getEcoStop() {
-        return ecoStop;
-    }
-
-    public boolean isCheckMoves() {
-        return checkMoves;
-    }
-
-    public int getMinMove() {
-        return minMove;
-    }
-
-    public int getMaxMove() {
-        return maxMove;
     }
 
     public int getCheckElo() {
@@ -271,14 +198,6 @@ public class SearchPattern {
         copy.checkYear = checkYear;
         copy.minYear = minYear;
         copy.maxYear = maxYear;
-
-        copy.checkEco = checkEco;
-        copy.ecoStart = ecoStart;
-        copy.ecoStop = ecoStop;
-
-        copy.checkMoves = checkMoves;
-        copy.minMove = minMove;
-        copy.maxMove = maxMove;
 
         copy.checkElo = checkElo;
         copy.minElo = minElo;
@@ -367,21 +286,6 @@ public class SearchPattern {
         if(!resultUndef && pgnGameInfo.getResult().equals("*")) {
             return false;
         }
-        if(!ecoStart.isEmpty() && !ecoStop.isEmpty()) {
-            if(!pgnGameInfo.getEco().isEmpty()) {
-                if(pgnGameInfo.getEco().toUpperCase().compareTo(ecoStart.toUpperCase()) < 0) {
-                    return false;
-                }
-                if(pgnGameInfo.getEco().toUpperCase().compareTo(ecoStop.toUpperCase()) > 0) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public boolean matches(PgnGameInfo pgnGameInfo) {
-        // todo: implement!
         return true;
     }
 
