@@ -1,28 +1,18 @@
 package org.asdfjkl.jfxchess.gui;
 
-
-
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.*;
-import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
-import org.asdfjkl.jfxchess.lib.CONSTANTS;
 import org.asdfjkl.jfxchess.lib.HtmlPrinter;
-import org.asdfjkl.jfxchess.lib.PgnReader;
 import org.asdfjkl.jfxchess.lib.PolyglotExtEntry;
 
 public class View_MainFrame extends JFrame
@@ -48,25 +38,6 @@ public class View_MainFrame extends JFrame
 
     private Object currentHighlight = null;
 
-    /*
-    private JRadioButtonMenuItem  jmiToFlatlafLight;
-    private JRadioButtonMenuItem  jmiToFlatlafDark;
-    private JRadioButtonMenuItem  jmiToFlatlafIntellij;
-    private JRadioButtonMenuItem  jmiToFlatlafDarcula;
-    private JRadioButtonMenuItem  jmiToFlatlaMacLight;
-    private JRadioButtonMenuItem  jmiToFlatlaMacDark;
-    private JRadioButtonMenuItem  jmiToMetal;
-    private JRadioButtonMenuItem  jmiToNimbus;
-    private JRadioButtonMenuItem  jmiToSysDefault;
-    private JRadioButtonMenuItem  jmiBoardColorBlue;
-    private JRadioButtonMenuItem  jmiBoardColorGreen;
-    private JRadioButtonMenuItem  jmiBoardColorBrown;
-    private JRadioButtonMenuItem  jmiPieceStyleMerida;
-    private JRadioButtonMenuItem  jmiPieceStyleOld;
-    private JRadioButtonMenuItem  jmiPieceStyleUSCF;
-*/
-
-
     KeyStroke pasteKey = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK);
     KeyStroke copyKey = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK);
     KeyStroke flipKey = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
@@ -78,13 +49,10 @@ public class View_MainFrame extends JFrame
 
     Map<KeyStroke, ActionListener> shortcuts = new HashMap<>();
 
-
-
     public View_MainFrame(Model_JFXChess model) {
         this.model = model;
         model.addListener(this);
 
-        // todo: move to controller
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 model.saveModel();
@@ -102,11 +70,8 @@ public class View_MainFrame extends JFrame
 
                     if (e.getID() != KeyEvent.KEY_PRESSED)
                         return false;
-
                     KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
-
                     ActionListener a = shortcuts.get(ks);
-
                     if (a != null) {
                         a.actionPerformed(new ActionEvent(
                                 e.getSource(),
@@ -115,42 +80,10 @@ public class View_MainFrame extends JFrame
                         ));
                         return true;
                     }
-
                     return false;
                 });
 
         initUI();
-
-        // nasty: for testing
-/*
-        JProgressBar progressBar = new JProgressBar(0, 100);
-        progressBar.setStringPainted(true);
-        JDialog dialog = new JDialog(this, "Scanning...", true);
-        dialog.setLayout(new BorderLayout());
-        dialog.add(progressBar, BorderLayout.CENTER);
-
-        dialog.setSize(300, 75);
-        dialog.setLocationRelativeTo(this);
-
-        //System.out.println(Paths.get("C:\\Users\\Domin\\Downloads\\lichess_db_standard_rated_2015-06.pgn").toAbsolutePath());
-
-        PgnReader reader = new PgnReader();
-        PgnScanWorker worker = new PgnScanWorker("C:\\Users\\Domin\\Downloads\\lichess_db_standard_rated_2015-06.pgn\\lichess_db_standard_rated_2015-06.pgn", reader);
-        // Bind progress
-        worker.addPropertyChangeListener(evt -> {
-            if ("progress".equals(evt.getPropertyName())) {
-                int value = (Integer) evt.getNewValue();
-                progressBar.setValue(value);
-            }
-        });
-
-        // Start background task
-        worker.execute();
-        dialog.setVisible(true);
-*/
-
-
-
 
     }
 
@@ -162,7 +95,6 @@ public class View_MainFrame extends JFrame
         icons.add(new ImageIcon(App.class.getResource("/icons/app_icon@2x.png")).getImage());
         icons.add(new ImageIcon(App.class.getResource("/icons/app_icon@3x.png")).getImage());
 
-        //JFrame frame = new JFrame("JFXChess");
         setTitle("JFXChess");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
@@ -176,8 +108,6 @@ public class View_MainFrame extends JFrame
         JToolBar toolBar = createToolBar();
 
         toolBar.putClientProperty("JToolBar.isRollover", true);
-        //btn.putClientProperty("JButton.buttonType", "toolBarButton");
-
 
         // ===== Main Content =====
         JComponent mainContent = createMainContent();
@@ -213,14 +143,14 @@ public class View_MainFrame extends JFrame
         gameMenu.addSeparator();
         gameMenu.add(new JMenuItem("Print Game"));
         gameMenu.add(new JMenuItem("Print Position"));
-        gameMenu.add(new JMenuItem("Save Position as Image"));
         gameMenu.addSeparator();
-        gameMenu.add(new JMenuItem("Quit"));
+        JMenuItem jmiQuit = new JMenuItem("Quit");
+        jmiQuit.addActionListener(e -> { dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)); });
+        gameMenu.add(jmiQuit);
 
         JMenu editMenu = new JMenu("Edit");
         JMenuItem jmiCopyGame = new JMenuItem("Copy Game");
-        //jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
-        jmiCopyGame.addActionListener(controller_Engine.checkEngine());
+        jmiCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
         jmiCopyGame.setAccelerator(copyKey);
         editMenu.add(jmiCopyGame);
         JMenuItem jmiCopyFEN = new JMenuItem("Copy Position (FEN)");
@@ -256,11 +186,9 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiAnalysis = new JMenuItem("Analysis");
         jmiAnalysis.addActionListener(controller_Engine.startAnalysisMode());
         modeMenu.add(jmiAnalysis);
-
         JMenuItem jmiEnterMoves = new JMenuItem("Enter Moves");
         jmiEnterMoves.addActionListener(controller_Engine.startEnterMovesMode());
         modeMenu.add(jmiEnterMoves);
-
         JMenuItem jmiFullGameAnalysis = new JMenuItem("Full Game Analysis");
         jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
         modeMenu.add(jmiFullGameAnalysis);
@@ -382,7 +310,6 @@ public class View_MainFrame extends JFrame
         jmiResetLayout.addActionListener(controller_UI.resetWindowLayout());
         viewMenu.add(jmiResetLayout);
 
-
         JMenu databaseMenu = new JMenu("Database");
         JMenuItem jmiDatabase = new JMenuItem("Browse Database");
         jmiDatabase.addActionListener(controller_Pgn.showDatabase());
@@ -419,8 +346,10 @@ public class View_MainFrame extends JFrame
 
         JButton btnTbNew = createToolButton("New Game", "open_in_new.svg");
         toolBar.add(btnTbNew);
+        btnTbNew.addActionListener(controller_Engine.startNewGame());
         JButton btnTbOpen = createToolButton("Open File", "open_folder.svg");
         toolBar.add(btnTbOpen);
+        btnTbOpen.addActionListener(controller_Pgn.openFile());
         JButton btnTbSave = createToolButton("Save Game", "file_save.svg");
         toolBar.add(btnTbSave);
 
@@ -430,27 +359,34 @@ public class View_MainFrame extends JFrame
         toolBar.add(btnTbPrint);
         JButton btnTbFlip = createToolButton("Flip Board", "flip3.svg");
         toolBar.add(btnTbFlip);
+        btnTbFlip.addActionListener(controller_UI.flipBoard());
 
         toolBar.addSeparator();
 
         JButton btnTbCopyGame = createToolButton("Copy Game", "copy1.svg");
         toolBar.add(btnTbCopyGame);
+        btnTbCopyGame.addActionListener(controller_UI.copyPgnToClipboard());
         JButton btnTbCopyPosition = createToolButton("Copy Position (FEN)", "copy2.svg");
         toolBar.add(btnTbCopyPosition);
+        btnTbCopyPosition.addActionListener(controller_UI.copyFenToClipboard());
         JButton btnTbPaste = createToolButton("Paste Game/Position", "paste.svg");
         toolBar.add(btnTbPaste);
+        btnTbPaste.addActionListener(controller_UI.pasteFenOrGame());
         JButton btnTbSetupPosition = createToolButton("Setup Position", "setup_new_position.svg");
         toolBar.add(btnTbSetupPosition);
+        btnTbSetupPosition.addActionListener(controller_UI.setupNewPosition());
 
         toolBar.addSeparator();
 
         JButton btnTbFullAnalysis = createToolButton("Full Game Analysis", "game_analysis.svg");
         toolBar.add(btnTbFullAnalysis);
+        btnTbFullAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
 
         toolBar.addSeparator();
 
         JButton btnTbBrowseDatabase = createToolButton("Browse Database", "database.svg");
         toolBar.add(btnTbBrowseDatabase);
+        btnTbBrowseDatabase.addActionListener(controller_Pgn.showDatabase());
         JButton btnTbDatabasePrevGame = createToolButton("Previous Game", "arrow_left_alt.svg");
         toolBar.add(btnTbDatabasePrevGame);
         JButton btnTbDatabaseNextGame = createToolButton("Next Game", "arrow_right_alt.svg");
@@ -504,6 +440,7 @@ public class View_MainFrame extends JFrame
         btnGameHeader.setIcon(new FlatSVGIcon("icons/edit_game_header_18px.svg"));
         btnGameHeader.setToolTipText("Edit Game  Data");
         btnGameHeader.setFocusable(false);
+        btnGameHeader.addActionListener(controller_UI.editGameData());
 
         // ===== Header panel (Label + Button) =====
         JPanel headerPanel = new JPanel(new BorderLayout(8, 0));
@@ -575,7 +512,7 @@ public class View_MainFrame extends JFrame
         navPanel.add(btnNext);
         navPanel.add(btnToEnd);
 
-        // put view_moves and view_book inside a tabbedpane
+        // put view_moves and view_book inside a tabbed pane
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Moves", scrollMoves);
         tabbedPane.addTab("Book", scrollBook);
@@ -583,7 +520,6 @@ public class View_MainFrame extends JFrame
         // Container for right side
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(headerPanel, BorderLayout.NORTH);
-        //rightPanel.add(scrollMoves, BorderLayout.CENTER);
         rightPanel.add(tabbedPane, BorderLayout.CENTER);
         rightPanel.add(navPanel, BorderLayout.SOUTH);
 
@@ -624,14 +560,12 @@ public class View_MainFrame extends JFrame
         // --- Right side group ---
         JPanel rightGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 2));
 
-        //JButton btnEngines = new JButton("Engines...");
-
         JButton btnEngines = new JButton();
-        //btnEngines.putClientProperty("JButton.buttonType", "toolBarButton");
-        int h = btnEngineSwitch.getHeight();
+        //int h = btnEngineSwitch.getHeight();
         btnEngines.setIcon(new FlatSVGIcon("icons/engine_18px.svg"));
         btnEngines.setToolTipText("Select Engine");
         btnEngines.setFocusable(false);
+        btnEngines.addActionListener(controller_Engine.editEngines());
 
         rightGroup.add(btnEngines);
 
@@ -868,7 +802,6 @@ public class View_MainFrame extends JFrame
             view_Moves.setText(htmlString);
             view_Moves.setCaretPosition(0);
             updatePgnHeaders();
-            //updateHighlightedMove();
         }
     }
 
