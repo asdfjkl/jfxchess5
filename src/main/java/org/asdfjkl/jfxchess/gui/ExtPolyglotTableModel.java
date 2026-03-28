@@ -59,7 +59,8 @@ public class ExtPolyglotTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> entry.getMove();
             case 1 -> entry.getPosCount();
-            case 2 -> entry.getWins();
+            //case 2 -> entry.getWins();
+            case 2 -> entry;
             case 3 -> entry.getDraws();
             case 4 -> entry.getLosses();
             case 5 -> entry.getAvgELO();

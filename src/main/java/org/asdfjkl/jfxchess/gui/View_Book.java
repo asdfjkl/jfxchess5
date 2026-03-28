@@ -17,6 +17,7 @@ public class View_Book extends JTable {
 
         // Set model
         tableModel = new ExtPolyglotTableModel(data);
+
         setModel(tableModel);
 
         // Disable sorting
@@ -37,6 +38,10 @@ public class View_Book extends JTable {
                 handleClick(e);
             }
         });
+
+        getColumnModel().getColumn(2).setCellRenderer(new WinDrawLossRenderer());
+        setRowHeight(28);
+
     }
 
     private void handleClick(MouseEvent e) {
