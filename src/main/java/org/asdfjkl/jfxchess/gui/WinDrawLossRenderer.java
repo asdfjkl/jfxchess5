@@ -43,9 +43,13 @@ public class WinDrawLossRenderer extends JPanel implements TableCellRenderer {
         int lossWidth = width - winWidth - drawWidth;
 
         // Colors
-        Color winColor = new Color(120, 200, 120);   // green
-        Color drawColor = new Color(200, 200, 200);  // gray
-        Color lossColor = new Color(200, 100, 100);  // red
+        //Color winColor = new Color(120, 200, 120);   // green
+        //Color drawColor = new Color(200, 200, 200);  // gray
+        //Color lossColor = new Color(200, 100, 100);  // red
+
+        Color winColor = new Color(197, 197, 197);   // light gray
+        Color drawColor = new Color(107, 107, 107);  // gray
+        Color lossColor = new Color(58, 58, 58);  // dark gray
 
         // Draw bars
         int x = 0;
@@ -66,6 +70,8 @@ public class WinDrawLossRenderer extends JPanel implements TableCellRenderer {
         FontMetrics fm = g.getFontMetrics();
 
         drawCenteredText(g, win + "%", 0, winWidth, height, fm);
+
+        g.setColor(Color.LIGHT_GRAY);
         drawCenteredText(g, draw + "%", winWidth, drawWidth, height, fm);
         drawCenteredText(g, loss + "%", winWidth + drawWidth, lossWidth, height, fm);
     }

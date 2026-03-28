@@ -61,6 +61,14 @@ public class View_Book extends JTable implements PropertyChangeListener {
         getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
         getColumnModel().getColumn(3).setHeaderRenderer(centerRenderer);
 
+        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+
+        getColumnModel().getColumn(0).setPreferredWidth(50);
+        getColumnModel().getColumn(1).setPreferredWidth(50);
+        getColumnModel().getColumn(2).setPreferredWidth(250);
+
+
     }
 
     private void handleClick(MouseEvent e) {
