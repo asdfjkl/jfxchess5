@@ -23,6 +23,7 @@ import com.formdev.flatlaf.*;
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
 import org.asdfjkl.jfxchess.lib.HtmlPrinter;
 import org.asdfjkl.jfxchess.lib.PgnReader;
+import org.asdfjkl.jfxchess.lib.PolyglotExtEntry;
 
 public class View_MainFrame extends JFrame
         implements PropertyChangeListener {
@@ -516,8 +517,24 @@ public class View_MainFrame extends JFrame
 
         // ===== TextPane for the navPanel
         view_Moves = new View_Moves(model, controller_UI, controller_Board);
-
         scrollMoves = new JScrollPane(view_Moves);
+
+        // Assuming you already have data for the book
+        // temp
+        ArrayList<PolyglotExtEntry> bookData = new ArrayList<>();
+
+        PolyglotExtEntry e1 = new PolyglotExtEntry();
+        e1.setMove("e2e4");
+        e1.setPosCount(1200);
+        e1.setWins(55);
+        e1.setDraws(25);
+        e1.setLosses(20);
+        e1.setAvgELO(2400);
+
+        bookData.add(e1);
+        // temp end
+        View_Book view_Book = new View_Book(bookData);
+        JScrollPane scrollBook = new JScrollPane(view_Book);
 
 
         // Navigation buttons panel
@@ -558,10 +575,16 @@ public class View_MainFrame extends JFrame
         navPanel.add(btnNext);
         navPanel.add(btnToEnd);
 
+        // put view_moves and view_book inside a tabbedpane
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Moves", scrollMoves);
+        tabbedPane.addTab("Book", scrollBook);
+
         // Container for right side
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(headerPanel, BorderLayout.NORTH);
-        rightPanel.add(scrollMoves, BorderLayout.CENTER);
+        //rightPanel.add(scrollMoves, BorderLayout.CENTER);
+        rightPanel.add(tabbedPane, BorderLayout.CENTER);
         rightPanel.add(navPanel, BorderLayout.SOUTH);
 
         // ===== Horizontal Split (Board | Right Pane) =====
