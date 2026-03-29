@@ -139,7 +139,9 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiOpenFile = new JMenuItem("Open File");
         jmiOpenFile.addActionListener(controller_Pgn.openFile());
         gameMenu.add(jmiOpenFile);
-        gameMenu.add(new JMenuItem("Save Game"));
+        JMenuItem jmiSaveGame = new JMenuItem("Save Game");
+        gameMenu.add(jmiSaveGame);
+        jmiSaveGame.addActionListener(controller_Pgn.saveGame());
         gameMenu.addSeparator();
         JMenuItem jmiPrintGame = new JMenuItem("Print Game");
         gameMenu.add(jmiPrintGame);

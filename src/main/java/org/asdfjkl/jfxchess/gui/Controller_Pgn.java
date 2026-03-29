@@ -5,8 +5,9 @@ import org.asdfjkl.jfxchess.lib.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.ArrayList;
 
 public class Controller_Pgn {
@@ -141,6 +142,270 @@ public class Controller_Pgn {
     public void deleteGame(String pgnFilename, long startOffset) {
         reader.deleteGame(pgnFilename, startOffset);
     }
+
+    public ActionListener saveGame() {
+
+        return e -> {
+
+            // first check, which options are actually possible
+            // if we haven't opened a pgn before, there can be
+            // no replacement/append to the current database
+            boolean replaceAllowed = false;
+            boolean appendToCurrentAllowed = false;
+
+            String fnPgnDatabase = model.getFnPgnDatabase();
+            long fileSize = 0;
+            if(fnPgnDatabase != null) {
+                File f = new File(fnPgnDatabase);
+                if(f.exists() && !f.isDirectory()) {
+                    appendToCurrentAllowed = true;
+                    fileSize = f.length();
+                }
+            }
+            long offset1 = -1;
+            int gameIdxCurrent = model.currentPgnDatabaseIdx;
+            if(gameIdxCurrent >= 0 && gameIdxCurrent < model.getPgnDatabase().size()) {
+                offset1 = model.getPgnDatabase().get(gameIdxCurrent).getOffset();
+                replaceAllowed = true;
+            }
+            long offset2 = -1;
+            if(gameIdxCurrent + 1 < model.getPgnDatabase().size()) {
+                offset2 = model.getPgnDatabase().get(gameIdxCurrent+1).getOffset();
+            } else {
+                // no subsequent game, essentially append - take end of file size
+                offset2 = fileSize;
+            }
+
+
+            // show dialog
+            DialogSave dlgSave = new DialogSave(model.mainFrameRef, appendToCurrentAllowed, replaceAllowed);
+            dlgSave.setVisible(true);
+            int res = dlgSave.getResult();
+            if (res != DialogSave.CANCEL) {
+                if (res == DialogSave.SAVE_NEW) {
+                    saveAsNewPGN();
+                }
+                if (res == DialogSave.APPEND_CURRENT) {
+                    appendToCurrentPGN();
+                }
+                if (res == DialogSave.APPEND_OTHER) {
+                    appendToOtherPGN();
+                }
+                if (res == DialogSave.REPLACE_CURRENT) {
+                    PgnPrinter printer = new PgnPrinter();
+                    String currentAsPgn = printer.printGame(model.getGame());
+                    // todo: potentially long-running, put in thread
+                    try {
+                        replaceTextInFile(fnPgnDatabase, currentAsPgn, offset1, offset2);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(null,
+                                "Error replacing game in PGN.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        };
+    }
+
+    private void saveAsNewPGN() {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter pgnFilter = new FileNameExtensionFilter("PGN Files (*.pgn)", "pgn");
+        chooser.setFileFilter(pgnFilter);
+
+        chooser.setAcceptAllFileFilterUsed(true);
+
+        try {
+            int result = chooser.showSaveDialog(model.mainFrameRef);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                if (selectedFile != null &&
+                        selectedFile.exists() &&
+                        selectedFile.canRead()
+                ) {
+                    String pgnFilename = selectedFile.getAbsolutePath();
+                    PgnPrinter printer = new PgnPrinter();
+                    printer.writeGame(model.getGame(), pgnFilename);
+                    // todo: now reload this as the current database
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Error saving PGN.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void appendToOtherPGN() {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter pgnFilter = new FileNameExtensionFilter("PGN Files (*.pgn)", "pgn");
+        chooser.setFileFilter(pgnFilter);
+
+        chooser.setAcceptAllFileFilterUsed(true);
+
+        try {
+            int result = chooser.showSaveDialog(model.mainFrameRef);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                if (selectedFile != null &&
+                        selectedFile.exists() &&
+                        selectedFile.canRead()
+                ) {
+                    BufferedWriter writer = null;
+                    try {
+                        PgnPrinter pgnPrinter = new PgnPrinter();
+                        writer = new BufferedWriter(new FileWriter(selectedFile, true));
+                        String sGame = pgnPrinter.printGame(model.getGame());
+                        writer.write(0xa); // 0xa = LF = \n
+                        writer.write(0xa); // 0xa = LF = \n
+                        writer.write(sGame);
+                        writer.write(0xa); // 0xa = LF = \n
+                        writer.write(0xa); // 0xa = LF = \n
+                        writer.close();
+                    } catch(IOException e) {
+                        System.err.println(e);
+                    } finally {
+                        if(writer != null) {
+                            try {
+                                writer.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // todo: now reload this as the current database
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Error saving PGN.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void appendToCurrentPGN() {
+
+        Game g = model.getGame();
+        BufferedWriter writer = null;
+        try {
+            File file = new File(filename);
+            long offset = file.length() + 2;
+            PgnPrinter pgnPrinter = new PgnPrinter();
+            writer = new BufferedWriter(new FileWriter(filename, true));
+            String sGame = pgnPrinter.printGame(g);
+            writer.write(0xa); // 0xa = LF = \n
+            writer.write(0xa); // 0xa = LF = \n
+            writer.write(sGame);
+            writer.write(0xa); // 0xa = LF = \n
+            writer.write(0xa); // 0xa = LF = \n
+            PgnGameInfo newEntry = new PgnGameInfo();
+            newEntry.setWhite(g.getHeader("White"));
+            newEntry.setBlack(g.getHeader("Black"));
+            newEntry.setDate(g.getHeader("Date"));
+            newEntry.setOffset(offset);
+            newEntry.setEvent(g.getHeader("Event"));
+            newEntry.setEco(g.getHeader("Eco"));
+            newEntry.setResult(g.getHeader("Result"));
+            newEntry.setRound(g.getHeader("Round"));
+            newEntry.setSite(g.getHeader("Site"));
+            newEntry.setIndex(model.getPgnDatabase().size()+1);
+            model.getPgnDatabase().add(newEntry);
+            writer.close();
+        } catch(IOException e) {
+            System.err.println(e);
+        } finally {
+            if(writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    System.err.println(e);
+                }
+            }
+        }
+    }
+
+    public void replaceTextInFile(String filePath, String text, long offset1, long offset2)
+            throws IOException {
+
+        Path originalPath = Paths.get(filePath);
+
+        if (!Files.exists(originalPath)) {
+            throw new FileNotFoundException("File not found: " + filePath);
+        }
+
+        long fileSize = Files.size(originalPath);
+
+        // Validate offsets
+        if (offset1 < 0 || offset2 < 0 || offset1 > offset2 || offset2 > fileSize) {
+            throw new IllegalArgumentException(
+                    "Invalid offsets: offset1=" + offset1 + ", offset2=" + offset2
+            );
+        }
+
+        Path tempPath = Files.createTempFile(
+                originalPath.getParent(),
+                "replace_tmp_",
+                ".tmp"
+        );
+
+        try (
+                InputStream in = Files.newInputStream(originalPath);
+                OutputStream out = Files.newOutputStream(tempPath, StandardOpenOption.WRITE)
+        ) {
+            byte[] buffer = new byte[8192];
+            long bytesCopied = 0;
+
+            // 1. Copy [0, offset1)
+            while (bytesCopied < offset1) {
+                int toRead = (int) Math.min(buffer.length, offset1 - bytesCopied);
+                int read = in.read(buffer, 0, toRead);
+                if (read == -1) break;
+
+                out.write(buffer, 0, read);
+                bytesCopied += read;
+            }
+
+            // 2. Skip [offset1, offset2)
+            long bytesToSkip = offset2 - offset1;
+            while (bytesToSkip > 0) {
+                long skipped = in.skip(bytesToSkip);
+                if (skipped <= 0) {
+                    // fallback if skip fails
+                    int read = in.read(buffer, 0, (int)Math.min(buffer.length, bytesToSkip));
+                    if (read == -1) break;
+                    skipped = read;
+                }
+                bytesToSkip -= skipped;
+            }
+
+            // 3. Insert new content
+            String insertion = "\n\n" + text + "\n\n";
+            out.write(insertion.getBytes(StandardCharsets.UTF_8));
+
+            // 4. Copy remainder [offset2, end)
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+        }
+
+        // Atomic replace
+        Files.move(
+                tempPath,
+                originalPath,
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.ATOMIC_MOVE
+        );
+    }
+
+
     /*
     public void saveDatabase() {
 
