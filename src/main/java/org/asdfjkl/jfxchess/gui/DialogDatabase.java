@@ -29,7 +29,8 @@ public class DialogDatabase extends JDialog {
     public DialogDatabase(Frame owner,
                           Model_JFXChess model_JFXChess,
                           Controller_Pgn controller) {
-        super(owner, "Database", true);
+        //super(owner, "Database", true);
+        super(owner, model_JFXChess.getFnPgnDatabase(), true);
 
         this.model_JFXChess = model_JFXChess;
         this.controller_Pgn = controller;

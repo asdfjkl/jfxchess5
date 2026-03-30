@@ -26,9 +26,9 @@ public class DialogSave extends JDialog {
         );
 
         JButton btnSaveNew = new JButton("Save as new PGN");
+        JButton btnAppendOther = new JButton("Append to other PGN");
         JButton btnAppendCurrent = new JButton("Append to current PGN");
         JButton btnReplaceCurrent = new JButton("Replace current Game");
-        JButton btnAppendOther = new JButton("Append to other PGN");
         JButton btnCancel = new JButton("Cancel");
 
         // Enable/disable based on parameters
@@ -60,9 +60,9 @@ public class DialogSave extends JDialog {
 
         // Add buttons
         add(btnSaveNew);
+        add(btnAppendOther);
         add(btnAppendCurrent);
         add(btnReplaceCurrent);
-        add(btnAppendOther);
         add(btnCancel);
 
         pack();

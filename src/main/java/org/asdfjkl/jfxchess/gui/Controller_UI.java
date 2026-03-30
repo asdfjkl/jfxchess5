@@ -3,11 +3,13 @@ package org.asdfjkl.jfxchess.gui;
 import org.asdfjkl.jfxchess.lib.*;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
+import java.io.File;
 import java.io.IOException;
 
 import static org.asdfjkl.jfxchess.lib.CONSTANTS.*;
@@ -43,12 +45,6 @@ public class Controller_UI {
         return e -> {
             System.out.println("switch piece style in controller: "+pStyle);
             model.setPieceStyle(pStyle);
-        };
-    }
-
-    public ActionListener resetWindowLayout() {
-        return e -> {
-            // todo: window reset implementation
         };
     }
 
@@ -383,6 +379,36 @@ public class Controller_UI {
     public ActionListener flipBoard() {
         return e -> {
             model.setFlipBoard(!model.getFlipBoard());
+        };
+    }
+
+    public ActionListener selectBookFile() {
+        return e -> {
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter binFilter = new FileNameExtensionFilter("Extended Polyglot Book", "bin");
+            chooser.setFileFilter(binFilter);
+            chooser.setAcceptAllFileFilterUsed(true);
+            // todo: set to last opened file, save in model
+            try {
+                int result = chooser.showOpenDialog(model.mainFrameRef);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = chooser.getSelectedFile();
+                    if (selectedFile != null &&
+                            selectedFile.exists() &&
+                            selectedFile.canRead()
+                    ) {
+                        String pgnFilename = selectedFile.getAbsolutePath();
+                        model.extBookPath = pgnFilename;
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "Error reading file.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         };
     }
 

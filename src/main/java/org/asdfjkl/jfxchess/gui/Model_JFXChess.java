@@ -71,17 +71,12 @@ public class Model_JFXChess {
 
     private ArrayList<PgnGameInfo> pgnDatabase = new ArrayList<>();
     private String fnPgnDatabase = "";
-    public int currentPgnDatabaseIdx = -1;
-    public File lastOpenedDirPath = null;
-    public File lastSaveDirPath = null;
-
-    public boolean openDatabaseOnNextDialog = false;
+    private int indexOfCurrentGameInPgn = -1;
+    private File lastOpenedDirPath = null;
+    private File lastSaveDirPath = null;
 
     public String extBookPath;
-
     public int maxCpus = 1;
-
-    //private SearchPattern searchPattern;
     BoardStyle boardStyle;
     // end old
 
@@ -90,7 +85,6 @@ public class Model_JFXChess {
 
     private String laf;
     public View_MainFrame mainFrameRef;
-
     private String latestEngineInfo = "";
 
     public Model_JFXChess() {
@@ -823,4 +817,30 @@ public class Model_JFXChess {
     public void setFnPgnDatabase(String fnPgnDatabase) {
         this.fnPgnDatabase = fnPgnDatabase;
     }
+
+    public File getLastOpenedDirPath() {
+        return lastOpenedDirPath;
+    }
+
+    public void setLastOpenedDirPath(File lastOpenedDirPath) {
+        this.lastOpenedDirPath = lastOpenedDirPath;
+    }
+
+    public File getLastSaveDirPath() {
+        return lastSaveDirPath;
+    }
+
+    public void setLastSaveDirPath(File lastSaveDirPath) {
+        this.lastSaveDirPath = lastSaveDirPath;
+    }
+
+    public int getIndexOfCurrentGameInPgn() {
+        return indexOfCurrentGameInPgn;
+    }
+
+    public void setIndexOfCurrentGameInPgn(int indexOfCurrentGameInPgn) {
+        this.indexOfCurrentGameInPgn = indexOfCurrentGameInPgn;
+    }
+
+
 }

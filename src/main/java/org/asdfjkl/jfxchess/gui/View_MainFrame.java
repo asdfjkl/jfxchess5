@@ -32,6 +32,7 @@ public class View_MainFrame extends JFrame
     View_Moves view_Moves;
     private JScrollPane scrollMoves;
     View_EngineOutput view_EngineOutput;
+    View_Chessboard viewChessboard;
 
     HtmlPrinter htmlPrinter = new HtmlPrinter();
     String htmlString = "";
@@ -203,7 +204,9 @@ public class View_MainFrame extends JFrame
         JMenuItem jmiEngines = new JMenuItem("Engines");
         jmiEngines.addActionListener(controller_Engine.editEngines());;
         modeMenu.add(jmiEngines);
-        modeMenu.add(new JMenuItem("Select Book"));
+        JMenuItem jmiSelectBook = new JMenuItem("Select Book");
+        modeMenu.add(jmiSelectBook);
+        jmiSelectBook.addActionListener(controller_UI.selectBookFile());
 
         JMenu viewMenu = new JMenu("View");
         JMenu themeSubMenu = new JMenu("Theme");
@@ -313,15 +316,34 @@ public class View_MainFrame extends JFrame
         grpUiPieceStyle.add(jmiPieceStyleUSCF);
 
         JMenuItem jmiResetLayout = new JMenuItem("Reset Window Layout");
-        jmiResetLayout.addActionListener(controller_UI.resetWindowLayout());
+        jmiResetLayout.addActionListener(e -> {
+            setSize(1000, 700);
+            setLocationRelativeTo(null);
+            revalidate();
+
+            SwingUtilities.invokeLater(() -> {
+                verticalSplit.setResizeWeight(0.8);
+                verticalSplit.setDividerLocation(450);
+
+                horizontalSplit.setResizeWeight(0.7);
+                horizontalSplit.setDividerLocation(600);
+
+                viewChessboard.revalidate();
+                viewChessboard.repaint();
+            });
+        });
         viewMenu.add(jmiResetLayout);
 
         JMenu databaseMenu = new JMenu("Database");
         JMenuItem jmiDatabase = new JMenuItem("Browse Database");
         jmiDatabase.addActionListener(controller_Pgn.showDatabase());
         databaseMenu.add(jmiDatabase);
-        databaseMenu.add(new JMenuItem("Next Game"));
-        databaseMenu.add(new JMenuItem("Previous Game"));
+        JMenuItem jmiNextGameinDatabase = new JMenuItem("Next Game");
+        databaseMenu.add(jmiNextGameinDatabase);
+        jmiNextGameinDatabase.addActionListener(controller_Pgn.goToNextGameInDatabase());
+        JMenuItem jmiPreviousGameinDatabase = new JMenuItem("Previous Game");
+        databaseMenu.add(jmiPreviousGameinDatabase);
+        jmiPreviousGameinDatabase.addActionListener(controller_Pgn.goToPrevGameInDatabase());
 
         JMenu helpMenu = new JMenu("Help");
         JMenuItem jmiAbout = new JMenuItem("About");
@@ -396,8 +418,10 @@ public class View_MainFrame extends JFrame
         btnTbBrowseDatabase.addActionListener(controller_Pgn.showDatabase());
         JButton btnTbDatabasePrevGame = createToolButton("Previous Game", "arrow_left_alt.svg");
         toolBar.add(btnTbDatabasePrevGame);
+        btnTbDatabasePrevGame.addActionListener(controller_Pgn.goToPrevGameInDatabase());
         JButton btnTbDatabaseNextGame = createToolButton("Next Game", "arrow_right_alt.svg");
         toolBar.add(btnTbDatabaseNextGame);
+        btnTbDatabaseNextGame.addActionListener(controller_Pgn.goToNextGameInDatabase());
 
         toolBar.addSeparator();
 
@@ -427,7 +451,7 @@ public class View_MainFrame extends JFrame
     private JComponent createMainContent() {
 
         // ===== Left: Chessboard Placeholder =====
-        View_Chessboard viewChessboard = new View_Chessboard(model, controller_UI, controller_Board);
+        viewChessboard = new View_Chessboard(model, controller_UI, controller_Board);
 
         // ===== Right: Game Header Pane/Button + Text Pane + Nav Buttons =====
 
