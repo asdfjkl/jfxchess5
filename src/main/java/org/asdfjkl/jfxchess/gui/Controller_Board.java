@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.Arrow;
@@ -32,23 +50,6 @@ public class Controller_Board {
 
     public ActionListener moveForward() {
         return e -> {
-            /*
-            ArrayList<GameNode> variations = this.gameModel.getGame().getCurrentNode().getVariations();
-            if(variations.size() > 1) {
-                ArrayList<String> nextMoves = new ArrayList<>();
-                for(GameNode varI : variations) {
-                    nextMoves.add(varI.getSan());
-                }
-                int variationIdx = DialogNextMove.show(gameModel.getStageRef(), nextMoves);
-                if(variationIdx >= 0) {
-                    this.gameModel.getGame().goToChild(variationIdx);
-                    this.gameModel.triggerStateChange();
-                }
-            } else {
-                this.gameModel.getGame().goToMainLineChild();
-                this.gameModel.triggerStateChange();
-            }
-             */
             model.goToChild(0);
         };
     }

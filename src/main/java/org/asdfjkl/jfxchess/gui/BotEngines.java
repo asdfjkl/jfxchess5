@@ -1,5 +1,5 @@
 /* JFXChess - A Chess Graphical User Interface
- * Copyright (C) 2020-2025 Dominik Klein
+ * Copyright (C) 2020-2026 Dominik Klein
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

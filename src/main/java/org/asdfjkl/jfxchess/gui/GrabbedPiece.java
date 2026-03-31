@@ -66,7 +66,6 @@ public class GrabbedPiece {
         this.currentXLocation = currentXLocation;
         this.currentYLocation = currentYLocation;
         this.pieceType = pieceType;
-        // selectionPieceType = pieceType;
         rightClickPieceType = pieceType;
         drawImage = true;
         grabbedFrom = GrabbedFrom.PieceSelector;

@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
@@ -13,12 +31,12 @@ public class DialogEditGameData extends JDialog {
     private boolean confirmed = false;
 
     // Text fields
-    private JTextField whiteFirstName = new JTextField(15);
-    private JTextField whiteSurname = new JTextField(15);
-    private JTextField blackFirstName = new JTextField(15);
-    private JTextField blackSurname = new JTextField(15);
-    private JTextField site = new JTextField(15);
-    private JTextField event = new JTextField(15);
+    private final JTextField whiteFirstName = new JTextField(15);
+    private final JTextField whiteSurname = new JTextField(15);
+    private final JTextField blackFirstName = new JTextField(15);
+    private final JTextField blackSurname = new JTextField(15);
+    private final JTextField site = new JTextField(15);
+    private final JTextField event = new JTextField(15);
 
     // Spinners
     private JSpinner yearSpinner;
@@ -29,10 +47,10 @@ public class DialogEditGameData extends JDialog {
     private JSpinner eloBlackSpinner;
 
     // Result buttons
-    private JRadioButton winWhite = new JRadioButton("1-0");
-    private JRadioButton winBlack = new JRadioButton("0-1");
-    private JRadioButton draw = new JRadioButton("1/2-1/2");
-    private JRadioButton unknown = new JRadioButton("*");
+    private final JRadioButton winWhite = new JRadioButton("1-0");
+    private final JRadioButton winBlack = new JRadioButton("0-1");
+    private final JRadioButton draw = new JRadioButton("1/2-1/2");
+    private final JRadioButton unknown = new JRadioButton("*");
 
     HashMap<String, String> pgnHeaders = new HashMap<>();
 
@@ -167,7 +185,6 @@ public class DialogEditGameData extends JDialog {
         GridBagConstraints gbc = new GridBagConstraints();
 
         gbc.insets = new Insets(4, 6, 4, 6);
-        //gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.WEST;
 
@@ -269,17 +286,6 @@ public class DialogEditGameData extends JDialog {
         setLayout(new BorderLayout());
         add(formPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
-    }
-
-    private void removeSpinnerGrouping(JSpinner spinner) {
-
-        if (spinner.getEditor() instanceof JSpinner.NumberEditor editor) {
-
-            NumberFormat format = editor.getFormat();
-            format.setGroupingUsed(false);
-
-            editor.getTextField().setHorizontalAlignment(JTextField.LEFT);
-        }
     }
 
     private void addRow(JPanel panel, GridBagConstraints gbc,

@@ -15,10 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.asdfjkl.jfxchess.gui;
 
-//import javafx.beans.property.SimpleStringProperty;
-// import javafx.beans.property.StringProperty;
+package org.asdfjkl.jfxchess.gui;
 
 import java.io.*;
 import java.util.concurrent.BlockingQueue;
@@ -34,8 +32,6 @@ public class EngineThread extends Thread {
     static final Pattern REG_MOVES = Pattern.compile("\\s[a-z]\\d[a-z]\\d([a-z]{0,1})");
     static final Pattern REG_BESTMOVE = Pattern.compile("bestmove\\s([a-z]\\d[a-z]\\d[a-z]{0,1})");
     static final Pattern REG_STRENGTH = Pattern.compile("UCI_Elo value \\d+");
-
-    // private final StringProperty stringProperty;
 
     private final BlockingQueue<String> cmdQueue;
     Process engineProcess;
@@ -56,17 +52,12 @@ public class EngineThread extends Thread {
     public EngineThread(BlockingQueue<String> cmdQueue) {
         this.engineInfo = new EngineInfo();
         this.cmdQueue = cmdQueue;
-        //stringProperty = new SimpleStringProperty(this, "String", "");
         lastInfoUpdate = System.currentTimeMillis();
         lastBestmoveUpdate = System.currentTimeMillis();
         setDaemon(true);
     }
 
     public synchronized boolean engineIsOn() {
-        //System.out.println("engine Process != null: " + (engineProcess != null));
-        if(engineProcess != null) {
-        //System.out.println("is alive: "+engineProcess.isAlive());
-        }
         return (engineProcess != null && engineProcess.isAlive());
     }
 
@@ -88,17 +79,6 @@ public class EngineThread extends Thread {
         support.removePropertyChangeListener(listener);
     }
 
-    /*
-    // bestmove result comes from the engine via this method.
-    public String getString() {
-        return stringProperty.get();
-    }
-
-    public StringProperty stringProperty() {
-        return stringProperty;
-    }
-    */
-
     public void engineInfoSetPVLines(int n)
     {
         engineInfo.nrPvLines = n;
@@ -107,7 +87,6 @@ public class EngineThread extends Thread {
     private void take_write_and_flush(String cmd) {
         try {
             cmdQueue.take();
-            System.out.println("TO ENGINE>>"+cmd);
             engineInput.write(cmd + "\n");
             engineInput.flush();
         } catch (IOException | InterruptedException e) {
@@ -119,7 +98,6 @@ public class EngineThread extends Thread {
     public void run() {
         int savedElo = -1;
         while (running) {
-            //System.out.println("RUNNING");
             // Set the thread to loop at about 1000 times per second.
             // It Keeps CPU-load down and is probably more than enough.
             try {
@@ -129,7 +107,6 @@ public class EngineThread extends Thread {
             }
 
             if (this.isInterrupted()) {
-                System.out.println("INTERRUPTED");
                 // here: delete process if it exists
                 if (engineIsOn()) {
                     try {
@@ -140,7 +117,6 @@ public class EngineThread extends Thread {
                         engineInput.flush();
                         boolean finished = engineProcess.waitFor(500, TimeUnit.MILLISECONDS);
                         if (!finished) {
-                            System.out.println("DESTROY");
                             engineProcess.destroy();
                         }
                     } catch(IOException | InterruptedException e) {
@@ -153,13 +129,10 @@ public class EngineThread extends Thread {
             }
             // Process engine output
             if (engineOutput != null) {
-                //System.out.println("OUTPUT");
                 int linesRead = 0;
                 try {
                     while (engineOutput.ready() && linesRead < 100) {
                         String line = engineOutput.readLine();
-                        //System.out.println("FROM ENGINE<<"+line);
-
                         if (line.contains("readyok")) {
                             readyok = true;
                             continue;
@@ -184,7 +157,6 @@ public class EngineThread extends Thread {
                             }
                             // Update engine info with other ouput-lines
                             engineInfo.update(line);
-                            //System.out.println("thread: engine line: "+line);
                         }
                         linesRead++;
                     }
@@ -195,9 +167,7 @@ public class EngineThread extends Thread {
             // send update
             long currentMs = System.currentTimeMillis();
             if ((currentMs - lastInfoUpdate) > 100) {
-                //setSharedString("INFO " + engineInfo.toString());
                 setSharedString("INFO " + engineInfo.toHtml());
-                //System.out.println("engine thread: set shared string 1 " + engineInfo.toString() );
                 lastInfoUpdate = currentMs;
             }
             // we need to constantly send "bestmove". If we only send it once,
@@ -207,11 +177,9 @@ public class EngineThread extends Thread {
             // but ignore the info, if already processed.
             if ((currentMs - lastBestmoveUpdate) > 800) {
                 setSharedString(engineInfo.bestmove);
-                //System.out.println("engine thread: set shared string 2 " + engineInfo.bestmove );
                 lastBestmoveUpdate = currentMs;
             }
             if (!engineIsOn()) {
-                //System.out.println("ENGINE NOT RUNNING");
                 // engine not running
                 if (!cmdQueue.isEmpty()) {
                     try {
@@ -222,7 +190,6 @@ public class EngineThread extends Thread {
                         // always send stop and quit first, when restarting
                         // an engine, without first checking if the engine is on.
                         String cmd = (String)cmdQueue.take();
-                        System.out.println("thread: cmd !engineIsOn "+cmd);
                         if (cmd.startsWith("start")) {
                             // reset engine info if we start
                             engineInfo.clear();
@@ -245,7 +212,6 @@ public class EngineThread extends Thread {
                 }
                 continue;
             }
-            //System.out.println("ENGINE RUNNING?!");
             // When we have come this far in the while-loop
             // we know that the process is alive -> engine is running.
             // The commands uci, quit, setoption and isready are
@@ -260,7 +226,6 @@ public class EngineThread extends Thread {
                 // It could be some other command just waiting for us to
                 // pass the readyok check below, now or in the next loop, maybe.
                 String cmd = (String) cmdQueue.peek();
-                System.out.println("process alive, peeking cmd "+cmd);
                 if (cmd == null) {
                     // What to do here?
                     // Better luck next loop!
@@ -305,12 +270,9 @@ public class EngineThread extends Thread {
                     savedElo = -1;
                     take_write_and_flush(cmd);
                     try {
-                        System.out.println("thread: quit send, waiting");
                         // and wait for engine process to die.
                         boolean finished = engineProcess.waitFor(500, TimeUnit.MILLISECONDS);
-                        System.out.println("thread: quit send, finished");
                         if (!finished) {
-                            System.out.println("thread: quit send fail, destroying");
                             engineProcess.destroy();
                         }
                     } catch (InterruptedException e) {
@@ -352,7 +314,6 @@ public class EngineThread extends Thread {
                     }
                     if (cmd.startsWith("setoption name MultiPV value")) {
                         engineInfo.nrPvLines = Integer.parseInt(cmd.substring(29));
-                        //System.out.println("MultiPV value set to: " + cmd);
                     }
                     //cmd = "stop";
                     take_write_and_flush(cmd);
@@ -398,7 +359,6 @@ public class EngineThread extends Thread {
                 }
                 // All other commands can be sent as they are,
                 // without any action.
-
                 take_write_and_flush(cmd);
 
             }

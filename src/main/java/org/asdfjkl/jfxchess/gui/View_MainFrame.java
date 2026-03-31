@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
@@ -29,6 +47,9 @@ public class View_MainFrame extends JFrame
 
     JLabel lblGameHeader;
 
+    private JToggleButton btnEngineSwitch;
+    private JButton btnThreads;
+
     View_Moves view_Moves;
     private JScrollPane scrollMoves;
     View_EngineOutput view_EngineOutput;
@@ -56,8 +77,7 @@ public class View_MainFrame extends JFrame
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                model.saveModel();
-                model.saveScreenGeometry();
+                model.save();
             }
         });
 
@@ -188,20 +208,20 @@ public class View_MainFrame extends JFrame
         jmiFlipBoard.addActionListener(controller_UI.flipBoard());
         jmiFlipBoard.setAccelerator(flipKey);
 
-        JMenu modeMenu = new JMenu("Mode");
+        JMenu modeMenu = new JMenu("Engine");
 
-        JMenuItem jmiAnalysis = new JMenuItem("Analysis");
-        jmiAnalysis.addActionListener(controller_Engine.startAnalysisMode());
-        modeMenu.add(jmiAnalysis);
-        JMenuItem jmiEnterMoves = new JMenuItem("Enter Moves");
-        jmiEnterMoves.addActionListener(controller_Engine.startEnterMovesMode());
-        modeMenu.add(jmiEnterMoves);
+        JMenuItem jmiStartEngine = new JMenuItem("Start Engine");
+        jmiStartEngine.addActionListener(controller_Engine.startAnalysisMode());
+        modeMenu.add(jmiStartEngine);
+        JMenuItem jmiStopEngine = new JMenuItem("Stop Engine");
+        jmiStopEngine.addActionListener(controller_Engine.startEnterMovesMode());
+        modeMenu.add(jmiStopEngine);
         JMenuItem jmiFullGameAnalysis = new JMenuItem("Full Game Analysis");
         jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
         modeMenu.add(jmiFullGameAnalysis);
         modeMenu.addSeparator();
 
-        JMenuItem jmiEngines = new JMenuItem("Engines");
+        JMenuItem jmiEngines = new JMenuItem("Engine Settings");
         jmiEngines.addActionListener(controller_Engine.editEngines());;
         modeMenu.add(jmiEngines);
         JMenuItem jmiSelectBook = new JMenuItem("Select Book");
@@ -212,49 +232,49 @@ public class View_MainFrame extends JFrame
         JMenu themeSubMenu = new JMenu("Theme");
 
         JRadioButtonMenuItem jmiToFlatlafLight = new JRadioButtonMenuItem("FlatLaf Light");
-        jmiToFlatlafLight.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatLightLaf"));
+        jmiToFlatlafLight.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_LIGHT));
         themeSubMenu.add(jmiToFlatlafLight);
-        jmiToFlatlafLight.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatLightLaf"));
+        jmiToFlatlafLight.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_LIGHT));
 
         JRadioButtonMenuItem jmiToFlatlafDark = new JRadioButtonMenuItem("FlatLaf Dark");
-        jmiToFlatlafDark.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatDarkLaf"));
+        jmiToFlatlafDark.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_DARK));
         themeSubMenu.add(jmiToFlatlafDark);
-        jmiToFlatlafDark.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatDarkLaf"));
+        jmiToFlatlafDark.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_DARK));
 
         JRadioButtonMenuItem jmiToFlatlafIntellij = new JRadioButtonMenuItem("FlatLaf IJ");
-        jmiToFlatlafIntellij.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatIntelliJLaf"));
+        jmiToFlatlafIntellij.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_INTELLIJ));
         themeSubMenu.add(jmiToFlatlafIntellij);
-        jmiToFlatlafIntellij.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatIntelliJLaf"));
+        jmiToFlatlafIntellij.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_INTELLIJ));
 
         JRadioButtonMenuItem jmiToFlatlafDarcula = new JRadioButtonMenuItem("FlatLaf Darcula");
-        jmiToFlatlafDarcula.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.FlatDarculaLaf"));
+        jmiToFlatlafDarcula.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_DARCULA));
         themeSubMenu.add(jmiToFlatlafDarcula);
-        jmiToFlatlafDarcula.setSelected(model.getLaf().equals("com.formdev.flatlaf.FlatDarculaLaf"));
+        jmiToFlatlafDarcula.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_DARCULA));
 
         JRadioButtonMenuItem jmiToFlatlaMacLight = new JRadioButtonMenuItem("FlatLaf Fruit Light");
-        jmiToFlatlaMacLight.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.themes.FlatMacLightLaf"));
+        jmiToFlatlaMacLight.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_FRUIT_LIGHT));
         themeSubMenu.add(jmiToFlatlaMacLight);
-        jmiToFlatlaMacLight.setSelected(model.getLaf().equals("com.formdev.flatlaf.themes.FlatMacLightLaf"));
+        jmiToFlatlaMacLight.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_FRUIT_LIGHT));
 
         JRadioButtonMenuItem jmiToFlatlaMacDark = new JRadioButtonMenuItem("FlatLaf Fruit Dark");
-        jmiToFlatlaMacDark.addActionListener(controller_UI.switchLaf("com.formdev.flatlaf.themes.FlatMacDarkLaf"));
+        jmiToFlatlaMacDark.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_FLATLAF_FRUIT_DARK));
         themeSubMenu.add(jmiToFlatlaMacDark);
-        jmiToFlatlaMacDark.setSelected(model.getLaf().equals("com.formdev.flatlaf.themes.FlatMacDarkLaf"));
+        jmiToFlatlaMacDark.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_FLATLAF_FRUIT_DARK));
 
         JRadioButtonMenuItem jmiToMetal = new JRadioButtonMenuItem("Swing Metal");
-        jmiToMetal.addActionListener(controller_UI.switchLaf("javax.swing.plaf.metal.MetalLookAndFeel"));
+        jmiToMetal.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_METAL));
         themeSubMenu.add(jmiToMetal);
-        jmiToMetal.setSelected(model.getLaf().equals("javax.swing.plaf.metal.MetalLookAndFeel"));
+        jmiToMetal.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_METAL));
 
         JRadioButtonMenuItem jmiToNimbus = new JRadioButtonMenuItem("Swing Nimbus");
-        jmiToNimbus.addActionListener(controller_UI.switchLaf("javax.swing.plaf.nimbus.NimbusLookAndFeel"));
+        jmiToNimbus.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_NIMBUS));
         themeSubMenu.add(jmiToNimbus);
-        jmiToNimbus.setSelected(model.getLaf().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel"));
+        jmiToNimbus.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_NIMBUS));
 
         JRadioButtonMenuItem jmiToSysDefault = new JRadioButtonMenuItem("System Default");
-        jmiToSysDefault.addActionListener(controller_UI.switchLaf("system.default"));
+        jmiToSysDefault.addActionListener(controller_UI.switchLaf(Model_JFXChess.THEME_SYSTEM));
         themeSubMenu.add(jmiToSysDefault);
-        jmiToSysDefault.setSelected(model.getLaf().equals("system.default"));
+        jmiToSysDefault.setSelected(model.getLookAndFeel().equals(Model_JFXChess.THEME_SYSTEM));
 
         ButtonGroup grpUiTheme = new ButtonGroup();
         grpUiTheme.add(jmiToFlatlafLight);
@@ -571,12 +591,20 @@ public class View_MainFrame extends JFrame
         // --- Left side group ---
         JPanel leftGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
 
-        JToggleButton btnEngineSwitch = new JToggleButton("Start Engine");
+        btnEngineSwitch = new JToggleButton("Start Engine");
+        btnEngineSwitch.addActionListener(e -> {
+            if(!btnEngineSwitch.isSelected()) {
+                controller_Engine.activateEnterMovesMode();
+            } else {
+                controller_Engine.activateAnalysisMode();
+            }
+        });
         JButton btnAddLine = new JButton("+");
         btnAddLine.addActionListener(controller_Engine.incMultiPV());
         JButton btnRemoveLine = new JButton("-");
         btnRemoveLine.addActionListener(controller_Engine.decMultiPV());
-        JButton btnThreads = new JButton("1 Threads(s)");
+        btnThreads  = new JButton("Set # Threads");
+        btnThreads.addActionListener(controller_Engine.changeNrThreads());
 
         btnEngineSwitch.setFocusable(false);
         btnAddLine.setFocusable(false);
@@ -765,67 +793,12 @@ public class View_MainFrame extends JFrame
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("switchLaf".equals(evt.getPropertyName())) {
-            setLookAndFeel(model.getLaf());
+            setLookAndFeel(model.getLookAndFeel());
         }
         if ("pgnHeadersChanged".equals(evt.getPropertyName())) {
             updatePgnHeaders();
         }
         if("currentGameNodeChanged".equals(evt.getPropertyName())) {
-            /* working, but old version
-            int id = model.getGame().getCurrentNode().getId();
-            if(htmlString.isEmpty()) {
-                htmlString =  htmlPrinter.printGame(model.getGame());
-            } else {
-                htmlString =
-                htmlString.replaceAll(" style=\"background: silver\" ", "")
-                        .replace("id=\"n" + id + "\"",
-                                "id=\"n" + id + "\" style=\"background: silver\" ");
-            }
-            System.out.println(htmlString);
-            rightEditorPane.setText(htmlString);
-             */
-
-
-            /*
-            try {
-                int id = model.getGame().getCurrentNode().getId();
-                HTMLDocument doc = (HTMLDocument) rightEditorPane.getDocument();
-                Element element = doc.getElement("n" + id);
-
-                Highlighter highlighter = rightEditorPane.getHighlighter();
-
-                if (element == null) {
-                    // if root node, remove annotation before returning
-                    if(model.getGame().getCurrentNode() == model.game.getRootNode()) {
-                        highlighter.removeHighlight(currentHighlight);
-                    }
-                    return;
-                }
-
-                int start = element.getStartOffset();
-                int end = element.getEndOffset();
-
-                if (currentHighlight != null) {
-                    highlighter.removeHighlight(currentHighlight);
-                }
-
-                currentHighlight = highlighter.addHighlight(
-                        start,
-                        end,
-                        new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY)
-                );
-
-                Rectangle r = rightEditorPane.modelToView(start);
-
-                if (r != null) {
-                    rightEditorPane.scrollRectToVisible(r);
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
-             */
             updateHighlightedMove();
         }
         if("gameChanged".equals(evt.getPropertyName()) || "treeChanged".equals(evt.getPropertyName())) {
@@ -833,6 +806,24 @@ public class View_MainFrame extends JFrame
             view_Moves.setText(htmlString);
             view_Moves.setCaretPosition(0);
             updatePgnHeaders();
+        }
+
+        if("modeChanged".equals(evt.getPropertyName())) {
+            int mode = model.getMode();
+            switch(mode) {
+                case Model_JFXChess.MODE_ANALYSIS:
+                case Model_JFXChess.MODE_PLAY_WHITE:
+                case Model_JFXChess.MODE_PLAY_BLACK:
+                case Model_JFXChess.MODE_PLAYOUT_POSITION:
+                case Model_JFXChess.MODE_GAME_ANALYSIS:
+                    btnEngineSwitch.setText("Stop Engine");
+                    btnEngineSwitch.setSelected(true);
+                    break;
+                case Model_JFXChess.MODE_ENTER_MOVES:
+                    btnEngineSwitch.setText("Start Engine");
+                    btnEngineSwitch.setSelected(false);
+                    break;
+            }
         }
     }
 

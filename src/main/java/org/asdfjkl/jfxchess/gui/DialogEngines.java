@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
@@ -9,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DialogEngines extends JDialog {
 
-    private DefaultListModel<Engine> engineListModel;
+    private final DefaultListModel<Engine> engineListModel;
     private JList<Engine> engineList;
     private JButton btnRemove;
     private JButton btnEdit;
@@ -154,9 +172,6 @@ public class DialogEngines extends JDialog {
 
     private void addEngine() {
 
-        //FileNameExtensionFilter filter = new FileNameExtensionFilter(
-        //        "JPG & GIF Images", "jpg", "gif");
-        //fileChooser.setFileFilter(filter);
         JFileChooser fileChooser = new JFileChooser();
         int result = fileChooser.showOpenDialog(this);
         if(result == JFileChooser.APPROVE_OPTION) {
@@ -296,7 +311,6 @@ public class DialogEngines extends JDialog {
 
     private void listValueChanged(ListSelectionEvent e) {
         if (e.getValueIsAdjusting() == false) {
-
             if(!engineList.isSelectionEmpty()) {
                 selectedEngine = engineList.getSelectedValue();
                 if(engineList.getSelectedIndex() == 0) {

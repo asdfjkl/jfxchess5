@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.*;
@@ -24,7 +42,7 @@ public class Controller_UI {
     }
 
     public ActionListener switchLaf(String laf) {
-        return e -> { model.setLaf(laf); };
+        return e -> { model.setLookAndFeel(laf); };
     }
 
     public ActionListener showAbout() {
@@ -43,7 +61,6 @@ public class Controller_UI {
 
     public ActionListener switchPieceStyle(int pStyle) {
         return e -> {
-            System.out.println("switch piece style in controller: "+pStyle);
             model.setPieceStyle(pStyle);
         };
     }
@@ -388,7 +405,6 @@ public class Controller_UI {
             FileNameExtensionFilter binFilter = new FileNameExtensionFilter("Extended Polyglot Book", "bin");
             chooser.setFileFilter(binFilter);
             chooser.setAcceptAllFileFilterUsed(true);
-            // todo: set to last opened file, save in model
             try {
                 int result = chooser.showOpenDialog(model.mainFrameRef);
                 if (result == JFileChooser.APPROVE_OPTION) {
@@ -397,8 +413,7 @@ public class Controller_UI {
                             selectedFile.exists() &&
                             selectedFile.canRead()
                     ) {
-                        String pgnFilename = selectedFile.getAbsolutePath();
-                        model.extBookPath = pgnFilename;
+                        model.setBook(selectedFile);
                     } else {
                         JOptionPane.showMessageDialog(null,
                                 "Error reading file.",
@@ -417,7 +432,6 @@ public class Controller_UI {
             DialogSetupPosition dialog = new DialogSetupPosition(model.mainFrameRef, model);
             dialog.setVisible(true);
             if(dialog.isConfirmed()) {
-                System.out.println("setupNewPosition");
                 Board newBoard = dialog.getCurrentBoard();
                 Game g = new Game();
                 g.getRootNode().setBoard(newBoard);

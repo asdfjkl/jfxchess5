@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.SearchPattern;
@@ -9,13 +27,13 @@ public class DialogSearchGames extends JDialog {
 
     private static final int INPUT_WIDTH = 260;
 
-    private JTextField txtWhite;
-    private JTextField txtBlack;
-    private JTextField txtEvent;
-    private JTextField txtSite;
-    private JCheckBox cbIgnoreColors;
-    private JCheckBox cbElo;
-    private JCheckBox cbYear;
+    private final JTextField txtWhite;
+    private final JTextField txtBlack;
+    private final JTextField txtEvent;
+    private final JTextField txtSite;
+    private final JCheckBox cbIgnoreColors;
+    private final JCheckBox cbElo;
+    private final JCheckBox cbYear;
     private JSpinner spMinElo;
     private JSpinner spMaxElo;
     private JSpinner spMinYear;
@@ -67,21 +85,9 @@ public class DialogSearchGames extends JDialog {
         panel.add(createYearPanel(), gbc);
         y++;
 
-        /* does it makes sense nowadays to search for ECO codes?
-        // --- ECO ---
-        gbc.gridx = 0;
-        gbc.gridy = y;
-        panel.add(new JCheckBox("ECO:"), gbc);
-
-        gbc.gridx = 1;
-        panel.add(createEcoPanel(), gbc);
-        y++;
-         */
-
         // --- Elo ---
         gbc.gridx = 0;
         gbc.gridy = y;
-        //panel.add(new JLabel("Elo:"), gbc);
         cbElo = new JCheckBox("Elo:");
         panel.add(cbElo, gbc);
 
@@ -165,19 +171,6 @@ public class DialogSearchGames extends JDialog {
         inner.add(new JLabel(" to "));
         spMaxYear = new JSpinner(new SpinnerNumberModel(2100, 0, 3000, 1));
         inner.add(spMaxYear);
-        return wrap(inner);
-    }
-
-    private JPanel createEcoPanel() {
-        JPanel inner = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-
-        JTextField from = new JTextField("A00", 4);
-        JTextField to = new JTextField("E99", 4);
-
-        inner.add(from);
-        inner.add(new JLabel(" to "));
-        inner.add(to);
-
         return wrap(inner);
     }
 

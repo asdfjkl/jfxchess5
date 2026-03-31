@@ -1,11 +1,27 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import org.asdfjkl.jfxchess.lib.CONSTANTS;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public class DialogNewGame extends JDialog {
 
@@ -22,7 +38,6 @@ public class DialogNewGame extends JDialog {
 
         double scale = HighDPIHelper.getUIScaleFactor();
         int squareSize = 64;
-        int imgSize = (int) (squareSize * scale);
 
         JButton btnEnterAnalyse = new JButton();
         btnEnterAnalyse.setIcon(new FlatSVGIcon("icons/edit_square.svg"));
@@ -30,7 +45,6 @@ public class DialogNewGame extends JDialog {
         btnEnterAnalyse.setText("Enter & Analyse");
         btnEnterAnalyse.setHorizontalTextPosition(SwingConstants.CENTER);
         btnEnterAnalyse.setVerticalTextPosition(SwingConstants.BOTTOM);
-        //btnEnterAnalyse.putClientProperty("JButton.buttonType", "toolBarButton");
         btnEnterAnalyse.setFocusable(false);
 
         JButton btnPlayBot = new JButton();
@@ -48,11 +62,10 @@ public class DialogNewGame extends JDialog {
         btnPlayUci.setText("Play Engine");
         btnPlayUci.setHorizontalTextPosition(SwingConstants.CENTER);
         btnPlayUci.setVerticalTextPosition(SwingConstants.BOTTOM);
-        //btnPlayUci.putClientProperty("JButton.buttonType", "toolBarButton");
         btnPlayUci.setFocusable(false);
 
         // set width of all buttons to that one of
-        // enter & analyse (widest one)
+        // enter & analyze (widest one)
         Dimension d = btnEnterAnalyse.getPreferredSize();
         btnPlayBot.setPreferredSize(d);
         btnPlayUci.setPreferredSize(d);

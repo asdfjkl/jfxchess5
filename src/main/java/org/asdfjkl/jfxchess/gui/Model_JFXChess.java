@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.*;
@@ -18,7 +36,6 @@ public class Model_JFXChess {
 
     private static final int modelVersion = 500;
 
-    // start old
     public static final int MAX_PV = 64;
     public static final int MAX_N_ENGINES = 10;
     public static final int MODE_ENTER_MOVES = 0;
@@ -28,9 +45,19 @@ public class Model_JFXChess {
     public static final int MODE_GAME_ANALYSIS = 4;
     public static final int BOTH_PLAYERS = 5;
     public static final int MODE_PLAYOUT_POSITION = 7;
+
+    public static final String THEME_FLATLAF_LIGHT = "com.formdev.flatlaf.FlatLightLaf";
+    public static final String THEME_FLATLAF_DARK = "com.formdev.flatlaf.FlatDarkLaf";
+    public static final String THEME_FLATLAF_INTELLIJ = "com.formdev.flatlaf.FlatIntelliJLaf";
+    public static final String THEME_FLATLAF_DARCULA = "com.formdev.flatlaf.FlatDarculaLaf";
+    public static final String THEME_FLATLAF_FRUIT_LIGHT = "com.formdev.flatlaf.themes.FlatMacLightLaf";
+    public static final String THEME_FLATLAF_FRUIT_DARK = "com.formdev.flatlaf.themes.FlatMacDarkLaf";
+    public static final String THEME_METAL = "javax.swing.plaf.metal.MetalLookAndFeel";
+    public static final String THEME_NIMBUS = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+    public static final String THEME_SYSTEM = "system.default";
+
     Game game;
     private int currentMode;
-    private boolean multiPvChanged = false;
     private boolean flipBoard = false;
     private boolean humanPlayerColor = CONSTANTS.WHITE;
     public boolean wasSaved = false;
@@ -48,7 +75,7 @@ public class Model_JFXChess {
     private double gameAnalysisThreshold = 0.5; // pawns
     private int gameAnalysisThinkTimeSecs = 3;  // seconds
 
-    //private boolean gameAnalysisJustStarted = false;
+    private ScreenGeometry screenGeometry = new ScreenGeometry();
 
     // to make sure that if the user play against the computer/bot
     // he is not able to/does not accidentally move the computer's pieces
@@ -75,15 +102,14 @@ public class Model_JFXChess {
     private File lastOpenedDirPath = null;
     private File lastSaveDirPath = null;
 
-    public String extBookPath;
-    public int maxCpus = 1;
+    private String extBookPath = "";
+    public int maxCpus = Runtime.getRuntime().availableProcessors();
     BoardStyle boardStyle;
-    // end old
 
     private final PropertyChangeSupport pcs =
             new PropertyChangeSupport(this);
 
-    private String laf;
+    private String lookAndFeel;
     public View_MainFrame mainFrameRef;
     private String latestEngineInfo = "";
 
@@ -91,11 +117,8 @@ public class Model_JFXChess {
         game = new Game();
         Board b = new Board(true);
 
-        //pgnDatabase = new PgnDatabase();
-        //searchPattern = new SearchPattern();
-        //searchPattern.setSearchForHeader(true);
         boardStyle = new BoardStyle();
-        laf = "system.default";
+        lookAndFeel = THEME_FLATLAF_INTELLIJ;
 
         game.getRootNode().setBoard(b);
         currentMode = MODE_ENTER_MOVES;
@@ -150,14 +173,13 @@ public class Model_JFXChess {
         // add bots
         String botPath = getBotEnginePath();
         botEngines = BotEngines.createEngines(botPath);
-        selectedPlayEngine = botEngines.get(0); // set benny as default; todo: remember last selected bot
+        selectedPlayEngine = botEngines.get(0); // set benny as default
 
-        /*
-        temp
-         */
-        File file = new File("C:\\MyFiles\\workspace\\jfxchess5\\target\\book\\extbook.bin");
-        extBook.loadBook(file);
-
+        extBookPath = getExtBookPath();
+        File fileExtBookPath = new File(extBookPath);
+        if(fileExtBookPath.exists()) {
+            extBook.loadBook(fileExtBookPath);
+        }
     }
 
 
@@ -166,7 +188,12 @@ public class Model_JFXChess {
         pcs.addPropertyChangeListener(l);
     }
 
-
+    public void setBook(File bookPath) {
+        if(bookPath.exists()) {
+            extBook.loadBook(bookPath);
+        }
+        pcs.firePropertyChange("bookChanged", null, null);
+    }
 
     public Path getJarPath() {
         try {
@@ -248,13 +275,13 @@ public class Model_JFXChess {
         return null;
     }
 
-    public void setLaf(String laf) {
-        this.laf = laf;
-        pcs.firePropertyChange("switchLaf", "stuff", this.laf);
+    public void setLookAndFeel(String lookAndFeel) {
+        this.lookAndFeel = lookAndFeel;
+        pcs.firePropertyChange("switchLaf", "stuff", this.lookAndFeel);
     }
 
-    public String getLaf() {
-        return this.laf;
+    public String getLookAndFeel() {
+        return this.lookAndFeel;
     }
 
 
@@ -321,282 +348,10 @@ public class Model_JFXChess {
         return humanPlayerColor;
     }
 
-    //public boolean getGameAnalysisJustStarted() { return gameAnalysisJustStarted; }
-
-    //public void setGameAnalysisJustStarted(boolean val) { gameAnalysisJustStarted = val; }
-
-    /*
-    public PgnDatabase getPgnDatabase() {
-        return pgnDatabase;
-    } */
-
-    /*
-    public SearchPattern getSearchPattern() {
-        return searchPattern;
-    } */
-
-    /*
-    public void setSearchPattern(SearchPattern searchPattern) {
-        this.searchPattern = searchPattern;
-    } */
-
     public void setMultiPv(int multiPv) {
         if(multiPv >= 1 && multiPv <= activeEngine.getMaxMultiPV() && multiPv <= MAX_PV) {
             activeEngine.setMultiPV(multiPv);
-            this.multiPvChanged = true;
-        }
-    }
-
-    public boolean wasMultiPvChanged() {
-        return this.multiPvChanged;
-    }
-
-    public void setMultiPvChange(boolean b) {
-        this.multiPvChanged = b;
-    }
-
-    public void saveModel() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-
-        prefs.putInt("modelVersion",modelVersion);
-
-        PgnPrinter printer = new PgnPrinter();
-        String pgn = printer.printGame(getGame());
-        prefs.put("currentGame", pgn);
-    }
-
-    public void savePaths() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        if(lastOpenedDirPath != null) {
-            prefs.put("lastOpenDir", lastOpenedDirPath.toString());
-        }
-        if(lastSaveDirPath != null) {
-            prefs.put("lastSaveDir", lastSaveDirPath.toString());
-        }
-    }
-
-    public void saveBoardStyle() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        prefs.putInt("COLOR_STYLE", boardStyle.getColorStyle());
-        prefs.putInt("PIECE_STYLE", boardStyle.getPieceStyle());
-    }
-
-    public void saveEngines() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        // Clean up preferences. Preferences for engines
-        // which have been removed may still be there.
-        for(int i=0;i<MAX_N_ENGINES;i++) {
-            prefs.remove("ENGINE"+i);
-        }
-        for(int i=1;i<engines.size();i++) {
-            Engine engine = engines.get(i);
-            String engineString = engine.writeToString();
-            prefs.put("ENGINE"+i, engineString);
-        }
-        int activeEngineIdx = engines.indexOf(activeEngine);
-        if(activeEngineIdx > 0) {
-            prefs.putInt("ACTIVE_ENGINE_IDX", engines.indexOf(activeEngine));
-        } else {
-            prefs.putInt("ACTIVE_ENGINE_IDX", 0);
-        }
-    }
-
-    public void saveExtBookPath() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        if(!extBookPath.isEmpty()) {
-            prefs.put("EXT_BOOK_PATH_FILE", extBookPath);
-        }
-    }
-
-    public void restoreExtBookPath() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        String bookPath = getExtBookPath();
-        if(mVersion == modelVersion) {
-            bookPath = prefs.get("EXT_BOOK_PATH_FILE", bookPath);
-        }
-        extBookPath = bookPath;
-    }
-
-    public void saveGameAnalysisThresholds() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        prefs.putInt("GAME_ANALYSIS_SECS", getGameAnalysisThinkTimeSecs());
-        prefs.putDouble("GAME_ANALYSIS_THRESHOLD", getGameAnalysisThreshold());
-    }
-
-    public void restoreGameAnalysisThresholds() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        if(mVersion == modelVersion) {
-            int gameAnalysisSecs = prefs.getInt("GAME_ANALYSIS_SECS", 3);
-            double gameAnalysisThreshold = prefs.getDouble("GAME_ANALYSIS_THRESHOLD", 0.5);
-            setGameAnalysisThinkTimeSecs(gameAnalysisSecs);
-            setGameAnalysisThreshold(gameAnalysisThreshold);
-        }
-    }
-
-    public void saveNewGameSettings() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        prefs.putInt("COMPUTER_THINK_TIME_SECS", getComputerThinkTimeSecs());
-        prefs.putDouble("COMPUTER_STRENGTH", getEngineStrength());
-    }
-
-    public void restoreNewGameSettings() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        if(mVersion == modelVersion) {
-            int secs = prefs.getInt("COMPUTER_THINK_TIME_SECS", 3);
-            int strength = prefs.getInt("COMPUTER_STRENGTH", 20);
-            setComputerThinkTimeSecs(secs);
-            setEngineStrength(strength);
-        }
-    }
-
-    public void restoreBoardStyle() {
-
-        BoardStyle style = new BoardStyle();
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        if(mVersion == modelVersion) {
-            int colorStyle = prefs.getInt("COLOR_STYLE", BoardStyle.STYLE_BLUE);
-            int pieceStyle = prefs.getInt("PIECE_STYLE", BoardStyle.PIECE_STYLE_MERIDA);
-            style.setPieceStyle(pieceStyle);
-            style.setColorStyle(colorStyle);
-        }
-        boardStyle = style;
-    }
-
-    public void restoreEngines() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-        if (mVersion == modelVersion) {
-            // don't restore engine with idx 0 (that's stockfish internal)
-            for (int i = 1; i < MAX_N_ENGINES; i++) {
-                String engineString = prefs.get("ENGINE" + i, "");
-                if (!engineString.isEmpty()) {
-                    Engine engine;
-                    //if (i == 0) {
-                    //    // engine 0 is Stockfish internal
-                    //    // engine = engines.get(0);
-                    //    // engine.restoreFromString(engineString);
-                    //} else {
-                    engine = new Engine();
-                    engine.restoreFromString(engineString);
-                    engines.add(engine);
-                    //}
-                }
-            }
-            int activeIdx = prefs.getInt("ACTIVE_ENGINE_IDX", 0);
-            if(activeIdx < engines.size()) {
-                activeEngine = engines.get(activeIdx);
-                selectedAnalysisEngine = engines.get(activeIdx);
-            } else {
-                activeEngine = engines.get(0);
-                selectedAnalysisEngine = engines.get(0);
-            }
-        }
-    }
-
-    public void saveScreenGeometry() {
-
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-
-        Rectangle bounds = mainFrameRef.getBounds();
-
-        prefs.putInt("WINDOW_WIDTH" , bounds.width);
-        prefs.putInt("WINDOW_HEIGHT" , bounds.height);
-        prefs.putInt("WINDOW_POSITION_X" , bounds.x);
-        prefs.putInt("WINDOW_POSITION_Y" , bounds.y);
-
-        boolean maximized =
-                (mainFrameRef.getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0;
-        prefs.putBoolean("WINDOW_MAXIMIZED", maximized);
-
-        prefs.putInt("DIVIDER_HORIZONTAL", mainFrameRef.horizontalSplit.getDividerLocation());
-        prefs.putInt("DIVIDER_VERTICAL", mainFrameRef.verticalSplit.getDividerLocation());
-
-    }
-
-    public ScreenGeometry restoreScreenGeometry() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        ScreenGeometry g = new ScreenGeometry();
-
-        if(mVersion == modelVersion) {
-
-            g.height = prefs.getInt("WINDOW_HEIGHT", g.height);
-            g.width = prefs.getInt("WINDOW_WIDTH", g.width);
-            g.posX = prefs.getInt("WINDOW_POSITION_X", g.posX);
-            g.posY = prefs.getInt("WINDOW_POSITION_Y", g.posY);
-
-            g.isMaximized = prefs.getBoolean("WINDOW_MAXIMIZED", false);
-
-            g.dividerHorizontal = prefs.getInt("DIVIDER_HORIZONTAL", g.dividerHorizontal);
-            g.dividerVertical = prefs.getInt("DIVIDER_VERTICAL", g.dividerVertical);
-
-        }
-        return g;
-
-    }
-
-    public void saveTheme() {
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-        prefs.put("LAF", laf);
-    }
-
-    public void restoreTheme() {
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-        laf = prefs.get("LAF", "com.formdev.flatlaf.FlatDarculaLaf");
-    }
-
-    public void restorePaths() {
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        String lastOpenDir = prefs.get("lastOpenDir", "");
-        String lastSaveDir = prefs.get("lastSaveDir", "");
-        if (!lastOpenDir.isEmpty()) {
-            lastOpenedDirPath = new File(lastOpenDir);
-            if (!lastOpenedDirPath.exists()) {
-                lastOpenedDirPath = null;
-            }
-        }
-        if (!lastSaveDir.isEmpty()) {
-            lastSaveDirPath = new File(lastSaveDir);
-            if (!lastSaveDirPath.exists()) {
-                lastSaveDirPath = null;
-            }
-        }
-    }
-
-    public void restoreModel() {
-
-        prefs = Preferences.userRoot().node(this.getClass().getName());
-        int mVersion = prefs.getInt("modelVersion", 0);
-
-        if(mVersion == modelVersion) {
-            PgnReader reader = new PgnReader();
-
-            String pgn = prefs.get("currentGame", "");
-
-            if(!pgn.isEmpty()) {
-                Game g = reader.readGame(pgn);
-                PgnPrinter p = new PgnPrinter();
-                if (g.getRootNode().getBoard().isConsistent()) {
-                    setGame(g);
-                    g.setTreeWasChanged(true);
-                }
-            }
+            // this.multiPvChanged = true;
         }
     }
 
@@ -669,7 +424,7 @@ public class Model_JFXChess {
             game.setCurrent(node);
             pcs.firePropertyChange("currentGameNodeChanged", null, null);
         } catch (IllegalArgumentException e) {
-            // silently fail
+            e.printStackTrace();
         }
     }
 
@@ -798,7 +553,6 @@ public class Model_JFXChess {
 
     public void setCurrentEngineInfo(String info) {
         latestEngineInfo = info;
-        //System.out.println("model: set currentEngineInfo: " + info);
         pcs.firePropertyChange("engineInfo", null, null);
     }
 
@@ -842,5 +596,186 @@ public class Model_JFXChess {
         this.indexOfCurrentGameInPgn = indexOfCurrentGameInPgn;
     }
 
+    public ScreenGeometry getScreenGeometry() {
+        return screenGeometry;
+    }
 
+    public void setScreenGeometry(ScreenGeometry screenGeometry) {
+        this.screenGeometry = screenGeometry;
+    }
+
+    public void save() {
+
+        prefs = Preferences.userRoot().node(this.getClass().getName());
+
+        // Version
+        prefs.putInt("modelVersion",modelVersion);
+
+        // currently open game
+        PgnPrinter printer = new PgnPrinter();
+        String pgn = printer.printGame(getGame());
+        prefs.put("currentGame", pgn);
+
+        // last used directories
+        if(lastOpenedDirPath != null) {
+            prefs.put("lastOpenDir", lastOpenedDirPath.toString());
+        }
+        if(lastSaveDirPath != null) {
+            prefs.put("lastSaveDir", lastSaveDirPath.toString());
+        }
+
+        // style of board & pieces
+        prefs.putInt("COLOR_STYLE", boardStyle.getColorStyle());
+        prefs.putInt("PIECE_STYLE", boardStyle.getPieceStyle());
+
+        // look and feel (ui theme)
+        prefs.put("LOOK_AND_FEEL", lookAndFeel);
+
+        // engines: first clean up preferences, since preferences for
+        // engines which have been removed may still be there.
+        for(int i=0;i<MAX_N_ENGINES;i++) {
+            prefs.remove("ENGINE"+i);
+        }
+        for(int i=1;i<engines.size();i++) {
+            Engine engine = engines.get(i);
+            String engineString = engine.writeToString();
+            prefs.put("ENGINE"+i, engineString);
+        }
+        int activeEngineIdx = engines.indexOf(activeEngine);
+        if(activeEngineIdx > 0) {
+            prefs.putInt("ACTIVE_ENGINE_IDX", engines.indexOf(activeEngine));
+        } else {
+            prefs.putInt("ACTIVE_ENGINE_IDX", 0);
+        }
+
+        // path of opening book
+        if(!extBookPath.isEmpty()) {
+            prefs.put("EXT_BOOK_PATH_FILE", extBookPath);
+        }
+
+        // settings for game analysis
+        prefs.putInt("GAME_ANALYSIS_SECS", getGameAnalysisThinkTimeSecs());
+        prefs.putDouble("GAME_ANALYSIS_THRESHOLD", getGameAnalysisThreshold());
+
+        // screen geometry (i.e. window size, position of dividers)
+        Rectangle bounds = mainFrameRef.getBounds();
+
+        prefs.putInt("WINDOW_WIDTH" , bounds.width);
+        prefs.putInt("WINDOW_HEIGHT" , bounds.height);
+        prefs.putInt("WINDOW_POSITION_X" , bounds.x);
+        prefs.putInt("WINDOW_POSITION_Y" , bounds.y);
+
+        boolean maximized =
+                (mainFrameRef.getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0;
+        prefs.putBoolean("WINDOW_MAXIMIZED", maximized);
+
+        prefs.putInt("DIVIDER_HORIZONTAL", mainFrameRef.horizontalSplit.getDividerLocation());
+        prefs.putInt("DIVIDER_VERTICAL", mainFrameRef.verticalSplit.getDividerLocation());
+
+
+    }
+
+
+    public void restore() {
+
+        prefs = Preferences.userRoot().node(this.getClass().getName());
+        int mVersion = prefs.getInt("modelVersion", 0);
+
+        // only restore if modelVersion fits - otherwise
+        // it was from a different version
+        if(mVersion == modelVersion) {
+
+            // restore game
+            PgnReader reader = new PgnReader();
+            String pgn = prefs.get("currentGame", "");
+            if(!pgn.isEmpty()) {
+                Game g = reader.readGame(pgn);
+                PgnPrinter p = new PgnPrinter();
+                if (g.getRootNode().getBoard().isConsistent()) {
+                    setGame(g);
+                    g.setTreeWasChanged(true);
+                }
+            }
+
+            // screen geometry (i.e. window size + slide positions)
+            screenGeometry.height = prefs.getInt("WINDOW_HEIGHT", screenGeometry.height);
+            screenGeometry.width = prefs.getInt("WINDOW_WIDTH", screenGeometry.width);
+            screenGeometry.posX = prefs.getInt("WINDOW_POSITION_X", screenGeometry.posX);
+            screenGeometry.posY = prefs.getInt("WINDOW_POSITION_Y", screenGeometry.posY);
+            screenGeometry.isMaximized = prefs.getBoolean("WINDOW_MAXIMIZED", false);
+            screenGeometry.dividerHorizontal = prefs.getInt("DIVIDER_HORIZONTAL", screenGeometry.dividerHorizontal);
+            screenGeometry.dividerVertical = prefs.getInt("DIVIDER_VERTICAL", screenGeometry.dividerVertical);
+
+
+            // look and feel
+            lookAndFeel = prefs.get("LOOK_AND_FEEL", THEME_FLATLAF_INTELLIJ);
+
+            // last opened directories
+            String lastOpenDir = prefs.get("lastOpenDir", "");
+            String lastSaveDir = prefs.get("lastSaveDir", "");
+            if (!lastOpenDir.isEmpty()) {
+                lastOpenedDirPath = new File(lastOpenDir);
+                if (!lastOpenedDirPath.exists()) {
+                    lastOpenedDirPath = null;
+                }
+            }
+            if (!lastSaveDir.isEmpty()) {
+                lastSaveDirPath = new File(lastSaveDir);
+                if (!lastSaveDirPath.exists()) {
+                    lastSaveDirPath = null;
+                }
+            }
+
+            // restore engines
+            // don't restore engine with idx 0 (that's stockfish internal)
+            for (int i = 1; i < MAX_N_ENGINES; i++) {
+                String engineString = prefs.get("ENGINE" + i, "");
+                if (!engineString.isEmpty()) {
+                    Engine engine;
+                    //if (i == 0) {
+                    //    // engine 0 is Stockfish internal
+                    //    // engine = engines.get(0);
+                    //    // engine.restoreFromString(engineString);
+                    //} else {
+                    engine = new Engine();
+                    engine.restoreFromString(engineString);
+                    engines.add(engine);
+                    //}
+                }
+            }
+            int activeIdx = prefs.getInt("ACTIVE_ENGINE_IDX", 0);
+            if(activeIdx < engines.size()) {
+                activeEngine = engines.get(activeIdx);
+                selectedAnalysisEngine = engines.get(activeIdx);
+            } else {
+                activeEngine = engines.get(0);
+                selectedAnalysisEngine = engines.get(0);
+            }
+
+            // style of board and pieces
+            BoardStyle boardStyle = new BoardStyle();
+            int colorStyle = prefs.getInt("COLOR_STYLE", BoardStyle.STYLE_BLUE);
+            int pieceStyle = prefs.getInt("PIECE_STYLE", BoardStyle.PIECE_STYLE_MERIDA);
+            boardStyle.setPieceStyle(pieceStyle);
+            boardStyle.setColorStyle(colorStyle);
+            setBoardStyle(boardStyle);
+
+            // thresholds for game analysis
+            int gameAnalysisSecs = prefs.getInt("GAME_ANALYSIS_SECS", 3);
+            double gameAnalysisThreshold = prefs.getDouble("GAME_ANALYSIS_THRESHOLD", 0.5);
+            setGameAnalysisThinkTimeSecs(gameAnalysisSecs);
+            setGameAnalysisThreshold(gameAnalysisThreshold);
+
+            // path of opening book
+            extBookPath = prefs.get("EXT_BOOK_PATH_FILE", getExtBookPath());
+
+            }
+    }
+
+
+    // does not verify if newNrThreads is a valid parameter for
+    // active engine. Must be checked prior by the caller
+    public void setNrThreads(int newNrThreads) {
+        activeEngine.setThreads(newNrThreads);
+    }
 }

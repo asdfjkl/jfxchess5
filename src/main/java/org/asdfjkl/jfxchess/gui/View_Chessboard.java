@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
@@ -114,7 +132,6 @@ public class View_Chessboard extends JPanel
         Graphics2D g2 = bufferedBackground.createGraphics();
 
         // fill background
-        //g2.scale(outputScaleX, outputScaleX);
         g2.setColor(model.getBoardStyle().getDarkSquareColor());
         g2.fillRect(0, 0, getWidth(), getHeight());
 
@@ -298,195 +315,8 @@ public class View_Chessboard extends JPanel
         refreshBackground();
         g2.drawImage(bufferedBackground, 0, 0, null);
 
-        /*
-        g2.setColor(model.getBoardStyle().getDarkSquareColor());
-        g2.fillRect(0, 0, getWidth(), getHeight());
-
-        // setup font size
-        //FontMetrics fm = g2.getFontMetrics();
-        //int x = (getWidth() - fm.stringWidth(text)) / 2;
-        //int y = (getHeight() + fm.getAscent()) / 2;
-
-        // size of real board incl. corner
-        double height = this.getHeight();
-        double width = this.getWidth();
-        double minWidthHeight = Math.min(height, width);
-
-        // spare 2 percent left and right
-        int outerMargin = (int) (minWidthHeight * 0.05);
-        int boardSize = (int) (minWidthHeight - (2*outerMargin));
-
-        int xOffset = outerMargin;
-        if(width > height) {
-            int surplus = (int) (width - height);
-            xOffset += surplus/2;
-        }
-
-        int borderMargin = 18; // (int) (minWidthHeight * 0.03);
-        squareSize = ((boardSize - (2* borderMargin)) / 8);
-        innerXOffset = (xOffset + borderMargin);
-        innerYOffset = (outerMargin + borderMargin);
-
-        // paint board inc. margin with letters & numbers
-        g2.setColor(model.getBoardStyle().getBorderColor());
-        g2.fillRect(xOffset, outerMargin, (squareSize*8)+(borderMargin*2), (squareSize*8)+(borderMargin*2));
-
-        // get the from and to field of the last move
-        // to highlight those squares
-        Point lastMoveFrom = null;
-        Point lastMoveTo = null;
-        if(model.getGame().getCurrentNode().getMove() != null) {
-            Move m = model.getGame().getCurrentNode().getMove();
-            lastMoveFrom = Board.internalToXY(m.getMoveSourceSquare());
-            lastMoveTo = Board.internalToXY(m.getMoveTargetSquare());
-        }
-
-        // paint squares
-        Color fieldColor;
-        for(int i=0;i<8;i++) {
-            for(int j=0;j<8;j++) {
-                if((j%2 == 0 && i%2==1) || (j%2 == 1 && i%2==0)) {
-                    if(!model.getFlipBoard()) {
-                        fieldColor = model.getBoardStyle().getLightSquareColor();
-                    } else {
-                        fieldColor = model.getBoardStyle().getDarkSquareColor();
-                    }
-                } else {
-                    if(!model.getFlipBoard()) {
-                        fieldColor = model.getBoardStyle().getDarkSquareColor();
-                    } else {
-                        fieldColor = model.getBoardStyle().getLightSquareColor();
-                    }
-                }
-                int x = (innerXOffset) + (i*squareSize);
-                if(model.getFlipBoard()) {
-                    x = innerXOffset+((7-i)*squareSize);
-                }
-                int y = (innerYOffset) + ((7-j)*squareSize);
-
-                g2.setColor(fieldColor);
-                g2.fillRect(x,y,squareSize,squareSize);
-
-                if(lastMoveFrom != null && lastMoveTo != null) {
-                    boolean markField = false;
-                    if(!model.getFlipBoard()) {
-                        if ((lastMoveFrom.getX() == i && lastMoveFrom.getY() == j) ||
-                                (lastMoveTo.getX() == i && lastMoveTo.getY() == j)) {
-                            markField = true;
-                        }
-                    }
-                    if(model.getFlipBoard()) {
-                        if ((lastMoveFrom.getX() == i && lastMoveFrom.getY() == 7 - j) ||
-                                (lastMoveTo.getX() == i && lastMoveTo.getY() == 7 - j)) {
-                            markField = true;
-                        }
-                    }
-                    if(markField) {
-                        g2.setColor(lastMoveColor);
-                        g2.fillRect(x, y, squareSize, squareSize);
-                    }
-                }
-            }
-        }
-
         // paint colored fields
         for(ColoredField coloredField : model.getGame().getCurrentNode().getColoredFields()) {
-
-            System.out.println("drawing colored square");
-
-            int i = coloredField.x;
-            int j = coloredField.y;
-
-            int x = (innerXOffset) + (i*squareSize);
-            int y = (innerYOffset) + ((7-j)*squareSize);
-            if(model.getFlipBoard()) {
-                x = innerXOffset+((7-i)*squareSize);
-                y = (innerYOffset) + (j*squareSize);
-            }
-
-            g2.setColor(coloredFieldColor);
-            g2.fillRect(x,y,squareSize,squareSize);
-        }
-
-        // draw the board coordinates
-        g2.setColor(model.getBoardStyle().getCoordinateColor());
-        for(int i=0;i<8;i++) {
-            if(model.getFlipBoard()){
-                char ch = (char) (65 + (7 - i));
-                String idx = Character.toString(ch);
-                String num = Integer.toString(i + 1);
-                g2.drawString(idx, innerXOffset + (i * squareSize) + (squareSize / 2) - 4,
-                        (int) (innerYOffset + (8 * squareSize) + (borderMargin * 0.8)));
-                g2.drawString(num, xOffset + 5, innerYOffset + (i * squareSize) + (squareSize / 2) + 4);
-            } else{
-                char ch = (char) (65 + i);
-                String idx = Character.toString(ch);
-                String num = Integer.toString(8 - i);
-                g2.drawString(idx, innerXOffset + (i * squareSize) + (squareSize / 2) - 4,
-                        (int) (innerYOffset + (8 * squareSize) + (borderMargin * 0.8)));
-                g2.drawString(num, xOffset + 5, innerYOffset + (i * squareSize) + (squareSize / 2) + 4);
-            }
-        }
-
-        // draw pieces
-        Board b = model.getGame().getCurrentNode().getBoard();
-        for(int i=0;i<8;i++) {
-            for (int j = 0; j < 8; j++) {
-                int x;
-                if(model.getFlipBoard()) {
-                    x = innerXOffset+((7-i)*squareSize);
-                } else {
-                    x = innerXOffset+(i*squareSize);
-                }
-                // drawing coordinates are from top left
-                // whereas chess coords are from bottom left
-                int y = innerYOffset+((7-j)*squareSize);
-                int piece = 0;
-                if(model.getFlipBoard()) {
-                    piece = b.getPieceAt(i, 7-j);
-                } else {
-                    piece = b.getPieceAt(i, j);
-                }
-                if(piece != EMPTY && piece != FRINGE) {
-                    if(!model.getFlipBoard()) {
-                        if (!(drawGrabbedPiece && i == moveSource.x && j == moveSource.y)) {
-                            Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
-                                    model.getBoardStyle().getPieceStyle());
-                            g2.drawImage(pieceImage, x, y, squareSize, squareSize, null);
-                        }
-                    } else {
-                        if (!(drawGrabbedPiece && i == moveSource.x && (7-j) == moveSource.y)) {
-                            Image pieceImage = pieceImageProvider.getImage(piece, (int) (squareSize * this.outputScaleX),
-                                    model.getBoardStyle().getPieceStyle());
-                            g2.drawImage(pieceImage, x, y, squareSize, squareSize, null);
-                        }
-                    }
-                }
-            }
-        }
-
-        // mark side to move
-        int x_side_to_move = innerXOffset + 8 * squareSize + 6;
-        int y_side_to_move = innerYOffset + 8 * squareSize + 6;
-        if(b.turn == WHITE) {
-            if(model.getFlipBoard()) {
-                y_side_to_move = innerYOffset - 11;
-            }
-        }
-        if(b.turn == BLACK) {
-            if(!model.getFlipBoard()) {
-                y_side_to_move = innerYOffset - 11;
-            }
-        }
-        g2.setColor(model.getBoardStyle().getLightSquareColor());
-        g2.fillRect(x_side_to_move, y_side_to_move, 4,4);
-        // }
-*/
-
-        // paint colored fields
-        for(ColoredField coloredField : model.getGame().getCurrentNode().getColoredFields()) {
-
-            System.out.println("drawing colored square");
 
             int i = coloredField.x;
             int j = coloredField.y;
@@ -533,7 +363,6 @@ public class View_Chessboard extends JPanel
     private void drawArrow(Graphics2D g2, Arrow arrow, Color color, int boardOffsetX, int boardOffsetY) {
 
         g2.fillRect(50, 50, 4,4);
-
 
         int xFrom = 0;
         int xTo = 0;
@@ -584,7 +413,6 @@ public class View_Chessboard extends JPanel
                 (int) (toPoint.getX() - unitDx * arrowHeadBoxSize + unitDy * arrowHeadBoxSize),
                 (int) (toPoint.getY() - unitDy * arrowHeadBoxSize - unitDx * arrowHeadBoxSize));
 
-        //g2.setFill(color);
         g2.setColor(color);
         g2.fillPolygon( new int[] { toPoint.x, arrowPoint1.x, arrowPoint2.x },
                 new int[] { toPoint.y, arrowPoint1.y, arrowPoint2.y },
@@ -706,10 +534,8 @@ public class View_Chessboard extends JPanel
 
     private void handleMouseReleased(MouseEvent me) {
 
-        //System.out.println("mouse release event");
         int mouseButton = me.getButton();
         if(mouseButton == BUTTON1) {
-            //System.out.println("button 1");
             drawGrabbedPiece = false;
             Point boardPos = getBoardPosition(me.getX(), me.getY());
             Board b = model.getGame().getCurrentNode().getBoard();
@@ -744,7 +570,6 @@ public class View_Chessboard extends JPanel
         repaint();
     }
 
-    // todo: view changes model. view should only call controller
     private void handleRightClickRelease(Point boardCoordinate) {
         // user clicked and is going to draw arrow
         if(boardCoordinate != null) {
@@ -792,16 +617,11 @@ public class View_Chessboard extends JPanel
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("boardFlipped".equals(evt.getPropertyName())) {
-            System.out.println("boardFlipped view listener");
-            System.out.println(model.getFlipBoard());
             backgroundNeedsRefresh = true;
             repaint();
         }
         if ("pieceStyle".equals(evt.getPropertyName()) ||
                 "boardColor".equals(evt.getPropertyName())) {
-            System.out.println("view chessboard: property change");
-            System.out.println(("board style: " + model.getBoardStyle().getColorStyle()));
-            System.out.println(("piece style: " + model.getBoardStyle().getPieceStyle()));
             backgroundNeedsRefresh = true;
             repaint();
         }

@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import javax.swing.*;
@@ -7,7 +25,6 @@ public class DialogProgress extends JDialog {
 
     private final JProgressBar progressBar = new JProgressBar(0, 100);
     private final JButton cancelButton = new JButton("Cancel");
-    //private final JLabel messageLabel = new JLabel("Processing...");
 
     public DialogProgress(JFrame parent, SwingWorker worker, String windowTitle) {
         super(parent, windowTitle, true);
@@ -41,9 +58,6 @@ public class DialogProgress extends JDialog {
         content.setLayout(new BorderLayout(10, 10));
         content.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
 
-        // ---- Message label ----
-        //messageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-
         // ---- Progress bar ----
         progressBar.setStringPainted(true);
         progressBar.setBorder(BorderFactory.createCompoundBorder(
@@ -53,7 +67,6 @@ public class DialogProgress extends JDialog {
 
         // Stack label + progress bar
         JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
-        //centerPanel.add(messageLabel, BorderLayout.NORTH);
         centerPanel.add(progressBar, BorderLayout.CENTER);
 
         content.add(centerPanel, BorderLayout.CENTER);
@@ -73,7 +86,6 @@ public class DialogProgress extends JDialog {
         add(content, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        //setSize(320, 130);
         pack();
         setResizable(false);
         setLocationRelativeTo(getParent());

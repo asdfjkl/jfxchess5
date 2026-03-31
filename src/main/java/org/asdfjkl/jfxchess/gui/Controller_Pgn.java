@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.*;
@@ -10,45 +28,13 @@ import java.util.ArrayList;
 
 public class Controller_Pgn {
 
-    private ArrayList<PgnGameInfo> searchResults;
-    private PgnReader reader;
-    //String filename;
-
-    private Model_JFXChess model;
+    private final PgnReader reader;
+    private final Model_JFXChess model;
 
     public Controller_Pgn(Model_JFXChess model) {
         reader = new PgnReader();
         this.model = model;
     }
-
-    /*
-    public int getNrGames() { return model.getPgnDatabase().size(); }
-
-    public Game loadGame(int index) {
-
-        ArrayList<PgnGameInfo> entries = model.getPgnDatabase();
-        OptimizedRandomAccessFile raf = null;
-        Game g = new Game();
-        try {
-            raf = new OptimizedRandomAccessFile(filename, "r");
-            if(index < entries.size()) {
-                raf.seek(entries.get(index).getOffset());
-                g = reader.readGame(raf);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (raf != null) {
-                try {
-                    raf.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return g;
-    } */
-
 
     // === Opening a PGN via Game -> Open Menu
     public ActionListener openFile() {
@@ -408,7 +394,6 @@ public class Controller_Pgn {
 
     public Game loadGameAt(int index) {
 
-        System.out.println(model.getFnPgnDatabase());
         ArrayList<PgnGameInfo> entries = model.getPgnDatabase();
         OptimizedRandomAccessFile raf = null;
         Game g = null;

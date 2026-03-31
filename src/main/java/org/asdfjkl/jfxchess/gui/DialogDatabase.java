@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.*;
@@ -11,16 +29,10 @@ import java.util.List;
 public class DialogDatabase extends JDialog {
 
     private JTable table;
-    private GameTableModel tableModel;
+    private final GameTableModel tableModel;
 
-    private JButton btnSearch;
-    private JButton btnReset;
-    private JButton btnDelete;
-    private JButton btnOpen;
-    private JButton btnCancel;
-
-    private Controller_Pgn controller_Pgn;
-    private Model_JFXChess  model_JFXChess;
+    private final Controller_Pgn controller_Pgn;
+    private final Model_JFXChess  model_JFXChess;
 
     private boolean isConfirmed = false;
 
@@ -29,7 +41,6 @@ public class DialogDatabase extends JDialog {
     public DialogDatabase(Frame owner,
                           Model_JFXChess model_JFXChess,
                           Controller_Pgn controller) {
-        //super(owner, "Database", true);
         super(owner, model_JFXChess.getFnPgnDatabase(), true);
 
         this.model_JFXChess = model_JFXChess;
@@ -57,9 +68,9 @@ public class DialogDatabase extends JDialog {
 
         // Left buttons
         JPanel leftButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        btnSearch = new JButton("Search");
-        btnReset = new JButton("Reset Search");
-        btnDelete = new JButton("Delete Game");
+        JButton btnSearch = new JButton("Search");
+        JButton btnReset = new JButton("Reset Search");
+        JButton btnDelete = new JButton("Delete Game");
 
         leftButtons.add(btnSearch);
         leftButtons.add(btnReset);
@@ -67,8 +78,8 @@ public class DialogDatabase extends JDialog {
 
         // Right buttons
         JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btnOpen = new JButton("Open Game");
-        btnCancel = new JButton("Cancel");
+        JButton btnOpen = new JButton("Open Game");
+        JButton btnCancel = new JButton("Cancel");
 
         rightButtons.add(btnOpen);
         rightButtons.add(btnCancel);
@@ -194,30 +205,24 @@ public class DialogDatabase extends JDialog {
     }
 
     private void onBtnSearch() {
-        System.out.println("onBtnSearch start");
         DialogSearchGames dlgSearch = new DialogSearchGames(this, pattern);
         dlgSearch.setVisible(true);
         pattern = dlgSearch.getSearchPattern();
         if(dlgSearch.isConfirmed()) {
-            System.out.println("onBtnSearch confirmed");
             searchGames(pattern);
         }
-        System.out.println("onBtnSearch end");
     }
 
     private void searchGames(SearchPattern pattern) {
 
-        System.out.println("searchGames start");
         PgnSearchWorker worker = new PgnSearchWorker(model_JFXChess.getPgnDatabase(),
                 pattern,
                 new PgnReader(),
                 entriesFromWorker -> { tableModel.setData(entriesFromWorker); }
         );
-        System.out.println("searchGames before progress dialog");
         DialogProgress dlgProgress = new DialogProgress(this, worker, "Searching Games");
         worker.execute();
         dlgProgress.setVisible(true);
-        System.out.println("searchGames end");
     }
 
     private void resetSearch() {

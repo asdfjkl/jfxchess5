@@ -1,6 +1,5 @@
 /* JFXChess - A Chess Graphical User Interface
  * Copyright (C) 2020-2026 Dominik Klein
- * Copyright (C) 2025 Torsten Torell
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -131,19 +130,6 @@ public class EngineInfo {
         }
     }
 
-    /*
-    public void setFen(String fen) {
-        // update turn
-        if(!fen.isEmpty()) {
-            Board board = new Board(fen);
-            this.turn = board.turn;
-            this.fen = fen;
-            this.halfmoves = board.halfmoveClock;
-            this.fullMoveNumber = board.fullmoveNumber;
-            this.zobrist = board.getZobrist();
-        }
-    } */
-
     public void setFen(String uciSetPosition) {
         if(uciSetPosition.startsWith("position fen")) {
             String[] s_fen_moves = uciSetPosition.split("moves");
@@ -222,7 +208,6 @@ public class EngineInfo {
             if(matchPVIdx.find()) {
                 String sMultiPV = matchPVIdx.group();
                 multiPv = Integer.parseInt(sMultiPV.substring(8)) - 1;
-                //System.out.println("engine info: mpv "+multiPv+" received");
             }
 
             nps = getInt(NPS, line, 4, nps);
@@ -325,13 +310,6 @@ public class EngineInfo {
         // the id of the selected engine is always shown, even
         // if it is currently not running
         s.append("<td>ENGINE_ID</td>");
-        /*
-        if(!id.isEmpty()) {
-            s.append("<td>").append(id).append("</td>");
-        } else {
-            s.append("<td></td>");
-        }
-         */
         if(depth > 0) {
             s.append("<td>depth ").append(depth);
             if(!currentMove.isEmpty()) {
@@ -388,7 +366,6 @@ public class EngineInfo {
                         }
                 }
                 if(!pvSan.get(i).isEmpty()) {
-                    //System.out.println("pvsan: "+i+": "+pvSan.get(i));
                     s.append(pvSan.get(i));
                 }
                 s.append("</td></tr>");

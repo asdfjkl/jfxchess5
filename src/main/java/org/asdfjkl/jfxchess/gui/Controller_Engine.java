@@ -1,3 +1,21 @@
+/* JFXChess - A Chess Graphical User Interface
+ * Copyright (C) 2020-2026 Dominik Klein
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.*;
@@ -64,15 +82,6 @@ public class Controller_Engine implements PropertyChangeListener {
         if (cmd.equals("go infinite")) {
             inGoInfinite = true;
         } else {
-            if (inGoInfinite && (!cmd.equals("stop"))
-                    && (!cmd.equals("quit"))) {
-                //try {
-                //    System.out.println("controller engine: in go infinite, thus sending stop");
-                    //cmdQueue.put("stop");
-                //} catch (InterruptedException e) {
-                //    e.printStackTrace();
-                //}
-            }
             inGoInfinite = false;
         }
         try {
@@ -86,35 +95,6 @@ public class Controller_Engine implements PropertyChangeListener {
     public void stopEngine() {
         sendCommand("stop");
         sendCommand("quit");
-        /*
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //sendCommand("stop");
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        sendCommand("quit");
-        do {
-            try {
-                //System.out.println("waiting...");
-                //System.out.println(cmdQueue.peek());
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } while (engineThread.engineIsOn());
-         */
-    }
-
-    public ActionListener checkEngine() {
-        return e -> {
-            System.out.println("is on: "+ engineThread.engineIsOn());
-        };
     }
 
     public void restartEngine(Engine activeEngine) {
@@ -157,17 +137,13 @@ public class Controller_Engine implements PropertyChangeListener {
         sendCommand("ucinewgame");
         // An isready should be sent after ucinewgame.
         sendCommand("isready");
-
-        //System.out.println("controller engine: engine should be ready");
     }
 
     public void setMultiPV(int n) {
         if (currentEngine != null && currentEngine.supportsMultiPV()) {
             sendCommand("setoption name MultiPV value " + n);
         }
-        // (I had a problem with adding and removing PV-lines
-        // in the outputview before the enginestart after edit-engines.)
-        // So, in case the engine hasn't been started yet:
+        // in case the engine hasn't been started yet:
         engineThread.engineInfoSetPVLines(n);
     }
 
@@ -216,13 +192,11 @@ public class Controller_Engine implements PropertyChangeListener {
     }
 
     public void activateAnalysisMode() {
-        //System.out.println("controller engine: activate analysis mode");
         stopEngine();
         model.activeEngine = model.selectedAnalysisEngine;
         if (model.activeEngine.supportsUciLimitStrength()) {
             model.activeEngine.setUciLimitStrength(false);
         }
-        //setEngineNameAndInfoToOuptput();
         restartEngine(model.activeEngine);
         setMultiPV(model.getMultiPv());
         model.setBlockGUI(false);
@@ -239,64 +213,33 @@ public class Controller_Engine implements PropertyChangeListener {
     }
 
     public void activateEnterMovesMode() {
-        //System.out.println("controller engine: activateEnterMovesMode");
-        System.out.println("c: activate enter moves mode, engine stopped");
-        System.out.println("FOOOOOO");
-
         stopEngine();
-        //sendCommand("quit");
-        System.out.println("BAR");
-        System.out.println("c: activate enter moves mode, engine stopped");
         model.activeEngine = model.selectedAnalysisEngine;
         if (model.activeEngine.supportsUciLimitStrength()) {
             model.activeEngine.setUciLimitStrength(false);
         }
-        //setEngineNameAndInfoToOuptput();
         model.setBlockGUI(false);
         model.setMode(Model_JFXChess.MODE_ENTER_MOVES);
-        System.out.println("c: activate enter moves mode, mode:  "+model.getMode());
-
-        /*
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-
-        /*
-        try {
-            int exit = engineThread.engineProcess.exitValue();
-            System.out.println("Exited: " + exit);
-        } catch (IllegalThreadStateException e) {
-            System.out.println("Still alive according to JVM");
-        }*/
     }
 
     public ActionListener startEnterMovesMode() {
         return e -> {
-            System.out.println("c: AL: ACTIVATE ENTER MOVES");
             activateEnterMovesMode();
         };
     }
 
     private void handleNewBoardPositionModeAnalysis() {
         String fen = model.getGame().getUciPositionString();
-        //System.out.println("controller engine: handleNewBoardPositionModeAnalysis, sending fen");
-        //sendCommand("stop");
         sendNewPosition(fen);
         uciGoInfinite();
     }
 
     private void handleNewBoardPositionModeGameAnalysis() {
 
-        System.out.println("c: new board pos game analysis");
-
-        //System.out.println("handle new board position game mode");
         boolean continueAnalysis = true;
 
         boolean parentIsRoot = (model.getGame().getCurrentNode().getParent() == model.getGame().getRootNode());
         if (!parentIsRoot) {
-            //System.out.println("not root");
             // if the current position is in the opening book,
             // we stop the analysis
             long zobrist = model.getGame().getCurrentNode().getBoard().getZobrist();
@@ -304,15 +247,6 @@ public class Controller_Engine implements PropertyChangeListener {
                 model.getGame().getCurrentNode().setComment("last book move");
                 continueAnalysis = false;
             } else {
-                //System.out.println("handle Game Analysis else");
-                // otherwise continue the analysis
-                //if (model.getGameAnalysisJustStarted()) {
-                //    model.setGameAnalysisJustStarted(false);
-                //} else {
-                //model.getGame().goToParent();
-                //}
-                System.out.println("c: handle new board pos game analysis, sending fen");
-
                 String fen = model.getGame().getUciPositionString();
                 sendNewPosition(fen);
                 uciGoMoveTime(model.getGameAnalysisThinkTimeSecs() * 1000);
@@ -324,7 +258,6 @@ public class Controller_Engine implements PropertyChangeListener {
         if (!continueAnalysis) {
             // we are at the root or found a book move
             // should fire an event
-            System.out.println("c: CONTINUE ANALYSIS FALSE, ENTER MOVES MODE");
             activateEnterMovesMode();
             JOptionPane.showMessageDialog(model.mainFrameRef, "Game Analysis Finished");
         }
@@ -355,13 +288,6 @@ public class Controller_Engine implements PropertyChangeListener {
                     model.goToNode(g.getRootNode().getId());
                     activateEnterMovesMode();
                 }
-                /*
-                if(result == DialogNewGame.PLAY_BOT) {
-                    DialogPlayBot dlgPlayBot = new DialogPlayBot(model.mainFrameRef, model.botEngines);
-                    dlgPlayBot.setVisible(true);
-                }
-                 */
-
                 if(result == DialogNewGame.PLAY_BOT) {
                     DialogPlayBot dlgPlayBot = new DialogPlayBot(model.mainFrameRef, model.botEngines);
                     dlgPlayBot.setVisible(true);
@@ -390,14 +316,12 @@ public class Controller_Engine implements PropertyChangeListener {
                             g.setHeader("Black", model.selectedPlayEngine.getName());
                             g.setHeader("BlackElo", ((BotEngine) model.selectedPlayEngine).getElo());
                             model.setFlipBoard(false);
-                            // itmPlayAsWhite.setSelected(true);
                             activatePlayWhiteMode();
                         } else {
                             g.setHeader("Black", "N.N.");
                             g.setHeader("White", model.selectedPlayEngine.getName());
                             g.setHeader("WhiteElo", ((BotEngine) model.selectedPlayEngine).getElo());
                             model.setFlipBoard(true);
-                            // itmPlayAsBlack.setSelected(true);
                             activatePlayBlackMode();
                         }
                     }
@@ -464,7 +388,6 @@ public class Controller_Engine implements PropertyChangeListener {
         restartEngine(model.activeEngine);
 
         // change game mode, trigger statechange
-        //setEngineNameAndInfoToOuptput();
         model.setFlipBoard(false);
         model.setHumanPlayerColor(CONSTANTS.WHITE);
         model.setMode(Model_JFXChess.MODE_PLAY_WHITE);
@@ -480,7 +403,6 @@ public class Controller_Engine implements PropertyChangeListener {
         }
         // restart
         restartEngine(model.activeEngine);
-        //setEngineNameAndInfoToOuptput();
         model.setFlipBoard(true);
         model.setHumanPlayerColor(CONSTANTS.BLACK);
         model.setMode(Model_JFXChess.MODE_PLAY_BLACK);
@@ -495,7 +417,6 @@ public class Controller_Engine implements PropertyChangeListener {
             model.activeEngine.setUciLimitStrength(false);
         }
         restartEngine(model.activeEngine);
-        //setEngineNameAndInfoToOuptput();
         model.setFlipBoard(false);
         model.setMode(Model_JFXChess.MODE_PLAYOUT_POSITION);
     }
@@ -513,7 +434,6 @@ public class Controller_Engine implements PropertyChangeListener {
         if (model.activeEngine.supportsMultiPV()) {
             model.activeEngine.setMultiPV(1);
         }
-        //setEngineNameAndInfoToOuptput();
         restartEngine(model.activeEngine);
 
         model.setFlipBoard(false);
@@ -524,7 +444,6 @@ public class Controller_Engine implements PropertyChangeListener {
             model.currentMateInMoves = 0;
         }
         model.setMode(Model_JFXChess.MODE_GAME_ANALYSIS);
-        //model.setGameAnalysisJustStarted(true);
 
         String fen = model.getGame().getUciPositionString();
         sendNewPosition(fen);
@@ -580,12 +499,10 @@ public class Controller_Engine implements PropertyChangeListener {
 
         String bookMove = model.extBook.getRandomMove(zobrist);
         if((bookMove != null) && (!maxDepthReached)) {
-            // todo: don't execute the book move immediately; we want to
+            // don't execute the book move immediately; we want to
             // create the illusion of the computer thinking about his move
-            //handleBestMove("BESTMOVE|"+bookMove+"|"+zobrist);
-            System.out.println("found book move!");
             CompletableFuture.delayedExecutor(
-                    (long)(model.getComputerThinkTimeSecs() * 1000),
+                    ((long) model.getComputerThinkTimeSecs() * 1000),
                     TimeUnit.MILLISECONDS
             ).execute(() -> handleBestMove("BESTMOVE|" + bookMove + "|" + zobrist));
 
@@ -594,9 +511,6 @@ public class Controller_Engine implements PropertyChangeListener {
             sendNewPosition(fen);
             uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
         }
-        //String fen = model.getGame().getUciPositionString();
-        //sendNewPosition(fen);
-        //uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
         if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE && model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.BLACK) {
             model.setBlockGUI(true);
         }
@@ -604,18 +518,6 @@ public class Controller_Engine implements PropertyChangeListener {
             model.setBlockGUI(true);
         }
     }
-
-    /*
-
-    public void handleStateChangePlayoutPosition() {
-
-        String fen = gameModel.getGame().getUciPositionString();
-        engineController.sendNewPosition(fen);
-        engineController.uciGoMoveTime(gameModel.getComputerThinkTimeSecs()*1000);
-    }
-
-     */
-
 
     private void addBestPv(String[] uciMoves) {
         GameNode currentNode = model.getGame().getCurrentNode();
@@ -648,68 +550,12 @@ public class Controller_Engine implements PropertyChangeListener {
         }
     }
 
-    // This is a method to directly after editing engines or at startup of
-    // the program, show in the outputview the engineID, the Elo strength
-    // (if UCILimitStrength option is true) and the empty Pv-lines of the active engine.
-    // When the engine starts, the elo will be shown in the normal way
-    // via the EngineThread and EngineInfo when the corresponding commands
-    // are being sent to the engine.
-    /*
-    public void setEngineNameAndInfoToOuptput() {
-
-        // | id (Level MAX) | zobrist  |  nps | hashfull | tbhits | current Move + depth | eval+line pv1 | .. pv2 | ...pv3 | ...pv4 | ... | ...pv64 |
-        String newInfo = "|||||||||||";
-        engineOutputView.setId(gameModel.activeEngine.getNameWithElo());
-        engineOutputView.setText("|||||||||||");
-
-    }*/
-
-    /*
-    public void editEngines() {
-
-        // The following call stops the engine-process, set the ENTER_MOVES_MODE
-        // and calls GameModel.triggerChangeState(). Previously the engine was
-        // not stopped here.
-        activateEnterMovesMode();
-        DialogEngines dlg = new DialogEngines();
-        ArrayList<Engine> enginesCopy = new ArrayList<>();
-        for(Engine engine : gameModel.engines) {
-            enginesCopy.add(engine);
-        }
-        int selectedIdx = gameModel.engines.indexOf(gameModel.activeEngine);
-        if(selectedIdx < 0) {
-            selectedIdx = 0;
-        }
-        boolean accepted = dlg.show(gameModel.getStageRef(), enginesCopy, selectedIdx);
-        if(accepted) {
-            ArrayList<Engine> engineList = new ArrayList<>(dlg.engineList);
-            Engine selectedEngine = dlg.engineList.get(dlg.selectedIndex);
-            gameModel.engines = engineList;
-            gameModel.activeEngine = selectedEngine;
-            gameModel.selectedAnalysisEngine = selectedEngine;
-            // Change the engine-info in the bottom panel immediately on OK
-            // being pressed. Previously it didn't change until we started
-            // playing.
-            setEngineNameAndInfoToOuptput();
-            // // reset pv line to 1 for new engine
-            // gameModel.setMultiPv(1);
-
-            gameModel.setMultiPvChange(true); // Not important anymore.
-            gameModel.triggerStateChange(); // Important.
-        }
-    }*/
-
-
     public void handleBestMove(String bestmove) {
 
-        System.out.println("c: handle best move: "+bestmove);
-
         int mode = model.getMode();
-
         if(mode == Model_JFXChess.MODE_ENTER_MOVES) {
             return;
         }
-
         String[] bestmoveItems = bestmove.split("\\|");
 
         String zobristString = bestmoveItems[bestmoveItems.length-1];
@@ -736,20 +582,13 @@ public class Controller_Engine implements PropertyChangeListener {
             Board b = model.getGame().getCurrentNode().getBoard();
             if (b.isLegal(m)) {
                 if(mode == Model_JFXChess.MODE_PLAY_WHITE && b.turn == CONSTANTS.BLACK) {
-                    //gameModel.getGame().applyMove(m);
                     model.applyMove(m);
-                    //notifyUserDuringPlay();
-                    //gameModel.triggerStateChange();
                 }
                 if(mode == Model_JFXChess.MODE_PLAY_BLACK && b.turn == CONSTANTS.WHITE) {
                     model.applyMove(m);
-                    //notifyUserDuringPlay();
-                    //gameModel.triggerStateChange();
                 }
                 if(mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
-                    //gameModel.getGame().applyMove(m);
                     model.applyMove(m);
-                    //gameModel.triggerStateChange();
                 }
             }
         }
@@ -903,97 +742,13 @@ public class Controller_Engine implements PropertyChangeListener {
                     }
                 }
             }
-            //gameModel.getGame().setTreeWasChanged(true);
-            //gameModel.triggerStateChange();
-            //model.setGame(model.game);
-            //model.setCurrentNode()
             model.markTreeChange();
-            System.out.println("c: handle best move, going to parent");
             model.goToParent();
         }
 
     }
 
-
-    /*
-    @Override
-    public void stateChange() {
-        int mode = gameModel.getMode();
-        Board board = gameModel.getGame().getCurrentNode().getBoard();
-        boolean turn = board.turn;
-
-        boolean isCheckmate = board.isCheckmate();
-        boolean isStalemate = board.isStalemate();
-        boolean isThreefoldRepetition = gameModel.getGame().isThreefoldRepetition();
-        boolean isInsufficientMaterial = gameModel.getGame().isInsufficientMaterial();
-
-        boolean abort = false;
-
-        // first we check if the game is finished due to checkmate, stalemate, three-fold repetition
-        // or insufficient material
-        // if that is the case
-        //      we check if we play against the computer or are in analysis or playoutposition mode
-        //         if so, we are going to abort the game and switch to entermovesmode
-        //      then we check if we play against the computer
-        //         if so, we are going to inform the user
-
-        // if we change from e.g. play white to enter moves, the state change would trigger
-        // the notification again in enter moves mode after the state change. thus,
-        // also check if
-        if ((isCheckmate || isStalemate || isThreefoldRepetition || isInsufficientMaterial)) {
-            if (mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK || mode == GameModel.MODE_PLAYOUT_POSITION) {
-                abort = true;
-            }
-
-            if (mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK) {
-
-                String message = "";
-                if (isCheckmate) {
-                    message = "     Checkmate.     ";
-                }
-                if (isStalemate) {
-                    message = "     Stalemate.     ";
-                }
-                if (isThreefoldRepetition) {
-                    message = "Draw (Threefold Repetition)";
-                }
-                if (isInsufficientMaterial) {
-                    message = "Draw (Insufficient material for checkmate)";
-                }
-                String finalMessage = message;
-                Platform.runLater(() -> {
-                    DialogSimpleAlert dlgAlert = new DialogSimpleAlert(
-                            gameModel.getStageRef(), Alert.AlertType.INFORMATION,
-                            "Game Finished", finalMessage);
-                    dlgAlert.showAndWait();
-                });
-            }
-        }
-
-        if(abort) {
-            activateEnterMovesMode();
-        } else {
-            if (mode == GameModel.MODE_ANALYSIS) {
-                handleStateChangeAnalysis();
-            }
-            if (mode == GameModel.MODE_GAME_ANALYSIS) {
-                handleStateChangeGameAnalysis();
-            }
-            if (mode == GameModel.MODE_PLAYOUT_POSITION) {
-                handleStateChangePlayoutPosition();
-            }
-            if ((mode == GameModel.MODE_PLAY_WHITE || mode == GameModel.MODE_PLAY_BLACK)
-                    && turn != gameModel.getHumanPlayerColor()) {
-                handleStateChangePlayWhiteOrBlack();
-            }
-        }
-    }
-
-     */
-
     public void handleNewEngineInfo(String s) {
-        //System.out.println("controller: received info from thread");
-        // String s = evt.getNewValue().toString();
         // we show info only during analysis, not when playing
         // against the bots/engine
         if (s.startsWith("INFO")) {
@@ -1002,9 +757,9 @@ public class Controller_Engine implements PropertyChangeListener {
                 model.setCurrentEngineInfo(s);
             }
         }
+
         // if we get info from the engine but currently play against it,
         // just show some dummy info
-
         if ((model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) || (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK)) {
             if (model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) {
                 if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
@@ -1025,37 +780,13 @@ public class Controller_Engine implements PropertyChangeListener {
                 }
             }
         }
-
-        /*
-        if ((model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) || (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK)) {
-            if (model.getMode() == Model_JFXChess.MODE_PLAY_WHITE) {
-                if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.WHITE) {
-                    model.setCurrentEngineInfo("|||||||Your turn - White to move");
-                } else {
-                    model.setCurrentEngineInfo("|||||||...thinking...");
-                }
-            }
-            if (model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
-                if (model.getGame().getCurrentNode().getBoard().turn == CONSTANTS.BLACK) {
-                    model.setCurrentEngineInfo("|||||||Your turn - Black to move");
-                } else {
-                    model.setCurrentEngineInfo("|||||||...thinking...");
-                }
-            }
-        }*/
-
-
         if (s.startsWith("BESTMOVE")) {
-            //System.out.println("got bestmove");
-            //System.out.println("got: "+s);
             handleBestMove(s);
         }
     }
 
     public void handleNewBoardPosition() {
-        System.out.println("c: handle new board pos");
         int mode = model.getMode();
-        System.out.println("mode: " + mode);
         Board board = model.getGame().getCurrentNode().getBoard();
         boolean turn = board.turn;
 
@@ -1097,10 +828,8 @@ public class Controller_Engine implements PropertyChangeListener {
         }
 
         if(abort) {
-            System.out.println("c: ABORT ENTER MOVES MODE");
             activateEnterMovesMode();
         } else {
-            //System.out.println("handle board pos: else");
             if (mode == Model_JFXChess.MODE_ANALYSIS) {
                 handleNewBoardPositionModeAnalysis();
             }
@@ -1127,13 +856,8 @@ public class Controller_Engine implements PropertyChangeListener {
             if(dlgEngines.isConfirmed()) {
                 model.engines = dlgEngines.getEngines();
                 model.activeEngine = dlgEngines.getSelectedEngine();
-                System.out.println("edit engines, selected:");
-                System.out.println(model.activeEngine.getName());
                 model.selectedAnalysisEngine = model.activeEngine;
-                // todo: this should result in the model firing a property change event
-                // implement setActiveEngine() in model
             }
-            //dlgEngines.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         };
     }
 
@@ -1146,18 +870,38 @@ public class Controller_Engine implements PropertyChangeListener {
 
         if (evt.getPropertyName().equals("engineInfoFromThread")) {
             handleNewEngineInfo((String) evt.getNewValue());
-        } else {
-            //System.out.println("controller engine: pcs received "+evt.getPropertyName());
         }
         if (evt.getPropertyName().equals("currentGameNodeChanged")) {
-        //|| evt.getPropertyName().equals("gameTreeChanged")) {
-            System.out.println("c: game node changed");
             handleNewBoardPosition();
         }
         if (evt.getPropertyName().equals("treeChanged")) {
-            //|| evt.getPropertyName().equals("gameTreeChanged")) {
-            //handleNewBoardPosition();
+            handleNewBoardPosition();
         }
 
     }
+
+    public ActionListener changeNrThreads() {
+        return e -> {
+            if(!model.isBlockGUI()) {
+                if(model.activeEngine.supportsMultiThread()) {
+                    activateEnterMovesMode();
+                    int currentNrThreads = model.activeEngine.getNrThreads();
+                    int maxCpusAvail = model.maxCpus - 1;
+                    if(maxCpusAvail <= 0) {
+                        maxCpusAvail = 1;
+                    }
+                    int maxThreads = Math.min(maxCpusAvail,  model.activeEngine.getMaxThreads());
+                    DialogThreads dlgThreads = new DialogThreads(model.mainFrameRef, 1, maxThreads, currentNrThreads);
+                    dlgThreads.setVisible(true);
+                    if(dlgThreads.isConfirmed()) {
+                        int newNrThreads = dlgThreads.getNrThreads();
+                        if(newNrThreads != currentNrThreads) {
+                            model.setNrThreads(newNrThreads);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
 }
