@@ -85,7 +85,6 @@ public class Controller_Engine implements PropertyChangeListener {
             inGoInfinite = false;
         }
         try {
-            System.out.println("cmd queue: "+cmd);
             cmdQueue.put(cmd);
         } catch (InterruptedException e) {
             e.printStackTrace();
