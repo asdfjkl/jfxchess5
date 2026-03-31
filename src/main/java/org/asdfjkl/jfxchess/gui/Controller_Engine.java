@@ -242,7 +242,7 @@ public class Controller_Engine implements PropertyChangeListener {
             // if the current position is in the opening book,
             // we stop the analysis
             long zobrist = model.getGame().getCurrentNode().getBoard().getZobrist();
-            if (false && model.extBook.inBook(zobrist)) {
+            if (model.extBook.inBook(zobrist)) {
                 model.getGame().getCurrentNode().setComment("last book move");
                 continueAnalysis = false;
             } else {
