@@ -444,7 +444,15 @@ public class Model_JFXChess {
             node.setComment(s);
             pcs.firePropertyChange("treeChanged", null, null);
         } catch(IllegalArgumentException ignored) {
+        }
+    }
 
+    public void setComment(String s) {
+        try {
+            GameNode node = game.getCurrentNode();
+            node.setComment(s);
+            pcs.firePropertyChange("treeChanged", null, null);
+        } catch(IllegalArgumentException ignored) {
         }
     }
 

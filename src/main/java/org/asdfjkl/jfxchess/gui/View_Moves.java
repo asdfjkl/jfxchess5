@@ -19,6 +19,7 @@
 package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
+import org.asdfjkl.jfxchess.lib.GameNode;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -176,9 +177,7 @@ public class View_Moves extends JEditorPane {
 
         contextMenu.show(e.getComponent(), e.getX(), e.getY());
 
-        addEditComment.addActionListener(ae -> {
-            // todo: edit comments!
-        });
+        addEditComment.addActionListener(controller_UI.editComment());
         deleteComment.addActionListener(controller_UI.deleteComment(nodeId));
         blunder.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_BLUNDER));
         mistake.addActionListener(controller_UI.addMoveAnnotation(nodeId, CONSTANTS.NAG_MISTAKE));

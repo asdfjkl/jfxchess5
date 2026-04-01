@@ -476,4 +476,22 @@ public class Controller_UI {
 
         };
     }
+
+    public ActionListener editComment() {
+        return e -> {
+            DialogEditComment dlgComment = new DialogEditComment(model.mainFrameRef, "Edit Comment");
+            GameNode currentNode = model.getGame().getCurrentNode();
+            dlgComment.setText(currentNode.getComment());
+            dlgComment.setVisible(true);
+            if(dlgComment.isConfirmed()) {
+                // filter text elements that must not appear in PGN comment, like { } etc.
+                String newComment = dlgComment.getText();
+                newComment = newComment.replace('\n', ' ');
+                newComment = newComment.replace('{', ' ');
+                newComment = newComment.replace('}', ' ');
+                newComment = newComment.replace('\r', ' ');
+                model.setComment(newComment);
+            }
+        };
+    }
 }
