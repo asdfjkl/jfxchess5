@@ -1,0 +1,1 @@
+dummy file - copy stockfish.exe into this directory and delete *.txt for build
