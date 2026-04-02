@@ -116,6 +116,8 @@ public class View_Chessboard extends JPanel
         addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent componentEvent) {
                 backgroundNeedsRefresh = true;
+                revalidate();
+                repaint();
             }
         });
     }
@@ -425,7 +427,6 @@ public class View_Chessboard extends JPanel
         g2.setStroke(new BasicStroke(squareSize/6));
         g2.drawLine(fromPoint.x, fromPoint.y, to.x, to.y);
     }
-
 
     Point getBoardPosition(double x, double y) {
 
