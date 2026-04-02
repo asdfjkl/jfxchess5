@@ -549,6 +549,7 @@ public class View_Chessboard extends JPanel
                                 b.turn,
                                 model.getBoardStyle().getPieceStyle()
                         );
+                        dlgPromotion.setVisible(true);
                         if(dlgPromotion.getSelectedPiece() != EMPTY) {
                             m.setPromotionPiece(dlgPromotion.getSelectedPiece());
                             controller_Board.applyMove(m);
