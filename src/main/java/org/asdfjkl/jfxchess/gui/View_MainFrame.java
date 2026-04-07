@@ -68,6 +68,8 @@ public class View_MainFrame extends JFrame
     KeyStroke moveBackKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
     KeyStroke seekFirstKey = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
     KeyStroke seekEndKey = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+    KeyStroke turnEngineOnKey = KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke turnEngineOffKey = KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK);
 
     Map<KeyStroke, ActionListener> shortcuts = new HashMap<>();
 
@@ -212,9 +214,11 @@ public class View_MainFrame extends JFrame
 
         JMenuItem jmiStartEngine = new JMenuItem("Start Engine");
         jmiStartEngine.addActionListener(controller_Engine.startAnalysisMode());
+        jmiStartEngine.setAccelerator(turnEngineOnKey);
         modeMenu.add(jmiStartEngine);
         JMenuItem jmiStopEngine = new JMenuItem("Stop Engine");
         jmiStopEngine.addActionListener(controller_Engine.startEnterMovesMode());
+        jmiStopEngine.setAccelerator(turnEngineOffKey);
         modeMenu.add(jmiStopEngine);
         JMenuItem jmiFullGameAnalysis = new JMenuItem("Full Game Analysis");
         jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
@@ -787,6 +791,14 @@ public class View_MainFrame extends JFrame
         shortcuts.put(
                 flipKey,
                 controller_UI.flipBoard()
+        );
+        shortcuts.put(
+                turnEngineOnKey,
+                controller_Engine.startAnalysisMode()
+        );
+        shortcuts.put(
+                turnEngineOffKey,
+                controller_Engine.startEnterMovesMode()
         );
     }
 
