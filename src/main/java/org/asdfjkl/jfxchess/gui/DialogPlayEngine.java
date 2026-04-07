@@ -184,7 +184,6 @@ public class DialogPlayEngine extends JDialog {
 
         cancel.addActionListener(e -> dispose());
         ok.addActionListener(e -> {
-            System.out.println("Selected: " + engineList.getSelectedValue());
             dispose();
         });
 

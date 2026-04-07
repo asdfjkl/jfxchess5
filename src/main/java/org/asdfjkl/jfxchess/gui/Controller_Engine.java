@@ -563,6 +563,7 @@ public class Controller_Engine implements PropertyChangeListener {
         if(zobrist != model.getGame().getCurrentNode().getBoard().getZobrist()) {
             // if this bestmove is for a different position than the current,
             // it is a relict from thread/gui synchronisation mismatch; we just dismiss it
+            //System.out.println("bestmove, but dismissing: "+bestmove);
             return;
         } else {
             // If not, this is a bestmove from either playing the engine
@@ -574,6 +575,8 @@ public class Controller_Engine implements PropertyChangeListener {
         if (mode == Model_JFXChess.MODE_PLAY_WHITE ||
                 mode == Model_JFXChess.MODE_PLAY_BLACK  ||
                 mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
+
+            //System.out.println("bestmove, play mode: "+bestmove);
 
             // todo: catch Exceptions!
             String uci = bestmoveItems[1].split(" ")[0];
@@ -874,7 +877,8 @@ public class Controller_Engine implements PropertyChangeListener {
             handleNewBoardPosition();
         }
         if (evt.getPropertyName().equals("treeChanged")) {
-            handleNewBoardPosition();
+            // do nothing - we should only react, if the current game
+            // node changed. This is always done, if the tree changes
         }
 
     }

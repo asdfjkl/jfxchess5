@@ -30,6 +30,8 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
     Model_JFXChess model;
     private final ArrayList<String> pvLines = new ArrayList<>();
 
+    String cachedInfo = "";
+
     public  View_EngineOutput(Model_JFXChess model) {
         this.model = model;
 
@@ -112,7 +114,12 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
             String info = model.getCurrentEngineInfo();
             if (info != null && info.length() > 5) {
                 String s = info.substring(5, info.length()).replace("ENGINE_ID", model.activeEngine.getName());
-                setText(s);
+                // we only set text on this widget if there is really
+                // an update - in order to avoid flickering
+                if(!s.equals(cachedInfo)) {
+                    cachedInfo = s;
+                    setText(s);
+                }
             }
         }
     }
