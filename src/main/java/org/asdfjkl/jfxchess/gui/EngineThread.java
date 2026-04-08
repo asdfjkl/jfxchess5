@@ -98,17 +98,21 @@ public class EngineThread extends Thread {
     public void run() {
         int savedElo = -1;
         while (running) {
+            //System.out.println("engine thread foo");
             // Set the thread to loop at about 1000 times per second.
             // It Keeps CPU-load down and is probably more than enough.
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
+                System.out.println("interrupted");
                 e.printStackTrace();
             }
 
             if (this.isInterrupted()) {
                 // here: delete process if it exists
+                System.out.println("interrupted");
                 if (engineIsOn()) {
+                    System.out.println("engine is on");
                     try {
                         // Try to close down the engine the normal way.
                         engineInput.write("stop\n");
@@ -123,6 +127,7 @@ public class EngineThread extends Thread {
                         e.printStackTrace(System.out);
                     }
                 }
+                System.out.println("finished");
                 // Stop this thread.
                 running = false;
                 continue;
