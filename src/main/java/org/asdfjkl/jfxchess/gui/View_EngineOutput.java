@@ -113,9 +113,12 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         if(evt.getPropertyName().equals("engineInfo")) {
             String info = model.getCurrentEngineInfo();
             if (info != null && info.length() > 5) {
-                String engineName = model.activeEngine.getName();
+                String engineName = "";
                 if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE || model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
-                    engineName += " ("+model.activeEngine.getUciElo()+")";
+                    if(model.activeEngine!=null) {
+                        engineName = model.activeEngine.getName();
+                        engineName += " (" + model.activeEngine.getUciElo() + ")";
+                    }
                 }
                 String s = info.substring(5, info.length()).replace("ENGINE_ID", engineName);
                 // we only set text on this widget if there is really

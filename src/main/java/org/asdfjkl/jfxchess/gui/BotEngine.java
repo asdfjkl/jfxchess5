@@ -39,6 +39,11 @@ public class BotEngine extends Engine {
         return elo;
     }
 
+    @Override
+    public int getUciElo() {
+        return Integer.parseInt(elo);
+    }
+
     public String getBio() {
         return bio;
     }

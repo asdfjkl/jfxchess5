@@ -76,7 +76,6 @@ public class Controller_Engine implements PropertyChangeListener {
         engineThread = new EngineThread(cmdQueue);
         engineThread.addPropertyChangeListener(this);
         engineThread.start();
-        System.out.println("engine Thread started");
     }
 
     public void sendCommand(String cmd) {
