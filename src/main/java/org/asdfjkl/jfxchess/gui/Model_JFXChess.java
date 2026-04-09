@@ -61,7 +61,6 @@ public class Model_JFXChess {
     private boolean flipBoard = false;
     private boolean humanPlayerColor = CONSTANTS.WHITE;
     public boolean wasSaved = false;
-    private int engineStrength = 2400;
     private int engineThinkTimeSecs = 3;
 
     ArrayList<Engine> engines = new ArrayList<>();
@@ -318,10 +317,6 @@ public class Model_JFXChess {
     public int getComputerThinkTimeSecs() {
         return engineThinkTimeSecs;
     }
-
-    public int getEngineStrength() { return engineStrength; }
-
-    public void setEngineStrength(int strength) { engineStrength = strength; }
 
     public int getMode() {
         return currentMode;

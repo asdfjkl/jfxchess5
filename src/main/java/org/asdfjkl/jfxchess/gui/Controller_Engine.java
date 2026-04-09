@@ -163,7 +163,9 @@ public class Controller_Engine implements PropertyChangeListener {
                     currentMultiPv++;
                     model.setMultiPv(currentMultiPv);
                     sendCommand("stop");
+                    sendCommand("isready");
                     sendCommand("setoption name MultiPV value " + currentMultiPv);
+                    sendCommand("isready");
                     sendCommand("go infinite");
                 }
             }
