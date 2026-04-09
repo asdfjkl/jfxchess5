@@ -155,25 +155,33 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public ActionListener incMultiPV() {
         return e -> {
-            int currentMultiPv = model.getMultiPv();
-            if (currentMultiPv < model.activeEngine.getMaxMultiPV() &&
-                    currentMultiPv < Model_JFXChess.MAX_PV) {
-                currentMultiPv++;
-                model.setMultiPv(currentMultiPv);
-                sendCommand("stop");
-                sendCommand("setoption name MultiPV value " + currentMultiPv);
-                sendCommand("go infinite");
+            // we allow changing pv only in analysis mode, otherwise ignore
+            if(model.getMode() == Model_JFXChess.MODE_ANALYSIS) {
+                int currentMultiPv = model.getMultiPv();
+                if (currentMultiPv < model.activeEngine.getMaxMultiPV() &&
+                        currentMultiPv < Model_JFXChess.MAX_PV) {
+                    currentMultiPv++;
+                    model.setMultiPv(currentMultiPv);
+                    sendCommand("stop");
+                    sendCommand("setoption name MultiPV value " + currentMultiPv);
+                    sendCommand("go infinite");
+                }
             }
         };
     }
 
     public ActionListener decMultiPV() {
         return e -> {
-            int currentMultiPv = model.getMultiPv();
-            if (currentMultiPv > 1) {
-                currentMultiPv--;
-                model.setMultiPv(currentMultiPv);
-                sendCommand("setoption name MultiPV value " + currentMultiPv);
+            // we allow changing pv only in analysis mode, otherwise ignore
+            if(model.getMode() == Model_JFXChess.MODE_ANALYSIS) {
+                int currentMultiPv = model.getMultiPv();
+                if (currentMultiPv > 1) {
+                    currentMultiPv--;
+                    model.setMultiPv(currentMultiPv);
+                    sendCommand("stop");
+                    sendCommand("setoption name MultiPV value " + currentMultiPv);
+                    sendCommand("go infinite");
+                }
             }
         };
     }
