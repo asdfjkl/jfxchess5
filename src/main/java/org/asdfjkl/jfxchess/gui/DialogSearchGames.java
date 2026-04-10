@@ -50,7 +50,7 @@ public class DialogSearchGames extends JDialog {
 
     public DialogSearchGames(Window parent, SearchPattern pattern) {
         super(parent, "Search Games", ModalityType.APPLICATION_MODAL);
-        setSize(430, 380);
+        setSize(430, 400);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());

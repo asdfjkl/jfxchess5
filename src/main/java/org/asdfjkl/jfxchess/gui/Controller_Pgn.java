@@ -214,10 +214,11 @@ public class Controller_Pgn {
                     newEntry.setBlack(g.getHeader("Black"));
                     newEntry.setDate(g.getHeader("Date"));
                     newEntry.setEvent(g.getHeader("Event"));
-                    newEntry.setEco(g.getHeader("Eco"));
                     newEntry.setResult(g.getHeader("Result"));
                     newEntry.setRound(g.getHeader("Round"));
                     newEntry.setSite(g.getHeader("Site"));
+                    newEntry.setSite(g.getHeader("WhiteElo"));
+                    newEntry.setSite(g.getHeader("BlackElo"));
                     ArrayList<PgnGameInfo> newEntries = new ArrayList<>();
                     newEntries.add(newEntry);
                     model.setPgnDatabase(newEntries);

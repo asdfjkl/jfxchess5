@@ -113,6 +113,14 @@ public class PgnReader {
                                 current.setEco(valueEncoded);
                                 current.markValid();
                             }
+                            if (tag.equals("WhiteElo")) {
+                                current.setWhiteElo(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("BlackElo")) {
+                                current.setBlackElo(valueEncoded);
+                                current.markValid();
+                            }
                         }
                     }
                     continue;

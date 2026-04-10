@@ -59,6 +59,7 @@ public class DialogDatabase extends JDialog {
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setFillsViewportHeight(true);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -94,6 +95,16 @@ public class DialogDatabase extends JDialog {
             isConfirmed = true;
             dispose();
         });
+        // make sure, open is disabled if no entry in table is selected
+        btnOpen.setEnabled(false);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            // Avoid double events while adjusting
+            if (!e.getValueIsAdjusting()) {
+                boolean rowSelected = table.getSelectedRow() != -1;
+                btnOpen.setEnabled(rowSelected);
+            }
+        });
+
         btnDelete.addActionListener(e -> { deleteSelectedGame(); });
         btnReset.addActionListener(e -> { resetSearch(); });
         btnSearch.addActionListener(e -> { onBtnSearch(); });
@@ -103,13 +114,13 @@ public class DialogDatabase extends JDialog {
     private static class GameTableModel extends AbstractTableModel {
 
         private final String[] columns = {
-                "No", "White", "Black", "Event", "Date", "Result"
+                "No", "White", "Elo", "Black", "Elo", "Result", "Event", "Date"
         };
 
         private List<PgnGameInfo> games;
 
         public GameTableModel(List<PgnGameInfo> games) {
-            this.games = games; // NO COPY -> fast init
+            this.games = games;
         }
 
         @Override
@@ -134,10 +145,12 @@ public class DialogDatabase extends JDialog {
             switch (col) {
                 case 0: return row + 1;
                 case 1: return g.getWhite();
-                case 2: return g.getBlack();
-                case 3: return g.getEvent();
-                case 4: return g.getDate();
+                case 2: return g.getWhiteElo();
+                case 3: return g.getBlack();
+                case 4: return g.getBlackElo();
                 case 5: return g.getResult();
+                case 6: return g.getEvent();
+                case 7: return g.getDate();
                 default: return "";
             }
         }
