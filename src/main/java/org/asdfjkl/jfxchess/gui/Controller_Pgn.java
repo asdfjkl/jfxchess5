@@ -96,6 +96,7 @@ public class Controller_Pgn {
                 raf = new OptimizedRandomAccessFile(pgnFilename, "r");
                 Game g = reader.readGame(raf);
                 model.setGame(g);
+                model.setIndexOfCurrentGameInPgn(0);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -112,6 +113,7 @@ public class Controller_Pgn {
                     raf.seek(gameInfo.getOffset());
                     Game g = reader.readGame(raf);
                     model.setGame(g);
+                    model.setIndexOfCurrentGameInPgn(dlgDatabase.getIndexOfSelectedGame());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -141,6 +143,7 @@ public class Controller_Pgn {
             }
             long offset1 = -1;
             int gameIdxCurrent = model.getIndexOfCurrentGameInPgn();
+            System.out.println("game index: " + gameIdxCurrent);
             if(gameIdxCurrent >= 0 && gameIdxCurrent < model.getPgnDatabase().size()) {
                 offset1 = model.getPgnDatabase().get(gameIdxCurrent).getOffset();
                 replaceAllowed = true;
@@ -209,7 +212,6 @@ public class Controller_Pgn {
                     model.setIndexOfCurrentGameInPgn(0);
                     PgnGameInfo newEntry = new PgnGameInfo();
                     newEntry.setOffset(0);
-                    newEntry.setIndex(0);
                     newEntry.setWhite(g.getHeader("White"));
                     newEntry.setBlack(g.getHeader("Black"));
                     newEntry.setDate(g.getHeader("Date"));
@@ -325,7 +327,6 @@ public class Controller_Pgn {
             newEntry.setResult(g.getHeader("Result"));
             newEntry.setRound(g.getHeader("Round"));
             newEntry.setSite(g.getHeader("Site"));
-            newEntry.setIndex(model.getPgnDatabase().size()+1);
             model.getPgnDatabase().add(newEntry);
             model.setIndexOfCurrentGameInPgn(model.getPgnDatabase().size()-1);
         } catch(IOException e) {

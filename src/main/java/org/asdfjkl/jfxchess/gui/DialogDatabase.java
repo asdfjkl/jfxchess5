@@ -190,6 +190,14 @@ public class DialogDatabase extends JDialog {
         return tableModel.getGameAt(modelRow);
     }
 
+    public int getIndexOfSelectedGame() {
+        int row = table.getSelectedRow();
+        if (row < 0) return -1;
+
+        // convert if sorting is active
+        return table.convertRowIndexToModel(row);
+    }
+
     public void deleteSelectedGame() {
         int row = table.getSelectedRow();
         if (row < 0) return;

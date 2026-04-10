@@ -132,7 +132,7 @@ public class PgnReader {
 
                 if (game_pos != -1) {
                     current.setOffset(game_pos);
-                    current.setIndex(newEntries.size()+1);
+                    //current.setIndex(newEntries.size()+1);
                     gamesRead += 1;
                     if(gamesRead > 10000) {
                         if (progressListener != null && fileSize > 0) {

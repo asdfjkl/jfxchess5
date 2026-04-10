@@ -114,9 +114,9 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
             String info = model.getCurrentEngineInfo();
             if (info != null && info.length() > 5) {
                 String engineName = "";
-                if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE || model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
-                    if(model.activeEngine!=null) {
-                        engineName = model.activeEngine.getName();
+                if(model.activeEngine!=null) {
+                    engineName = model.activeEngine.getName();
+                    if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE || model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
                         engineName += " (" + model.activeEngine.getUciElo() + ")";
                     }
                 }

@@ -3,7 +3,6 @@ package org.asdfjkl.jfxchess.lib;
 public class PgnGameInfo {
 
     private long offset = 0;
-    private long index = 0;
     private String event = "";
     private String site = "";
     private String date = "";
@@ -25,14 +24,6 @@ public class PgnGameInfo {
 
     public void setOffset(long offset) {
         this.offset = offset;
-    }
-
-    public long getIndex() {
-        return index;
-    }
-
-    public void setIndex(long index) {
-        this.index = index;
     }
 
     public String getEvent() {
