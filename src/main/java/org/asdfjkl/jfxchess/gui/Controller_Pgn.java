@@ -99,6 +99,14 @@ public class Controller_Pgn {
                 model.setIndexOfCurrentGameInPgn(0);
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                if (raf != null) {
+                    try {
+                        raf.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
         if(model.getPgnDatabase().size() > 1) {
@@ -116,6 +124,14 @@ public class Controller_Pgn {
                     model.setIndexOfCurrentGameInPgn(dlgDatabase.getIndexOfSelectedGame());
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    if (raf != null) {
+                        try {
+                            raf.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }
