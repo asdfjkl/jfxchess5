@@ -832,8 +832,9 @@ public class Controller_Engine implements PropertyChangeListener {
                     System.out.println("insufficient material");
                 }
                 abort = true;
-            }
-            if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {
+            //} always display a result message, also if engines are playing against each other
+            //    todo: ensure that result is updated in pgn tag info as well as in moves view
+            //if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {
                 String message = "";
                 if (isCheckmate) {
                     message = "Checkmate";
