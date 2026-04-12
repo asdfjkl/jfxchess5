@@ -374,6 +374,7 @@ public class Model_JFXChess {
         // after applying a move, we block the GUI
         // when we are playing against the computer
         boolean treeWasChanged = getGame().applyMove(m);
+        System.out.println("model apply move: tree was changed: "+treeWasChanged);
         if(treeWasChanged) {
             pcs.firePropertyChange("treeChanged", null, null);
         }

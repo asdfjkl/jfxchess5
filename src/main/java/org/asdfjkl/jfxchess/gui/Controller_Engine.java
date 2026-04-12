@@ -208,6 +208,7 @@ public class Controller_Engine implements PropertyChangeListener {
     }
 
     public void activateEnterMovesMode() {
+        System.out.println("activating Enter moves mode");
         stopEngine();
         model.activeEngine = model.selectedAnalysisEngine;
         if (model.activeEngine.supportsUciLimitStrength()) {
@@ -260,6 +261,7 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public void handleNewBoardPositionModePlayout() {
 
+        System.out.println("handleNewBoardPositionModePlayout, sending uci GoMoveTime");
         String fen = model.getGame().getUciPositionString();
         sendNewPosition(fen);
         uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
@@ -414,6 +416,7 @@ public class Controller_Engine implements PropertyChangeListener {
         restartEngine(model.activeEngine);
         model.setFlipBoard(false);
         model.setMode(Model_JFXChess.MODE_PLAYOUT_POSITION);
+        handleNewBoardPositionModePlayout();
     }
 
     public void activateGameAnalysisMode() {
@@ -578,7 +581,7 @@ public class Controller_Engine implements PropertyChangeListener {
                 mode == Model_JFXChess.MODE_PLAY_BLACK  ||
                 mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
 
-            //System.out.println("bestmove, play mode: "+bestmove);
+            System.out.println("bestmove, play mode: "+bestmove);
 
             // todo: catch Exceptions!
             String uci = bestmoveItems[1].split(" ")[0];
@@ -594,6 +597,10 @@ public class Controller_Engine implements PropertyChangeListener {
                 if(mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
                     model.applyMove(m);
                 }
+            } else {
+                System.out.println("illegal move: "+m.getUci());
+                System.out.println("at position: "+b.toString());
+                System.out.println("at position: "+b.fen());
             }
         }
 
@@ -811,6 +818,19 @@ public class Controller_Engine implements PropertyChangeListener {
 
         if ((isCheckmate || isStalemate || isThreefoldRepetition || isInsufficientMaterial)) {
             if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK || mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
+                System.out.println("aborting due to:");
+                if(isCheckmate) {
+                    System.out.println("checkmate?!");
+                }
+                if(isStalemate) {
+                    System.out.println("stalemate?!");
+                }
+                if(isThreefoldRepetition) {
+                    System.out.println("threefold repetition");
+                }
+                if(isInsufficientMaterial) {
+                    System.out.println("insufficient material");
+                }
                 abort = true;
             }
             if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {

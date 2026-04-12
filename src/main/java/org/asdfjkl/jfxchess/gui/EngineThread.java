@@ -91,6 +91,7 @@ public class EngineThread extends Thread {
                 return;
             }
             engineInput.write(cmd + "\n");
+            System.out.println(">>> "+cmd);
             engineInput.flush();
             //System.out.println(">>> "+cmd);
         } catch (IOException e) {
