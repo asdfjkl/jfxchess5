@@ -34,16 +34,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Controller_Engine implements PropertyChangeListener {
 
     private final Model_JFXChess model;
     final EngineThread engineThread;
-    final BlockingQueue<String> cmdQueue = new LinkedBlockingQueue<String>();
-    private boolean inGoInfinite = false;
+    final BlockingQueue<String> cmdQueue = new LinkedBlockingQueue<>();
     Engine currentEngine = null;
-    private String playInfo =
+    private final String playInfo =
             "INFO <table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
                     "  <tr>" +
                     "    <td>" +
@@ -72,18 +70,12 @@ public class Controller_Engine implements PropertyChangeListener {
         this.model = model;
         model.addListener(this);
 
-        final AtomicReference<String> count = new AtomicReference<>();
         engineThread = new EngineThread(cmdQueue);
         engineThread.addPropertyChangeListener(this);
         engineThread.start();
     }
 
     public void sendCommand(String cmd) {
-        if (cmd.equals("go infinite")) {
-            inGoInfinite = true;
-        } else {
-            inGoInfinite = false;
-        }
         try {
             cmdQueue.put(cmd);
         } catch (InterruptedException e) {
@@ -144,12 +136,6 @@ public class Controller_Engine implements PropertyChangeListener {
         }
         // in case the engine hasn't been started yet:
         engineThread.engineInfoSetPVLines(n);
-    }
-
-    public void setNrThreads(int n) {
-        if (currentEngine != null && currentEngine.supportsMultiThread()) {
-            sendCommand("setoption name Threads value " + n);
-        }
     }
 
     public ActionListener incMultiPV() {
@@ -474,6 +460,12 @@ public class Controller_Engine implements PropertyChangeListener {
         };
     }
 
+    public ActionListener startPlayoutPositionMode() {
+        return e -> {
+            activatePlayoutPositionMode();
+        };
+    }
+
 
     public void handleNewBoardPositionModePlay() {
 
@@ -682,7 +674,7 @@ public class Controller_Engine implements PropertyChangeListener {
                         decim.applyPattern("0.00");
                         String sChildBest = decim.format(model.childBestEval / 100.0);
 
-                        String sCurrentBest = "";
+                        String sCurrentBest;
                         if (turn == CONSTANTS.WHITE) {
                             sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
                         } else {
@@ -708,7 +700,7 @@ public class Controller_Engine implements PropertyChangeListener {
                         decim.applyPattern("0.00");
                         String sCurrentBest = decim.format(model.currentBestEval / 100.0);
 
-                        String sChildBest = "";
+                        String sChildBest;
                         if (turn == CONSTANTS.WHITE) {
                             sChildBest = "#-" + (Math.abs(model.childMateInMoves));
                         } else {
@@ -733,8 +725,8 @@ public class Controller_Engine implements PropertyChangeListener {
                             String[] pvMoves = model.currentBestPv.split(" ");
                             addBestPv(pvMoves);
 
-                            String sCurrentBest = "";
-                            String sChildBest = "";
+                            String sCurrentBest;
+                            String sChildBest;
                             if (turn == CONSTANTS.WHITE) {
                                 sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
                                 sChildBest = "#-" + (Math.abs(model.childMateInMoves));

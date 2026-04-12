@@ -693,7 +693,6 @@ public class Model_JFXChess {
             String pgn = prefs.get("currentGame", "");
             if(!pgn.isEmpty()) {
                 Game g = reader.readGame(pgn);
-                PgnPrinter p = new PgnPrinter();
                 if (g.getRootNode().getBoard().isConsistent()) {
                     setGame(g);
                     g.setTreeWasChanged(true);
@@ -781,4 +780,5 @@ public class Model_JFXChess {
     public void setNrThreads(int newNrThreads) {
         activeEngine.setThreads(newNrThreads);
     }
+
 }

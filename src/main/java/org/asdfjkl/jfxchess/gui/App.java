@@ -23,8 +23,6 @@ import java.awt.*;
 
 public class App {
 
-    private static JFrame frame;
-
     public static void main(String[] args) {
 
         // set to false, for platform independent jar

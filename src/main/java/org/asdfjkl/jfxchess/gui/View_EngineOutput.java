@@ -23,20 +23,15 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 
 public class View_EngineOutput extends JEditorPane implements PropertyChangeListener {
 
     Model_JFXChess model;
-    private final ArrayList<String> pvLines = new ArrayList<>();
 
     String cachedInfo = "";
 
     public  View_EngineOutput(Model_JFXChess model) {
         this.model = model;
-
-        // add empty engine line
-        pvLines.add("");
 
         // set up formatting
         HTMLEditorKit kit = new HTMLEditorKit();

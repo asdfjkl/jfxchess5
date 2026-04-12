@@ -308,39 +308,6 @@ public class View_SetupPosition extends JPanel {
         innerXOffset = (xOffset + borderMargin);
         innerYOffset = (outerMargin + borderMargin);
 
-
-        //double height = this.getHeight();
-        //double width = this.getWidth();
-
-        //int squareWidth =
-
-
-        /*
-        // size of real board incl. corner
-        double height = this.getHeight();
-        double width = this.getWidth();
-        double minWidthHeight = Math.min(height, width);
-
-        // spare 2 percent left and right
-        int outerMargin = (int) (minWidthHeight * 0.05);
-        int boardSize = (int) (minWidthHeight - (2*outerMargin));
-
-        int xOffset = outerMargin;
-
-        int borderMargin = 18;
-
-        int squareSize = ((boardSize - (2* borderMargin)) / 8);
-
-        if(width > height) {
-            int widthBoardincPieceSel = (((boardSize - (4* borderMargin)) / 8))*12;
-            int surplus = (int) (widthBoardincPieceSel - height);
-            xOffset += (surplus/2)+1;
-        }
-
-        int innerXOffset = (xOffset + borderMargin);
-        int innerYOffset = (outerMargin + borderMargin);
-        */
-
         // paint board inc. margin with letters & numbers
         g2.setColor(model.getBoardStyle().getBorderColor());
         g2.fillRect(xOffset, outerMargin, (squareSize*8)+(borderMargin*2), (squareSize*8)+(borderMargin*2));

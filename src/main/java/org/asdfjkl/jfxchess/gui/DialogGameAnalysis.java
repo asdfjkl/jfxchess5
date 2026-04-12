@@ -25,12 +25,12 @@ import java.awt.*;
 
 public class DialogGameAnalysis extends JDialog {
 
-    private JSpinner secPerMoveSpinner;
-    private JSpinner thresholdSpinner;
+    private final JSpinner secPerMoveSpinner;
+    private final JSpinner thresholdSpinner;
 
-    private JRadioButton bothBtn;
-    private JRadioButton whiteBtn;
-    private JRadioButton blackBtn;
+    private final JRadioButton bothBtn;
+    private final JRadioButton whiteBtn;
+    private final JRadioButton blackBtn;
 
     private boolean confirmed = false;
 
@@ -64,7 +64,7 @@ public class DialogGameAnalysis extends JDialog {
         gbc.weightx = 1;
         main.add(thresholdSpinner, gbc);
 
-        // Row 3: Analyse Players (spans both columns)
+        // Row 3: Analyze Players (spans both columns)
         bothBtn = new JRadioButton("Both", true);
         whiteBtn = new JRadioButton("White");
         blackBtn = new JRadioButton("Black");

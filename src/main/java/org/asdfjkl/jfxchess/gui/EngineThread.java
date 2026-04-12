@@ -37,7 +37,6 @@ public class EngineThread extends Thread {
     Process engineProcess;
     BufferedReader engineOutput;
     BufferedWriter engineInput;
-    private volatile boolean running = true;
     private long lastInfoUpdate = 0;
     private long lastBestmoveUpdate = 0;
 
@@ -239,7 +238,7 @@ public class EngineThread extends Thread {
                 // The commands uci, quit, setoption and isready are
                 // treated in special ways. We are not expecting any
                 // other commands from the engine controller until isready
-                // has been sent at least once and we have received readyok
+                // has been sent at least once, and we have received readyok
                 // from the engine.
                 if (!cmdQueue.isEmpty()) {
                     // The problem of sending stop first if we are in "go infinite"-mode

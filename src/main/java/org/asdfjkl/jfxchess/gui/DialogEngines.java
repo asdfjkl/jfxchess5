@@ -155,7 +155,7 @@ public class DialogEngines extends JDialog {
         dlg.setVisible(true);
         if(dlg.isConfirmed()) {
             selectedEngine.options = dlg.getOptions();
-        };
+        }
     }
 
     private void resetParameters() {
@@ -163,7 +163,7 @@ public class DialogEngines extends JDialog {
         for(EngineOption enOpt : selectedEngine.options) {
             enOpt.resetToDefault();
         }
-    };
+    }
 
     private void removeEngine() {
         Engine selectedEngine = engineList.getSelectedValue();

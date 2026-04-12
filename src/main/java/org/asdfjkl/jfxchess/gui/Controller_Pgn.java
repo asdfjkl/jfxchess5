@@ -289,7 +289,7 @@ public class Controller_Pgn {
                         writer.write(0xa); // 0xa = LF = \n
                         writer.close();
                     } catch(IOException e) {
-                        System.err.println(e);
+                        e.printStackTrace();
                     } finally {
                         if(writer != null) {
                             try {
@@ -346,13 +346,13 @@ public class Controller_Pgn {
             model.getPgnDatabase().add(newEntry);
             model.setIndexOfCurrentGameInPgn(model.getPgnDatabase().size()-1);
         } catch(IOException e) {
-            System.err.println(e);
+            e.printStackTrace();
         } finally {
             if(writer != null) {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    System.err.println(e);
+                    e.printStackTrace();
                 }
             }
         }

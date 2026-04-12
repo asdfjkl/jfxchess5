@@ -56,6 +56,7 @@ public class DialogDatabase extends JDialog {
         setLayout(new BorderLayout());
 
         // ===== TABLE =====
+        // ===== TABLE =====
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(false);
         table.setFillsViewportHeight(true);
@@ -117,9 +118,9 @@ public class DialogDatabase extends JDialog {
                 "No", "White", "Elo", "Black", "Elo", "Result", "Event", "Date"
         };
 
-        private List<PgnGameInfo> games;
+        private ArrayList<PgnGameInfo> games;
 
-        public GameTableModel(List<PgnGameInfo> games) {
+        public GameTableModel(ArrayList<PgnGameInfo> games) {
             this.games = games;
         }
 
@@ -253,4 +254,5 @@ public class DialogDatabase extends JDialog {
     public boolean isConfirmed() {
         return isConfirmed;
     }
+
 }
