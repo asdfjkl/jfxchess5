@@ -68,6 +68,8 @@ public class View_MainFrame extends JFrame
     KeyStroke moveBackKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
     KeyStroke seekFirstKey = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
     KeyStroke seekEndKey = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+    KeyStroke turnEngineOnKey = KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK);
+    KeyStroke turnEngineOffKey = KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK);
 
     Map<KeyStroke, ActionListener> shortcuts = new HashMap<>();
 
@@ -89,8 +91,12 @@ public class View_MainFrame extends JFrame
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(e -> {
 
-                    if (e.getID() != KeyEvent.KEY_PRESSED)
+                    if (!model.getShortcutsEnabled()) {
                         return false;
+                    }
+                    if (e.getID() != KeyEvent.KEY_PRESSED) {
+                        return false;
+                    }
                     KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
                     ActionListener a = shortcuts.get(ks);
                     if (a != null) {
@@ -212,17 +218,23 @@ public class View_MainFrame extends JFrame
 
         JMenuItem jmiStartEngine = new JMenuItem("Start Engine");
         jmiStartEngine.addActionListener(controller_Engine.startAnalysisMode());
+        jmiStartEngine.setAccelerator(turnEngineOnKey);
         modeMenu.add(jmiStartEngine);
         JMenuItem jmiStopEngine = new JMenuItem("Stop Engine");
         jmiStopEngine.addActionListener(controller_Engine.startEnterMovesMode());
+        jmiStopEngine.setAccelerator(turnEngineOffKey);
         modeMenu.add(jmiStopEngine);
         JMenuItem jmiFullGameAnalysis = new JMenuItem("Full Game Analysis");
         jmiFullGameAnalysis.addActionListener(controller_Engine.startGameAnalysisMode());
         modeMenu.add(jmiFullGameAnalysis);
+        JMenuItem jmiPlayoutPosition = new JMenuItem("Playout Position");
+        jmiPlayoutPosition.addActionListener(controller_Engine.startPlayoutPositionMode());
+        modeMenu.add(jmiPlayoutPosition);
+
         modeMenu.addSeparator();
 
         JMenuItem jmiEngines = new JMenuItem("Engine Settings");
-        jmiEngines.addActionListener(controller_Engine.editEngines());;
+        jmiEngines.addActionListener(controller_Engine.editEngines());
         modeMenu.add(jmiEngines);
         JMenuItem jmiSelectBook = new JMenuItem("Select Book");
         modeMenu.add(jmiSelectBook);
@@ -477,8 +489,8 @@ public class View_MainFrame extends JFrame
 
         // ===== Multiline Label =====
         lblGameHeader = new JLabel(
-                "<html><div style='text-align:center;'>Kasparov, Garry - Karpov, Anatoly<br>" +
-                        "Linares, 01.12.1987</div></html>"
+                "<html><div style='text-align:center;'>N., N. - N., N.<br>" +
+                        "Somewhere, 01.01.1900</div></html>"
         );
 
         lblGameHeader.setHorizontalAlignment(SwingConstants.CENTER);
@@ -507,20 +519,6 @@ public class View_MainFrame extends JFrame
         view_Moves = new View_Moves(model, controller_UI, controller_Board);
         scrollMoves = new JScrollPane(view_Moves);
 
-        // Assuming you already have data for the book
-        // temp
-        ArrayList<PolyglotExtEntry> bookData = new ArrayList<>();
-
-        PolyglotExtEntry e1 = new PolyglotExtEntry();
-        e1.setMove("e2e4");
-        e1.setPosCount(1200);
-        e1.setWins(55);
-        e1.setDraws(25);
-        e1.setLosses(20);
-        e1.setAvgELO(2400);
-
-        bookData.add(e1);
-        // temp end
         View_Book view_Book = new View_Book(model, controller_Board);
         JScrollPane scrollBook = new JScrollPane(view_Book);
         model.addListener(view_Book);
@@ -787,6 +785,14 @@ public class View_MainFrame extends JFrame
         shortcuts.put(
                 flipKey,
                 controller_UI.flipBoard()
+        );
+        shortcuts.put(
+                turnEngineOnKey,
+                controller_Engine.startAnalysisMode()
+        );
+        shortcuts.put(
+                turnEngineOffKey,
+                controller_Engine.startEnterMovesMode()
         );
     }
 

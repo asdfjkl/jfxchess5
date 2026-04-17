@@ -175,16 +175,16 @@ public class Move {
             uci += colTo;
             uci += rowTo;
             if (this.promotionPiece == CONSTANTS.KNIGHT) {
-                uci += "N";
+                uci += "n";
             }
             if (this.promotionPiece == CONSTANTS.ROOK) {
-                uci += "R";
+                uci += "r";
             }
             if (this.promotionPiece == CONSTANTS.QUEEN) {
-                uci += "Q";
+                uci += "q";
             }
             if (this.promotionPiece == CONSTANTS.BISHOP) {
-                uci += "B";
+                uci += "b";
             }
             return uci;
         }

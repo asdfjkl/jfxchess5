@@ -26,9 +26,6 @@ public class SearchPattern {
     public static final int SEARCH_BOTH_ELO = 2;
     public static final int SEARCH_AVG_ELO = 3;
 
-    private boolean searchForHeader = true;
-    private boolean searchForPosition = false;
-
     private String whiteName = "";
     private String blackName = "";
     private boolean ignoreNameColor = false;
@@ -48,14 +45,6 @@ public class SearchPattern {
     private boolean resultDraw = true;
     private boolean resultWhiteWins = true;
     private boolean resultBlackWins = true;
-
-    public void setSearchForHeader(boolean searchForHeader) {
-        this.searchForHeader = searchForHeader;
-    }
-
-    public void setSearchForPosition(boolean searchForPosition) {
-        this.searchForPosition = searchForPosition;
-    }
 
     public void setWhiteName(String whiteName) {
         this.whiteName = whiteName;
@@ -115,10 +104,6 @@ public class SearchPattern {
 
     public void setResultBlackWins(boolean resultBlackWins) {
         this.resultBlackWins = resultBlackWins;
-    }
-
-    public boolean isSearchForHeader() {
-        return searchForHeader;
     }
 
     public String getWhiteName() {
@@ -185,9 +170,6 @@ public class SearchPattern {
 
         SearchPattern copy = new SearchPattern();
 
-        copy.searchForHeader = searchForHeader;
-        copy.searchForPosition = searchForPosition;
-
         copy.whiteName = whiteName;
         copy.blackName = blackName;
         copy.ignoreNameColor = ignoreNameColor;
@@ -234,7 +216,7 @@ public class SearchPattern {
             } catch (NumberFormatException e) {
             }
         }
-        if(year != -1) {
+        if(year > 0) {
             if(year < minYear || year > maxYear) {
                 return false;
             }
@@ -285,6 +267,63 @@ public class SearchPattern {
         }
         if(!resultUndef && pgnGameInfo.getResult().equals("*")) {
             return false;
+        }
+
+        int whiteElo;
+        int blackElo;
+        try {
+            whiteElo = Integer.parseInt(pgnGameInfo.getWhiteElo());
+        } catch (NumberFormatException e) {
+            whiteElo = -1;
+        }
+        try {
+            blackElo = Integer.parseInt(pgnGameInfo.getBlackElo());
+        } catch (NumberFormatException e) {
+            blackElo = -1;
+        }
+        if(checkElo == SEARCH_ONE_ELO) {
+            boolean matchesEloCondition = false;
+            if(whiteElo > 0 && whiteElo > minElo && whiteElo < maxElo) {
+                matchesEloCondition = true;
+            }
+            if(blackElo > 0 && blackElo > minElo && blackElo < maxElo) {
+                matchesEloCondition = true;
+            }
+            if(!matchesEloCondition) {
+                return false;
+            }
+        }
+        if(checkElo == SEARCH_BOTH_ELO) {
+            boolean matchesWhiteEloCondition = false;
+            boolean matchesBlackEloCondition = false;
+            if(whiteElo > 0 && whiteElo > minElo && whiteElo < maxElo) {
+                matchesWhiteEloCondition = true;
+            }
+            if(blackElo > 0 && blackElo > minElo && blackElo < maxElo) {
+                matchesBlackEloCondition = true;
+            }
+            if(!(matchesWhiteEloCondition && matchesBlackEloCondition)) {
+                return false;
+            }
+        }
+        if(checkElo == SEARCH_AVG_ELO) {
+            boolean matchesAverageEloCondition = false;
+            int avgElo = -1;
+            if(whiteElo > 0 && blackElo <= 0) {
+                avgElo = whiteElo;
+            }
+            if(whiteElo <= 0 && blackElo > 0) {
+                avgElo = blackElo;
+            }
+            if(whiteElo > 0 && blackElo > 0) {
+                avgElo = (whiteElo + blackElo)/ 2;
+            }
+            if(avgElo > minElo && avgElo < maxElo) {
+                matchesAverageEloCondition = true;
+            }
+            if(!matchesAverageEloCondition) {
+                return false;
+            }
         }
         return true;
     }

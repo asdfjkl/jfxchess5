@@ -36,13 +36,6 @@ public class Engine implements Comparator<Engine>{
         return name;
     }
 
-    public String getNameWithElo() {
-        if(supportsUciLimitStrength() && getUciLimitStrength()) {
-            return name + " (Elo " + getUciElo() + ")";
-        } else {
-            return name;
-        }
-    }
     public void setName(String name) { this.name = name; }
 
     public String getPath() { return path; }

@@ -186,7 +186,6 @@ public class DialogPlayBot extends JDialog {
 
         cancel.addActionListener(e -> dispose());
         ok.addActionListener(e -> {
-            System.out.println("Selected: " + botList.getSelectedValue());
             dispose();
         });
 

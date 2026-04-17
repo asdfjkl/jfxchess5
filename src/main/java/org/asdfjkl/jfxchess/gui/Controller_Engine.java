@@ -34,16 +34,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Controller_Engine implements PropertyChangeListener {
 
     private final Model_JFXChess model;
     final EngineThread engineThread;
-    final BlockingQueue<String> cmdQueue = new LinkedBlockingQueue<String>();
-    private boolean inGoInfinite = false;
+    final BlockingQueue<String> cmdQueue = new LinkedBlockingQueue<>();
     Engine currentEngine = null;
-    private String playInfo =
+    private final String playInfo =
             "INFO <table border=\"0\" cellspacing=\"0\" cellpadding=\"4\" width=\"100%\">" +
                     "  <tr>" +
                     "    <td>" +
@@ -72,18 +70,12 @@ public class Controller_Engine implements PropertyChangeListener {
         this.model = model;
         model.addListener(this);
 
-        final AtomicReference<String> count = new AtomicReference<>();
         engineThread = new EngineThread(cmdQueue);
         engineThread.addPropertyChangeListener(this);
         engineThread.start();
     }
 
     public void sendCommand(String cmd) {
-        if (cmd.equals("go infinite")) {
-            inGoInfinite = true;
-        } else {
-            inGoInfinite = false;
-        }
         try {
             cmdQueue.put(cmd);
         } catch (InterruptedException e) {
@@ -146,33 +138,37 @@ public class Controller_Engine implements PropertyChangeListener {
         engineThread.engineInfoSetPVLines(n);
     }
 
-    public void setNrThreads(int n) {
-        if (currentEngine != null && currentEngine.supportsMultiThread()) {
-            sendCommand("setoption name Threads value " + n);
-        }
-    }
-
     public ActionListener incMultiPV() {
         return e -> {
-            int currentMultiPv = model.getMultiPv();
-            if (currentMultiPv < model.activeEngine.getMaxMultiPV() &&
-                    currentMultiPv < Model_JFXChess.MAX_PV) {
-                currentMultiPv++;
-                model.setMultiPv(currentMultiPv);
-                sendCommand("stop");
-                sendCommand("setoption name MultiPV value " + currentMultiPv);
-                sendCommand("go infinite");
+            // we allow changing pv only in analysis mode, otherwise ignore
+            if(model.getMode() == Model_JFXChess.MODE_ANALYSIS) {
+                int currentMultiPv = model.getMultiPv();
+                if (currentMultiPv < model.activeEngine.getMaxMultiPV() &&
+                        currentMultiPv < Model_JFXChess.MAX_PV) {
+                    currentMultiPv++;
+                    model.setMultiPv(currentMultiPv);
+                    sendCommand("stop");
+                    sendCommand("isready");
+                    sendCommand("setoption name MultiPV value " + currentMultiPv);
+                    sendCommand("isready");
+                    sendCommand("go infinite");
+                }
             }
         };
     }
 
     public ActionListener decMultiPV() {
         return e -> {
-            int currentMultiPv = model.getMultiPv();
-            if (currentMultiPv > 1) {
-                currentMultiPv--;
-                model.setMultiPv(currentMultiPv);
-                sendCommand("setoption name MultiPV value " + currentMultiPv);
+            // we allow changing pv only in analysis mode, otherwise ignore
+            if(model.getMode() == Model_JFXChess.MODE_ANALYSIS) {
+                int currentMultiPv = model.getMultiPv();
+                if (currentMultiPv > 1) {
+                    currentMultiPv--;
+                    model.setMultiPv(currentMultiPv);
+                    sendCommand("stop");
+                    sendCommand("setoption name MultiPV value " + currentMultiPv);
+                    sendCommand("go infinite");
+                }
             }
         };
     }
@@ -278,7 +274,7 @@ public class Controller_Engine implements PropertyChangeListener {
             if(result >= 0) {
                 if(result == DialogNewGame.ENTER_ANALYSE) {
                     // clean up current game, but otherwise not much to do
-                    model.setIndexOfCurrentGameInPgn(-1);
+                    model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                     model.setComputerThinkTimeSecs(3);
                     Game g = new Game();
                     Board b = new Board(true);
@@ -292,7 +288,7 @@ public class Controller_Engine implements PropertyChangeListener {
                     dlgPlayBot.setVisible(true);
                     if(dlgPlayBot.isConfirmed()) {
                         model.wasSaved = false;
-                        model.setIndexOfCurrentGameInPgn(-1);
+                        model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                         model.setComputerThinkTimeSecs(3);
                         Game g = new Game();
                         Board b;
@@ -331,7 +327,7 @@ public class Controller_Engine implements PropertyChangeListener {
                     boolean uciAccepted = dlgUci.isConfirmed();
                     if(uciAccepted) {
                         model.wasSaved = false;
-                        model.setIndexOfCurrentGameInPgn(-1);
+                        model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                         model.setComputerThinkTimeSecs(3);
                         Game g = new Game();
                         Board b;
@@ -418,6 +414,7 @@ public class Controller_Engine implements PropertyChangeListener {
         restartEngine(model.activeEngine);
         model.setFlipBoard(false);
         model.setMode(Model_JFXChess.MODE_PLAYOUT_POSITION);
+        handleNewBoardPositionModePlayout();
     }
 
     public void activateGameAnalysisMode() {
@@ -461,6 +458,12 @@ public class Controller_Engine implements PropertyChangeListener {
                 model.setGameAnalysisThreshold(dlg.getThreshold());
                 activateGameAnalysisMode();
             }
+        };
+    }
+
+    public ActionListener startPlayoutPositionMode() {
+        return e -> {
+            activatePlayoutPositionMode();
         };
     }
 
@@ -669,7 +672,7 @@ public class Controller_Engine implements PropertyChangeListener {
                         decim.applyPattern("0.00");
                         String sChildBest = decim.format(model.childBestEval / 100.0);
 
-                        String sCurrentBest = "";
+                        String sCurrentBest;
                         if (turn == CONSTANTS.WHITE) {
                             sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
                         } else {
@@ -695,7 +698,7 @@ public class Controller_Engine implements PropertyChangeListener {
                         decim.applyPattern("0.00");
                         String sCurrentBest = decim.format(model.currentBestEval / 100.0);
 
-                        String sChildBest = "";
+                        String sChildBest;
                         if (turn == CONSTANTS.WHITE) {
                             sChildBest = "#-" + (Math.abs(model.childMateInMoves));
                         } else {
@@ -720,8 +723,8 @@ public class Controller_Engine implements PropertyChangeListener {
                             String[] pvMoves = model.currentBestPv.split(" ");
                             addBestPv(pvMoves);
 
-                            String sCurrentBest = "";
-                            String sChildBest = "";
+                            String sCurrentBest;
+                            String sChildBest;
                             if (turn == CONSTANTS.WHITE) {
                                 sCurrentBest = "#" + (Math.abs(model.currentMateInMoves));
                                 sChildBest = "#-" + (Math.abs(model.childMateInMoves));
@@ -807,8 +810,7 @@ public class Controller_Engine implements PropertyChangeListener {
         if ((isCheckmate || isStalemate || isThreefoldRepetition || isInsufficientMaterial)) {
             if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK || mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
                 abort = true;
-            }
-            if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {
+            // always display a result message, also if engines are playing against each other
                 String message = "";
                 if (isCheckmate) {
                     message = "Checkmate";
@@ -825,9 +827,25 @@ public class Controller_Engine implements PropertyChangeListener {
                 JOptionPane.showMessageDialog(model.mainFrameRef, message);
             }
         }
-
         if(abort) {
             activateEnterMovesMode();
+            if (isCheckmate) {
+                // white to move, but cannot: black checkmated
+                if(board.turn == CONSTANTS.WHITE) {
+                    model.game.setResult(CONSTANTS.RES_BLACK_WINS);
+                } else {
+                    model.game.setResult(CONSTANTS.RES_WHITE_WINS);
+                }
+            }
+            if (isStalemate) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
+            if (isThreefoldRepetition) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
+            if (isInsufficientMaterial) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
         } else {
             if (mode == Model_JFXChess.MODE_ANALYSIS) {
                 handleNewBoardPositionModeAnalysis();
@@ -874,7 +892,8 @@ public class Controller_Engine implements PropertyChangeListener {
             handleNewBoardPosition();
         }
         if (evt.getPropertyName().equals("treeChanged")) {
-            handleNewBoardPosition();
+            // do nothing - we should only react, if the current game
+            // node changed. This is always done, if the tree changes
         }
 
     }

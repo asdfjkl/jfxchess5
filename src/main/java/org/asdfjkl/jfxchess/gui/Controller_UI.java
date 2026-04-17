@@ -471,7 +471,7 @@ public class Controller_UI {
                 String url = "https://asdfjkl.github.io/jfxchess";
                 java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
             } catch (java.io.IOException ex) {
-                System.out.println(ex.getMessage());
+                ex.printStackTrace();
             }
 
         };

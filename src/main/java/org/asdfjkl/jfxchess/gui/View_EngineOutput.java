@@ -23,18 +23,15 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 
 public class View_EngineOutput extends JEditorPane implements PropertyChangeListener {
 
     Model_JFXChess model;
-    private final ArrayList<String> pvLines = new ArrayList<>();
+
+    String cachedInfo = "";
 
     public  View_EngineOutput(Model_JFXChess model) {
         this.model = model;
-
-        // add empty engine line
-        pvLines.add("");
 
         // set up formatting
         HTMLEditorKit kit = new HTMLEditorKit();
@@ -111,8 +108,20 @@ public class View_EngineOutput extends JEditorPane implements PropertyChangeList
         if(evt.getPropertyName().equals("engineInfo")) {
             String info = model.getCurrentEngineInfo();
             if (info != null && info.length() > 5) {
-                String s = info.substring(5, info.length()).replace("ENGINE_ID", model.activeEngine.getName());
-                setText(s);
+                String engineName = "";
+                if(model.activeEngine!=null) {
+                    engineName = model.activeEngine.getName();
+                    if(model.getMode() == Model_JFXChess.MODE_PLAY_WHITE || model.getMode() == Model_JFXChess.MODE_PLAY_BLACK) {
+                        engineName += " (" + model.activeEngine.getUciElo() + ")";
+                    }
+                }
+                String s = info.substring(5, info.length()).replace("ENGINE_ID", engineName);
+                // we only set text on this widget if there is really
+                // an update - in order to avoid flickering
+                if(!s.equals(cachedInfo)) {
+                    cachedInfo = s;
+                    setText(s);
+                }
             }
         }
     }

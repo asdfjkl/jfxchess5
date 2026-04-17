@@ -113,6 +113,14 @@ public class PgnReader {
                                 current.setEco(valueEncoded);
                                 current.markValid();
                             }
+                            if (tag.equals("WhiteElo")) {
+                                current.setWhiteElo(valueEncoded);
+                                current.markValid();
+                            }
+                            if (tag.equals("BlackElo")) {
+                                current.setBlackElo(valueEncoded);
+                                current.markValid();
+                            }
                         }
                     }
                     continue;
@@ -124,7 +132,7 @@ public class PgnReader {
 
                 if (game_pos != -1) {
                     current.setOffset(game_pos);
-                    current.setIndex(newEntries.size()+1);
+                    //current.setIndex(newEntries.size()+1);
                     gamesRead += 1;
                     if(gamesRead > 10000) {
                         if (progressListener != null && fileSize > 0) {

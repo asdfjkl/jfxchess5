@@ -22,9 +22,9 @@ import java.awt.Point;
 import org.asdfjkl.jfxchess.lib.CONSTANTS;
 
 public class GrabbedPiece {
-    public static enum GrabbedFrom {
+    public enum GrabbedFrom {
         Board, PieceSelector
-    };
+    }
 
     private final Point sourceSquare;
     private double currentXLocation;
