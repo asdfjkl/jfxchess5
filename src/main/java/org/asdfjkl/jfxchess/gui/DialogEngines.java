@@ -42,10 +42,8 @@ public class DialogEngines extends JDialog {
         for (Engine e : engines) {
             engineListModel.addElement(e.makeCopy());
         }
-        System.out.println("dlg engines: copy finished");
 
         initUI(idxActiveEngine);
-        System.out.println("dlg engines: init ui finished");
         setSize(300, 350);
         setLocationRelativeTo(parent);
     }
@@ -139,6 +137,10 @@ public class DialogEngines extends JDialog {
         // induced by list selection will trigger the buttons to be disabled
         // for the internal engine
         engineList.setSelectedIndex(idxActiveEngine);
+
+        // for snap: snap's are sandboxed and we can't start external engines
+        // deactivate the "add" button during build
+        //btnAdd.setEnabled(false);
     }
 
     public ArrayList<Engine> getEngines() {

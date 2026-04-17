@@ -86,9 +86,12 @@ public class Controller_Pgn {
 
     private void onScanPgnCompletion(String pgnFilename,
                                      ArrayList<PgnGameInfo> entriesFromWorker) {
-        model.setPgnDatabase(entriesFromWorker);
-        model.setFnPgnDatabase(pgnFilename);
-        if(model.getPgnDatabase().size() == 1) {
+
+        PgnDatabase database = model.getPgnDatabase();
+        database.setEntries(entriesFromWorker);
+        database.setAbsoluteFilename(pgnFilename);
+
+        if(database.getEntries().size() == 1) {
             // read game from file and show, don't display database dialog
             OptimizedRandomAccessFile raf = null;
             PgnReader reader = new PgnReader();
@@ -96,7 +99,7 @@ public class Controller_Pgn {
                 raf = new OptimizedRandomAccessFile(pgnFilename, "r");
                 Game g = reader.readGame(raf);
                 model.setGame(g);
-                model.setIndexOfCurrentGameInPgn(0);
+                database.setIdxOfCurrentlyOpenedGame(0);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -109,7 +112,7 @@ public class Controller_Pgn {
                 }
             }
         }
-        if(model.getPgnDatabase().size() > 1) {
+        if(database.getEntries().size() > 1) {
             DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model,this);
             dlgDatabase.setVisible(true);
             if(dlgDatabase.isConfirmed()) {
@@ -121,7 +124,7 @@ public class Controller_Pgn {
                     raf.seek(gameInfo.getOffset());
                     Game g = reader.readGame(raf);
                     model.setGame(g);
-                    model.setIndexOfCurrentGameInPgn(dlgDatabase.getIndexOfSelectedGame());
+                    database.setIdxOfCurrentlyOpenedGame(dlgDatabase.getIndexOfSelectedGame());
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -148,7 +151,8 @@ public class Controller_Pgn {
             boolean replaceAllowed = false;
             boolean appendToCurrentAllowed = false;
 
-            String fnPgnDatabase = model.getFnPgnDatabase();
+            PgnDatabase database = model.getPgnDatabase();
+            String fnPgnDatabase = database.getAbsoluteFilename();
             long fileSize = 0;
             if(fnPgnDatabase != null) {
                 File f = new File(fnPgnDatabase);
@@ -158,15 +162,14 @@ public class Controller_Pgn {
                 }
             }
             long offset1 = -1;
-            int gameIdxCurrent = model.getIndexOfCurrentGameInPgn();
-            System.out.println("game index: " + gameIdxCurrent);
-            if(gameIdxCurrent >= 0 && gameIdxCurrent < model.getPgnDatabase().size()) {
-                offset1 = model.getPgnDatabase().get(gameIdxCurrent).getOffset();
+            int gameIdxCurrent = database.getIdxOfCurrentlyOpenedGame();
+            if(gameIdxCurrent >= 0 && gameIdxCurrent < database.getEntries().size()) {
+                offset1 = database.getEntries().get(gameIdxCurrent).getOffset();
                 replaceAllowed = true;
             }
             long offset2 = -1;
-            if(gameIdxCurrent + 1 < model.getPgnDatabase().size()) {
-                offset2 = model.getPgnDatabase().get(gameIdxCurrent+1).getOffset();
+            if(gameIdxCurrent + 1 < database.getEntries().size()) {
+                offset2 = database.getEntries().get(gameIdxCurrent+1).getOffset();
             } else {
                 // no subsequent game, essentially append - take end of file size
                 offset2 = fileSize;
@@ -209,6 +212,8 @@ public class Controller_Pgn {
 
         chooser.setAcceptAllFileFilterUsed(true);
 
+        PgnDatabase database = model.getPgnDatabase();
+
         try {
             int result = chooser.showSaveDialog(model.mainFrameRef);
             if (result == JFileChooser.APPROVE_OPTION) {
@@ -224,8 +229,8 @@ public class Controller_Pgn {
                     printer.writeGame(g, pgnFilename);
 
                     // now update the internal PGN database to the new file
-                    model.setFnPgnDatabase(pgnFilename);
-                    model.setIndexOfCurrentGameInPgn(0);
+                    database.setAbsoluteFilename(pgnFilename);
+                    database.setIdxOfCurrentlyOpenedGame(0);
                     PgnGameInfo newEntry = new PgnGameInfo();
                     newEntry.setOffset(0);
                     newEntry.setWhite(g.getHeader("White"));
@@ -239,7 +244,7 @@ public class Controller_Pgn {
                     newEntry.setSite(g.getHeader("BlackElo"));
                     ArrayList<PgnGameInfo> newEntries = new ArrayList<>();
                     newEntries.add(newEntry);
-                    model.setPgnDatabase(newEntries);
+                    database.setEntries(newEntries);
                 } else {
                     JOptionPane.showMessageDialog(null,
                             "Error saving PGN.",
@@ -267,6 +272,7 @@ public class Controller_Pgn {
         chooser.setFileFilter(pgnFilter);
 
         chooser.setAcceptAllFileFilterUsed(true);
+        PgnDatabase database = model.getPgnDatabase();
 
         try {
             int result = chooser.showSaveDialog(model.mainFrameRef);
@@ -300,9 +306,9 @@ public class Controller_Pgn {
                         }
                     }
                     // now reload this file the current database
-                    model.setFnPgnDatabase(selectedFile.getAbsolutePath());
+                    database.setAbsoluteFilename(selectedFile.getAbsolutePath());
                     reloadPgn();
-                    model.setIndexOfCurrentGameInPgn(model.getPgnDatabase().size()-1);
+                    database.setIdxOfCurrentlyOpenedGame(database.getEntries().size()-1);
                 } else {
                     JOptionPane.showMessageDialog(null,
                             "Error saving PGN.",
@@ -319,12 +325,13 @@ public class Controller_Pgn {
     public void appendToCurrentPGN() {
 
         Game g = model.getGame();
+        PgnDatabase database = model.getPgnDatabase();
         BufferedWriter writer = null;
         try {
-            File file = new File(model.getFnPgnDatabase());
+            File file = new File(database.getAbsoluteFilename());
             long offset = file.length() + 2;
             PgnPrinter pgnPrinter = new PgnPrinter();
-            writer = new BufferedWriter(new FileWriter(model.getFnPgnDatabase(), true));
+            writer = new BufferedWriter(new FileWriter(database.getAbsoluteFilename(), true));
             String sGame = pgnPrinter.printGame(g);
             writer.write(0xa); // 0xa = LF = \n
             writer.write(0xa); // 0xa = LF = \n
@@ -343,8 +350,8 @@ public class Controller_Pgn {
             newEntry.setResult(g.getHeader("Result"));
             newEntry.setRound(g.getHeader("Round"));
             newEntry.setSite(g.getHeader("Site"));
-            model.getPgnDatabase().add(newEntry);
-            model.setIndexOfCurrentGameInPgn(model.getPgnDatabase().size()-1);
+            database.getEntries().add(newEntry);
+            database.setIdxOfCurrentlyOpenedGame(database.getEntries().size()-1);
         } catch(IOException e) {
             e.printStackTrace();
         } finally {
@@ -385,10 +392,10 @@ public class Controller_Pgn {
     // that pgn and read all games + indices b) after user replaces game
     // in current pgn, we need to re-scan to get all new indices
     public void reloadPgn() {
-        String pgnFilename = model.getFnPgnDatabase();
+        String pgnFilename = model.getPgnDatabase().getAbsoluteFilename();
         PgnScanWorker worker = new PgnScanWorker(pgnFilename,
                 reader,
-                entriesFromWorker -> { model.setPgnDatabase(entriesFromWorker ); }
+                entriesFromWorker -> { model.getPgnDatabase().setEntries(entriesFromWorker ); }
         );
         DialogProgress dlgProgress = new DialogProgress(model.mainFrameRef, worker, "Scanning PGN");
         worker.execute();
@@ -399,6 +406,29 @@ public class Controller_Pgn {
         return e -> {
             DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model, this);
             dlgDatabase.setVisible(true);
+            if(dlgDatabase.isConfirmed()) {
+                PgnGameInfo gameInfo = dlgDatabase.getSelectedGame();
+                OptimizedRandomAccessFile raf = null;
+                PgnReader reader = new PgnReader();
+                try {
+                    String pgnFilename = model.getPgnDatabase().getAbsoluteFilename();
+                    raf = new OptimizedRandomAccessFile(pgnFilename, "r");
+                    raf.seek(gameInfo.getOffset());
+                    Game g = reader.readGame(raf);
+                    model.setGame(g);
+                    model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(dlgDatabase.getIndexOfSelectedGame());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } finally {
+                    if (raf != null) {
+                        try {
+                            raf.close();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
         };
     }
 
@@ -412,11 +442,11 @@ public class Controller_Pgn {
 
     public Game loadGameAt(int index) {
 
-        ArrayList<PgnGameInfo> entries = model.getPgnDatabase();
+        ArrayList<PgnGameInfo> entries = model.getPgnDatabase().getEntries();
         OptimizedRandomAccessFile raf = null;
         Game g = null;
         try {
-            raf = new OptimizedRandomAccessFile(model.getFnPgnDatabase(), "r");
+            raf = new OptimizedRandomAccessFile(model.getPgnDatabase().getAbsoluteFilename(), "r");
             if(index < entries.size()) {
                 raf.seek(entries.get(index).getOffset());
                 g = reader.readGame(raf);
@@ -436,26 +466,28 @@ public class Controller_Pgn {
     }
 
     public ActionListener goToNextGameInDatabase() {
+        PgnDatabase database = model.getPgnDatabase();
         return e -> {
-            int nextIdx = model.getIndexOfCurrentGameInPgn() + 1;
-            if (nextIdx < model.getPgnDatabase().size()) {
+            int nextIdx = database.getIdxOfCurrentlyOpenedGame() + 1;
+            if (nextIdx < database.getEntries().size()) {
                 Game g = loadGameAt(nextIdx);
                 if (g != null) {
                     model.setGame(g);
-                    model.setIndexOfCurrentGameInPgn(nextIdx);
+                    database.setIdxOfCurrentlyOpenedGame(nextIdx);
                 }
             }
         };
     }
 
     public ActionListener goToPrevGameInDatabase() {
+        PgnDatabase database = model.getPgnDatabase();
         return e -> {
-            int nextIdx = model.getIndexOfCurrentGameInPgn() - 1;
+            int nextIdx = database.getIdxOfCurrentlyOpenedGame() - 1;
             if (nextIdx >= 0) {
                 Game g = loadGameAt(nextIdx);
                 if (g != null) {
                     model.setGame(g);
-                    model.setIndexOfCurrentGameInPgn(nextIdx);
+                    database.setIdxOfCurrentlyOpenedGame(nextIdx);
                 }
             }
         };

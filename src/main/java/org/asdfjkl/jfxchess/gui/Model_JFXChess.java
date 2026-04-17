@@ -95,9 +95,7 @@ public class Model_JFXChess {
 
     private Preferences prefs;
 
-    private ArrayList<PgnGameInfo> pgnDatabase = new ArrayList<>();
-    private String fnPgnDatabase = "";
-    private int indexOfCurrentGameInPgn = -1;
+    private PgnDatabase pgnDatabase = new PgnDatabase();
     private File lastOpenedDirPath = null;
     private File lastSaveDirPath = null;
 
@@ -111,6 +109,8 @@ public class Model_JFXChess {
     private String lookAndFeel;
     public View_MainFrame mainFrameRef;
     private String latestEngineInfo = "";
+
+    private boolean shortcutsEnabled = true;
 
     public Model_JFXChess() {
         game = new Game();
@@ -370,11 +370,18 @@ public class Model_JFXChess {
         pcs.firePropertyChange("blockGUI", tmp, this.blockGUI);
     }
 
+    public void setShortcutsEnabled(boolean enabled) {
+        this.shortcutsEnabled = enabled;
+    }
+
+    public boolean getShortcutsEnabled() {
+        return shortcutsEnabled;
+    }
+
     public void applyMove(Move m) {
         // after applying a move, we block the GUI
         // when we are playing against the computer
         boolean treeWasChanged = getGame().applyMove(m);
-        System.out.println("model apply move: tree was changed: "+treeWasChanged);
         if(treeWasChanged) {
             pcs.firePropertyChange("treeChanged", null, null);
         }
@@ -441,6 +448,23 @@ public class Model_JFXChess {
             pcs.firePropertyChange("treeChanged", null, null);
         } catch(IllegalArgumentException ignored) {
         }
+    }
+
+    public void setGameResult(int resultCode) {
+        game.setResult(resultCode);
+        if(resultCode == CONSTANTS.RES_WHITE_WINS) {
+            game.setHeader("Result", "1-0");
+        }
+        if(resultCode == CONSTANTS.RES_BLACK_WINS) {
+            game.setHeader("Result", "0-1");
+        }
+        if(resultCode == CONSTANTS.RES_DRAW) {
+            game.setHeader("Result", "1/2-1/2");
+        }
+        if(resultCode == CONSTANTS.RES_UNDEF) {
+            game.setHeader("Result", "*");
+        }
+        pcs.firePropertyChange("treeChanged", null, null);
     }
 
     public void setComment(String s) {
@@ -560,20 +584,12 @@ public class Model_JFXChess {
         pcs.firePropertyChange("engineInfo", null, null);
     }
 
-    public ArrayList<PgnGameInfo> getPgnDatabase() {
+    public PgnDatabase getPgnDatabase() {
         return pgnDatabase;
     }
 
-    public void setPgnDatabase(ArrayList<PgnGameInfo> pgnDatabase) {
+    public void setPgnDatabase(PgnDatabase pgnDatabase) {
         this.pgnDatabase = pgnDatabase;
-    }
-
-    public String getFnPgnDatabase() {
-        return fnPgnDatabase;
-    }
-
-    public void setFnPgnDatabase(String fnPgnDatabase) {
-        this.fnPgnDatabase = fnPgnDatabase;
     }
 
     public File getLastOpenedDirPath() {
@@ -590,14 +606,6 @@ public class Model_JFXChess {
 
     public void setLastSaveDirPath(File lastSaveDirPath) {
         this.lastSaveDirPath = lastSaveDirPath;
-    }
-
-    public int getIndexOfCurrentGameInPgn() {
-        return indexOfCurrentGameInPgn;
-    }
-
-    public void setIndexOfCurrentGameInPgn(int indexOfCurrentGameInPgn) {
-        this.indexOfCurrentGameInPgn = indexOfCurrentGameInPgn;
     }
 
     public ScreenGeometry getScreenGeometry() {

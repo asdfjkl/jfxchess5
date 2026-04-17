@@ -208,7 +208,6 @@ public class Controller_Engine implements PropertyChangeListener {
     }
 
     public void activateEnterMovesMode() {
-        System.out.println("activating Enter moves mode");
         stopEngine();
         model.activeEngine = model.selectedAnalysisEngine;
         if (model.activeEngine.supportsUciLimitStrength()) {
@@ -261,7 +260,6 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public void handleNewBoardPositionModePlayout() {
 
-        System.out.println("handleNewBoardPositionModePlayout, sending uci GoMoveTime");
         String fen = model.getGame().getUciPositionString();
         sendNewPosition(fen);
         uciGoMoveTime(model.getComputerThinkTimeSecs()*1000);
@@ -276,7 +274,7 @@ public class Controller_Engine implements PropertyChangeListener {
             if(result >= 0) {
                 if(result == DialogNewGame.ENTER_ANALYSE) {
                     // clean up current game, but otherwise not much to do
-                    model.setIndexOfCurrentGameInPgn(-1);
+                    model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                     model.setComputerThinkTimeSecs(3);
                     Game g = new Game();
                     Board b = new Board(true);
@@ -290,7 +288,7 @@ public class Controller_Engine implements PropertyChangeListener {
                     dlgPlayBot.setVisible(true);
                     if(dlgPlayBot.isConfirmed()) {
                         model.wasSaved = false;
-                        model.setIndexOfCurrentGameInPgn(-1);
+                        model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                         model.setComputerThinkTimeSecs(3);
                         Game g = new Game();
                         Board b;
@@ -329,7 +327,7 @@ public class Controller_Engine implements PropertyChangeListener {
                     boolean uciAccepted = dlgUci.isConfirmed();
                     if(uciAccepted) {
                         model.wasSaved = false;
-                        model.setIndexOfCurrentGameInPgn(-1);
+                        model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
                         model.setComputerThinkTimeSecs(3);
                         Game g = new Game();
                         Board b;
@@ -568,7 +566,6 @@ public class Controller_Engine implements PropertyChangeListener {
         if(zobrist != model.getGame().getCurrentNode().getBoard().getZobrist()) {
             // if this bestmove is for a different position than the current,
             // it is a relict from thread/gui synchronisation mismatch; we just dismiss it
-            //System.out.println("bestmove, but dismissing: "+bestmove);
             return;
         } else {
             // If not, this is a bestmove from either playing the engine
@@ -580,8 +577,6 @@ public class Controller_Engine implements PropertyChangeListener {
         if (mode == Model_JFXChess.MODE_PLAY_WHITE ||
                 mode == Model_JFXChess.MODE_PLAY_BLACK  ||
                 mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
-
-            System.out.println("bestmove, play mode: "+bestmove);
 
             // todo: catch Exceptions!
             String uci = bestmoveItems[1].split(" ")[0];
@@ -597,10 +592,6 @@ public class Controller_Engine implements PropertyChangeListener {
                 if(mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
                     model.applyMove(m);
                 }
-            } else {
-                System.out.println("illegal move: "+m.getUci());
-                System.out.println("at position: "+b.toString());
-                System.out.println("at position: "+b.fen());
             }
         }
 
@@ -818,23 +809,8 @@ public class Controller_Engine implements PropertyChangeListener {
 
         if ((isCheckmate || isStalemate || isThreefoldRepetition || isInsufficientMaterial)) {
             if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK || mode == Model_JFXChess.MODE_PLAYOUT_POSITION) {
-                System.out.println("aborting due to:");
-                if(isCheckmate) {
-                    System.out.println("checkmate?!");
-                }
-                if(isStalemate) {
-                    System.out.println("stalemate?!");
-                }
-                if(isThreefoldRepetition) {
-                    System.out.println("threefold repetition");
-                }
-                if(isInsufficientMaterial) {
-                    System.out.println("insufficient material");
-                }
                 abort = true;
-            //} always display a result message, also if engines are playing against each other
-            //    todo: ensure that result is updated in pgn tag info as well as in moves view
-            //if (mode == Model_JFXChess.MODE_PLAY_WHITE || mode == Model_JFXChess.MODE_PLAY_BLACK) {
+            // always display a result message, also if engines are playing against each other
                 String message = "";
                 if (isCheckmate) {
                     message = "Checkmate";
@@ -851,9 +827,25 @@ public class Controller_Engine implements PropertyChangeListener {
                 JOptionPane.showMessageDialog(model.mainFrameRef, message);
             }
         }
-
         if(abort) {
             activateEnterMovesMode();
+            if (isCheckmate) {
+                // white to move, but cannot: black checkmated
+                if(board.turn == CONSTANTS.WHITE) {
+                    model.game.setResult(CONSTANTS.RES_BLACK_WINS);
+                } else {
+                    model.game.setResult(CONSTANTS.RES_WHITE_WINS);
+                }
+            }
+            if (isStalemate) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
+            if (isThreefoldRepetition) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
+            if (isInsufficientMaterial) {
+                model.game.setResult(CONSTANTS.RES_DRAW);
+            }
         } else {
             if (mode == Model_JFXChess.MODE_ANALYSIS) {
                 handleNewBoardPositionModeAnalysis();

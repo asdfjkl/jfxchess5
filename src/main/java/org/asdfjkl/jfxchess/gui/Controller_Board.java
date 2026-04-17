@@ -20,9 +20,11 @@ package org.asdfjkl.jfxchess.gui;
 
 import org.asdfjkl.jfxchess.lib.Arrow;
 import org.asdfjkl.jfxchess.lib.ColoredField;
+import org.asdfjkl.jfxchess.lib.GameNode;
 import org.asdfjkl.jfxchess.lib.Move;
 
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class Controller_Board {
 
@@ -50,7 +52,22 @@ public class Controller_Board {
 
     public ActionListener moveForward() {
         return e -> {
-            model.goToChild(0);
+            ArrayList<GameNode> variations = model.getGame().getCurrentNode().getVariations();
+            if (variations.size() > 1) {
+                ArrayList<String> nextMoves = new ArrayList<>();
+                for (GameNode varI : variations) {
+                    nextMoves.add(varI.getSan());
+                }
+                DialogNextMove dlgNextMove = new DialogNextMove(model.mainFrameRef, model, nextMoves);
+                dlgNextMove.setVisible(true);
+                int selectedMove = dlgNextMove.getSelectedMove();
+                // if selectedMove == -1, user aborted. Don't change anything.
+                if (selectedMove >= 0) {
+                    model.goToChild(selectedMove);
+                }
+            } else { // only one move -> go to child
+                model.goToChild(0);
+            }
         };
     }
 

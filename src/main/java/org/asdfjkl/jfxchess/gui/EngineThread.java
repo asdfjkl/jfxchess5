@@ -91,9 +91,8 @@ public class EngineThread extends Thread {
                 return;
             }
             engineInput.write(cmd + "\n");
-            System.out.println(">>> "+cmd);
-            engineInput.flush();
             //System.out.println(">>> "+cmd);
+            engineInput.flush();
         } catch (IOException e) {
             e.printStackTrace(System.out);
         } catch (InterruptedException e) {
@@ -105,7 +104,6 @@ public class EngineThread extends Thread {
     private void cleanupProcess() {
         if (engineIsOn()) {
             try {
-                //System.out.println("Cleaning up engine process...");
                 engineInput.write("quit\n");
                 engineInput.flush();
 
@@ -345,7 +343,6 @@ public class EngineThread extends Thread {
 
         } finally {
             cleanupProcess(); // ALWAYS executed
-            // System.out.println("EngineThread terminated");
         }
     }
 

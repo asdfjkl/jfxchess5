@@ -91,8 +91,12 @@ public class View_MainFrame extends JFrame
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(e -> {
 
-                    if (e.getID() != KeyEvent.KEY_PRESSED)
+                    if (!model.getShortcutsEnabled()) {
                         return false;
+                    }
+                    if (e.getID() != KeyEvent.KEY_PRESSED) {
+                        return false;
+                    }
                     KeyStroke ks = KeyStroke.getKeyStrokeForEvent(e);
                     ActionListener a = shortcuts.get(ks);
                     if (a != null) {
