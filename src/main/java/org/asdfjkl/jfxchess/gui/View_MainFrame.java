@@ -519,13 +519,21 @@ public class View_MainFrame extends JFrame
         view_Moves = new View_Moves(model, controller_UI, controller_Board);
         scrollMoves = new JScrollPane(view_Moves);
 
+        // ===== View for opening book
         View_Book view_Book = new View_Book(model, controller_Board);
         JScrollPane scrollBook = new JScrollPane(view_Book);
         model.addListener(view_Book);
 
+        // evaluation barchart
+        View_Eval view_Eval = new View_Eval(model,6.0f);
+        model.addListener(view_Eval);
+        // temp: remove later
+        //for (int i = 0; i < 30; i++) {
+        //    view_Eval.setEvalAt(i, (float)(Math.sin(i * 0.2) * 3));
+        //}
+
         // Navigation buttons panel
         JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
 
         JButton btnToStart = new JButton();
         btnToStart.putClientProperty("JButton.buttonType", "toolBarButton");
@@ -555,7 +563,6 @@ public class View_MainFrame extends JFrame
         btnToEnd.setFocusable(false);
         btnToEnd.addActionListener(controller_Board.seekToEnd());
 
-
         navPanel.add(btnToStart);
         navPanel.add(btnPrev);
         navPanel.add(btnNext);
@@ -566,10 +573,19 @@ public class View_MainFrame extends JFrame
         tabbedPane.addTab("Moves", scrollMoves);
         tabbedPane.addTab("Book", scrollBook);
 
+        // container for move-view/book-view and eval barchart
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        view_Eval.setPreferredSize(new Dimension(0, (int) (navPanel.getPreferredSize().height * 1.5)));
+        centerPanel.add(view_Eval, BorderLayout.SOUTH);
+
         // Container for right side
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(headerPanel, BorderLayout.NORTH);
-        rightPanel.add(tabbedPane, BorderLayout.CENTER);
+        //rightPanel.add(tabbedPane, BorderLayout.CENTER);
+        //rightPanel.add(view_eval, BorderLayout.SOUTH);
+        rightPanel.add(centerPanel, BorderLayout.CENTER);
         rightPanel.add(navPanel, BorderLayout.SOUTH);
 
         // ===== Horizontal Split (Board | Right Pane) =====
