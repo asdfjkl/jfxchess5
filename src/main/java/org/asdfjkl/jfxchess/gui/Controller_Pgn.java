@@ -113,8 +113,10 @@ public class Controller_Pgn {
             }
         }
         if(database.getEntries().size() > 1) {
+            model.setShortcutsEnabled(false);
             DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model,this);
             dlgDatabase.setVisible(true);
+            model.setShortcutsEnabled(true);
             if(dlgDatabase.isConfirmed()) {
                 PgnGameInfo gameInfo = dlgDatabase.getSelectedGame();
                 OptimizedRandomAccessFile raf = null;
@@ -176,8 +178,10 @@ public class Controller_Pgn {
             }
 
             // show dialog
+            model.setShortcutsEnabled(false);
             DialogSave dlgSave = new DialogSave(model.mainFrameRef, appendToCurrentAllowed, replaceAllowed);
             dlgSave.setVisible(true);
+            model.setShortcutsEnabled(true);
             int res = dlgSave.getResult();
             if (res != DialogSave.CANCEL) {
                 if (res == DialogSave.SAVE_NEW) {
@@ -405,7 +409,9 @@ public class Controller_Pgn {
 
     public ActionListener showDatabase() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogDatabase dlgDatabase = new DialogDatabase(model.mainFrameRef, model, this);
+            model.setShortcutsEnabled(true);
             dlgDatabase.setVisible(true);
             if(dlgDatabase.isConfirmed()) {
                 PgnGameInfo gameInfo = dlgDatabase.getSelectedGame();

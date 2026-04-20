@@ -47,8 +47,10 @@ public class Controller_UI {
 
     public ActionListener showAbout() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogAbout dlg = new DialogAbout(model.mainFrameRef, model.getVersion());
             dlg.setVisible(true);
+            model.setShortcutsEnabled(true);
         };
     }
 
@@ -270,9 +272,11 @@ public class Controller_UI {
 
     public ActionListener editGameData() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogEditGameData dialog =
                     new DialogEditGameData(model.mainFrameRef, model.getGame().getPgnHeaders());
             dialog.setVisible(true);
+            model.setShortcutsEnabled(true);
             if(dialog.isConfirmed()) {
                 model.setPgnHeaders(dialog.getData());
             }
@@ -429,8 +433,10 @@ public class Controller_UI {
 
     public ActionListener setupNewPosition() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogSetupPosition dialog = new DialogSetupPosition(model.mainFrameRef, model);
             dialog.setVisible(true);
+            model.setShortcutsEnabled(true);
             if(dialog.isConfirmed()) {
                 Board newBoard = dialog.getCurrentBoard();
                 Game g = new Game();
@@ -479,7 +485,9 @@ public class Controller_UI {
 
     public ActionListener editComment() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogEditComment dlgComment = new DialogEditComment(model.mainFrameRef, "Edit Comment");
+            model.setShortcutsEnabled(true);
             GameNode currentNode = model.getGame().getCurrentNode();
             dlgComment.setText(currentNode.getComment());
             dlgComment.setVisible(true);

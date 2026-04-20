@@ -267,9 +267,11 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public ActionListener startNewGame() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogNewGame dlg = new DialogNewGame(model.mainFrameRef, "New Game");
             dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dlg.setVisible(true);
+            model.setShortcutsEnabled(true);
             int result = dlg.getSelection();
             if(result >= 0) {
                 if(result == DialogNewGame.ENTER_ANALYSE) {
@@ -448,9 +450,11 @@ public class Controller_Engine implements PropertyChangeListener {
 
     public ActionListener startGameAnalysisMode() {
         return e -> {
+            model.setShortcutsEnabled(false);
             DialogGameAnalysis dlg = new DialogGameAnalysis(model.mainFrameRef);
             dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dlg.setVisible(true);
+            model.setShortcutsEnabled(true);
 
             if(dlg.isConfirmed()) {
                 model.setGameAnalysisForPlayer(dlg.getSelectedPlayer());
@@ -868,8 +872,10 @@ public class Controller_Engine implements PropertyChangeListener {
         return e -> {
             activateEnterMovesMode();
             int idxActiveEngine = model.engines.indexOf(model.activeEngine);
+            model.setShortcutsEnabled(false);
             DialogEngines dlgEngines = new DialogEngines(model.mainFrameRef, model.engines, idxActiveEngine);
             dlgEngines.setVisible(true);
+            model.setShortcutsEnabled(true);
             if(dlgEngines.isConfirmed()) {
                 model.engines = dlgEngines.getEngines();
                 model.activeEngine = dlgEngines.getSelectedEngine();
@@ -909,8 +915,10 @@ public class Controller_Engine implements PropertyChangeListener {
                         maxCpusAvail = 1;
                     }
                     int maxThreads = Math.min(maxCpusAvail,  model.activeEngine.getMaxThreads());
+                    model.setShortcutsEnabled(false);
                     DialogThreads dlgThreads = new DialogThreads(model.mainFrameRef, 1, maxThreads, currentNrThreads);
                     dlgThreads.setVisible(true);
+                    model.setShortcutsEnabled(true);
                     if(dlgThreads.isConfirmed()) {
                         int newNrThreads = dlgThreads.getNrThreads();
                         if(newNrThreads != currentNrThreads) {

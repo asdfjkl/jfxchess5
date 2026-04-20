@@ -477,6 +477,7 @@ public class View_Chessboard extends JPanel
                         // case a) 2)
                         Move m = new Move(moveSource.x, moveSource.y, boardPos.x, boardPos.y);
                         if (b.isLegalAndPromotes(m)) {
+                            model.setShortcutsEnabled(false);
                             DialogPromotion dlgProm = new DialogPromotion(
                                     model.mainFrameRef,
                                     "Promotion",
@@ -484,6 +485,7 @@ public class View_Chessboard extends JPanel
                                     model.getBoardStyle().getPieceStyle()
                             );
                             dlgProm.setVisible(true);
+                            model.setShortcutsEnabled(true);
                             int promotionPiece = dlgProm.getSelectedPiece();
                             if (promotionPiece != EMPTY) {
                                 m.setPromotionPiece(promotionPiece);
@@ -544,12 +546,14 @@ public class View_Chessboard extends JPanel
                 if (!(boardPos.x == moveSource.x && boardPos.y == moveSource.y)) {
                     Move m = new Move(moveSource.x, moveSource.y, boardPos.x, boardPos.y);
                     if (b.isLegalAndPromotes(m)) {
+                        model.setShortcutsEnabled(false);
                         DialogPromotion dlgPromotion = new DialogPromotion(model.mainFrameRef,
                                 "Promotion",
                                 b.turn,
                                 model.getBoardStyle().getPieceStyle()
                         );
                         dlgPromotion.setVisible(true);
+                        model.setShortcutsEnabled(true);
                         if(dlgPromotion.getSelectedPiece() != EMPTY) {
                             m.setPromotionPiece(dlgPromotion.getSelectedPiece());
                             controller_Board.applyMove(m);

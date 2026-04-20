@@ -58,8 +58,10 @@ public class Controller_Board {
                 for (GameNode varI : variations) {
                     nextMoves.add(varI.getSan());
                 }
-                DialogNextMove dlgNextMove = new DialogNextMove(model.mainFrameRef, model, nextMoves);
+                model.setShortcutsEnabled(false);
+                DialogNextMove dlgNextMove = new DialogNextMove(model.mainFrameRef, nextMoves);
                 dlgNextMove.setVisible(true);
+                model.setShortcutsEnabled(true);
                 int selectedMove = dlgNextMove.getSelectedMove();
                 // if selectedMove == -1, user aborted. Don't change anything.
                 if (selectedMove >= 0) {

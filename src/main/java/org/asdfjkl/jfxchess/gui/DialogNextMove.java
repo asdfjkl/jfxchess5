@@ -27,9 +27,8 @@ public class DialogNextMove extends JDialog {
 
     private int selectedMove = -1;
     private final JList<String> list;
-    private final Model_JFXChess model_JFXChess;
 
-    public DialogNextMove(Window owner, Model_JFXChess model_JFXChess, ArrayList<String> possibleMoves) {
+    public DialogNextMove(Window owner, ArrayList<String> possibleMoves) {
         super(owner, "Select Next Move", ModalityType.APPLICATION_MODAL);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -39,9 +38,6 @@ public class DialogNextMove extends JDialog {
         for (String move : possibleMoves) {
             model.addElement(move);
         }
-
-        // game model
-        this.model_JFXChess = model_JFXChess;
 
         // List
         list = new JList<>(model);
@@ -87,22 +83,6 @@ public class DialogNextMove extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 onCancel();
-            }
-        });
-
-        // somewhat hacky, but working: automatic enable
-        // disable global shortcuts via flag in model
-        // otherwise pressing -> (next) on keyboard
-        // will trigger go-to-next-node in an infinite loop
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-                model_JFXChess.setShortcutsEnabled(false);
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-                model_JFXChess.setShortcutsEnabled(true);
             }
         });
 
