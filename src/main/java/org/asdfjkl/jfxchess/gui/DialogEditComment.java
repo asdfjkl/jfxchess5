@@ -37,6 +37,8 @@ public class DialogEditComment extends JDialog {
 
         // Text area (multiline, plain text)
         textArea = new JTextArea(10, 40);
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
         JScrollPane scrollPane = new JScrollPane(textArea);
         add(scrollPane, BorderLayout.CENTER);
 
