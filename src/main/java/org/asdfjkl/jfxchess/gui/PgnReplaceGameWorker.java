@@ -96,7 +96,7 @@ public class PgnReplaceGameWorker extends SwingWorker<String, Integer> {
                 }
 
                 // Insert
-                String insertion = "\n\n" + text + "\n\n";
+                String insertion = "\n" + text + "\n\n";
                 out.write(insertion.getBytes(StandardCharsets.UTF_8));
 
                 // Copy rest

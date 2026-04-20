@@ -31,7 +31,6 @@ import java.util.Map;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.*;
 import org.asdfjkl.jfxchess.lib.HtmlPrinter;
-import org.asdfjkl.jfxchess.lib.PolyglotExtEntry;
 
 public class View_MainFrame extends JFrame
         implements PropertyChangeListener {
@@ -411,6 +410,7 @@ public class View_MainFrame extends JFrame
         toolBar.add(btnTbOpen);
         btnTbOpen.addActionListener(controller_Pgn.openFile());
         JButton btnTbSave = createToolButton("Save Game", "file_save.svg");
+        btnTbSave.addActionListener(controller_Pgn.saveGame());
         toolBar.add(btnTbSave);
 
         toolBar.addSeparator();

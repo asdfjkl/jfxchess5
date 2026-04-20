@@ -218,10 +218,7 @@ public class Controller_Pgn {
             int result = chooser.showSaveDialog(model.mainFrameRef);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = chooser.getSelectedFile();
-                if (selectedFile != null &&
-                        selectedFile.exists() &&
-                        selectedFile.canWrite()
-                ) {
+                if (selectedFile != null) {
                     model.setLastSaveDirPath(chooser.getCurrentDirectory());
                     String pgnFilename = selectedFile.getAbsolutePath();
                     Game g = model.getGame();
@@ -385,7 +382,11 @@ public class Controller_Pgn {
                     msg,
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
+            // something went wrong here, so we can't say anymore where
+            // the current game belongs
+            model.getPgnDatabase().setIdxOfCurrentlyOpenedGame(-1);
         }
+        reloadPgn();
     }
 
     // function used for: a) after user appends to another pgn we need to open
