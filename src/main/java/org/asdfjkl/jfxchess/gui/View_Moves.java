@@ -108,6 +108,7 @@ public class View_Moves extends JEditorPane {
 
                 if (href != null) {
                     int nodeId = Integer.parseInt(href.substring(1));
+                    model.goToNode(nodeId);
                     showContextMenu(e, nodeId);
                 }
             }
