@@ -40,7 +40,7 @@ apps:
 parts:
  jfxchess:
     plugin: maven
-    source: https://github.com/asdfjkl/jfxchess5.git
+    source: https://github.com/asdfjkl/jfxchess.git
     maven-parameters: ["clean", "package"]
     source-type: git
     build-packages:
